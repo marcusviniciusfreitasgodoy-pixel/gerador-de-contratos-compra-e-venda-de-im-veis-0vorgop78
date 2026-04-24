@@ -66,7 +66,10 @@ export const contractSchema = z
       .refine((v) => parseCurrencySafe(v) > 0, 'Valor deve ser maior que zero'),
 
     valor_reforco: z.string().optional(),
-    valor_complemento: z.string().optional(),
+    valor_complemento: z
+      .string()
+      .min(1, 'Obrigatório')
+      .refine((v) => parseCurrencySafe(v) > 0, 'Valor deve ser maior que zero'),
     valor_saldo: z.string().optional(),
     valor_financiado: z.string().optional(),
 
@@ -76,93 +79,47 @@ export const contractSchema = z
   .superRefine((data, ctx) => {
     const total = parseCurrencySafe(data.valor_total)
     const sinal = parseCurrencySafe(data.valor_sinal)
+    const reforco = parseCurrencySafe(data.valor_reforco)
+    const complemento = parseCurrencySafe(data.valor_complemento)
+
+    if (data.valor_reforco && reforco <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Valor deve ser maior que zero',
+        path: ['valor_reforco'],
+      })
+    }
 
     if (data.tipo === 'a_vista') {
-      const saldo = parseCurrencySafe(data.valor_saldo)
-      const reforco = parseCurrencySafe(data.valor_reforco)
-      const complemento = parseCurrencySafe(data.valor_complemento)
+      const saldoCalc = total - (sinal + reforco + complemento)
 
-      if (data.valor_saldo && saldo <= 0) {
+      if (saldoCalc !== 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Valor deve ser maior que zero',
+          message: 'O saldo final deve ser zero. Aloque todo o valor.',
           path: ['valor_saldo'],
         })
-      }
-      if (data.valor_reforco && reforco <= 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Valor deve ser maior que zero',
-          path: ['valor_reforco'],
-        })
-      }
-      if (data.valor_complemento && complemento <= 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Valor deve ser maior que zero',
-          path: ['valor_complemento'],
-        })
-      }
-
-      if (sinal + reforco + complemento + saldo !== total) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message:
-            'Sinal + Reforço + Complemento (Na escritura) + Saldo deve ser igual ao Valor Total',
-          path: ['valor_saldo'],
-        })
-      }
-
-      if (data.data_pagamento_saldo) {
-        const [year, month, day] = data.data_pagamento_saldo.split('-').map(Number)
-        const date = new Date(year, month - 1, day)
-        const today = new Date()
-        today.setHours(0, 0, 0, 0)
-        if (date <= today) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: 'Data deve ser no futuro',
-            path: ['data_pagamento_saldo'],
-          })
-        }
       }
     }
 
     if (data.tipo === 'financiado') {
-      const reforco = parseCurrencySafe(data.valor_reforco)
-      const complemento = parseCurrencySafe(data.valor_complemento)
       const financiado = parseCurrencySafe(data.valor_financiado)
 
-      if (data.valor_reforco && reforco <= 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Valor deve ser maior que zero',
-          path: ['valor_reforco'],
-        })
-      }
-
-      if (!data.valor_complemento || complemento <= 0) {
+      if (!data.valor_financiado || financiado <= 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: 'Obrigatório e deve ser maior que zero',
-          path: ['valor_complemento'],
-        })
-      }
-
-      if (data.valor_financiado && financiado <= 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Valor deve ser maior que zero',
           path: ['valor_financiado'],
         })
       }
 
-      if (sinal + reforco + complemento + financiado !== total) {
+      const saldoCalc = total - (sinal + reforco + complemento + financiado)
+
+      if (saldoCalc !== 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message:
-            'Sinal + Reforço + Complemento (Na escritura) + Financiado deve ser igual ao Valor Total',
-          path: ['valor_financiado'],
+          message: 'O saldo final deve ser zero. Aloque todo o valor.',
+          path: ['valor_saldo'],
         })
       }
     }

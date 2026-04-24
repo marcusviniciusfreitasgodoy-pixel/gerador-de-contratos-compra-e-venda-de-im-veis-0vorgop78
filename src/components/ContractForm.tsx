@@ -59,18 +59,60 @@ function FinancialBlock({ type }: { type: 'a_vista' | 'financiado' }) {
         <FormCurrencyInput name="valor_reforco" label="Valor do Reforço" placeholder="R$ 0,00" />
         <FormCurrencyInput
           name="valor_complemento"
-          label={
-            type === 'financiado' ? 'Complemento (Na escritura) *' : 'Complemento (Na escritura)'
-          }
+          label="Complemento (Na escritura)"
           placeholder="R$ 0,00"
         />
-        {type === 'a_vista' && (
-          <>
-            <FormCurrencyInput name="valor_saldo" label="Saldo Final" placeholder="R$ 0,00" />
-            <FormInput name="data_pagamento_saldo" label="Data Limite do Saldo" type="date" />
-          </>
-        )}
         <FormCurrencyInput name="comissao" label="Comissão Imobiliária" placeholder="R$ 0,00" />
+      </div>
+    </div>
+  )
+}
+
+function BalanceCheckBlock({ form, type }: { form: any; type: 'a_vista' | 'financiado' }) {
+  const total = parseCurrency(form.watch('valor_total')) || 0
+  const sinal = parseCurrency(form.watch('valor_sinal')) || 0
+  const reforco = parseCurrency(form.watch('valor_reforco')) || 0
+  const complemento = parseCurrency(form.watch('valor_complemento')) || 0
+  const financiado = type === 'financiado' ? parseCurrency(form.watch('valor_financiado')) || 0 : 0
+
+  const saldo = total - (sinal + reforco + complemento + financiado)
+  const isBalanced = saldo === 0 && total > 0
+
+  return (
+    <div
+      className={`mt-8 p-5 rounded-xl border transition-colors ${
+        isBalanced ? 'bg-green-50 border-green-200' : 'bg-amber-50 border-amber-200'
+      }`}
+    >
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h4
+            className={`font-semibold text-lg flex items-center gap-2 ${
+              isBalanced ? 'text-green-800' : 'text-amber-800'
+            }`}
+          >
+            Saldo Final
+            {isBalanced ? (
+              <CheckCircle2 className="w-5 h-5 text-green-600" />
+            ) : (
+              <AlertCircle className="w-5 h-5 text-amber-600" />
+            )}
+          </h4>
+          <p className={`text-sm mt-1 ${isBalanced ? 'text-green-700' : 'text-amber-700'}`}>
+            {isBalanced
+              ? 'Os valores de pagamento batem com o valor total.'
+              : saldo > 0
+                ? `Falta alocar ${formatCurrency(saldo)} do valor total.`
+                : `Os pagamentos excedem o valor total em ${formatCurrency(Math.abs(saldo))}.`}
+          </p>
+        </div>
+        <div
+          className={`text-2xl font-bold px-4 py-2 rounded-lg bg-white/60 shadow-sm ${
+            isBalanced ? 'text-green-700' : 'text-amber-700'
+          }`}
+        >
+          {formatCurrency(saldo)}
+        </div>
       </div>
     </div>
   )
@@ -151,6 +193,10 @@ export function ContractForm({
   })
 
   const valorTotalStr = form.watch('valor_total')
+  const valorSinalStr = form.watch('valor_sinal')
+  const valorReforcoStr = form.watch('valor_reforco')
+  const valorComplementoStr = form.watch('valor_complemento')
+  const valorFinanciadoStr = form.watch('valor_financiado')
 
   useEffect(() => {
     if (!user?.comissao_padrao_percentual) return
@@ -161,6 +207,25 @@ export function ContractForm({
       form.setValue('comissao', formatted, { shouldValidate: true })
     }
   }, [valorTotalStr, user?.comissao_padrao_percentual, form])
+
+  useEffect(() => {
+    const total = parseCurrency(valorTotalStr) || 0
+    const sinal = parseCurrency(valorSinalStr) || 0
+    const reforco = parseCurrency(valorReforcoStr) || 0
+    const complemento = parseCurrency(valorComplementoStr) || 0
+    const financiado = type === 'financiado' ? parseCurrency(valorFinanciadoStr) || 0 : 0
+
+    const saldo = total - (sinal + reforco + complemento + financiado)
+    form.setValue('valor_saldo', formatCurrency(saldo), { shouldValidate: true })
+  }, [
+    valorTotalStr,
+    valorSinalStr,
+    valorReforcoStr,
+    valorComplementoStr,
+    valorFinanciadoStr,
+    type,
+    form,
+  ])
 
   const onSubmit = (data: ContractFormValues) => {
     setDraftText(generateDraftText(data, user))
@@ -284,10 +349,9 @@ export function ContractForm({
     if (type === 'a_vista') {
       const data = {
         ...commonData,
-        valor_saldo: 'R$ 450.000,00',
-        data_pagamento_saldo: addDays(new Date(), 30).toISOString().split('T')[0],
-        valor_reforco: '',
-        valor_complemento: '',
+        valor_saldo: 'R$ 0,00',
+        valor_reforco: 'R$ 50.000,00',
+        valor_complemento: 'R$ 400.000,00',
         valor_financiado: '',
         instituicao_financeira: '',
       }
@@ -303,8 +367,7 @@ export function ContractForm({
         valor_complemento: 'R$ 25.000,00',
         valor_financiado: 'R$ 400.000,00',
         instituicao_financeira: 'Caixa Econômica Federal',
-        valor_saldo: '',
-        data_pagamento_saldo: undefined,
+        valor_saldo: 'R$ 0,00',
       }
       Object.entries(data).forEach(([key, value]) => {
         if (value !== undefined) {
@@ -521,21 +584,8 @@ export function ContractForm({
           <PersonBlock suffix="_comprador" title="Dados do Comprador" />
           <PropertyBlock />
           <FinancialBlock type={type} />
-
-          {(form.formState.errors.valor_saldo?.message?.includes('Sinal + Reforço') ||
-            form.formState.errors.valor_financiado?.message?.includes('Sinal + Reforço')) && (
-            <Alert variant="destructive" className="bg-red-50 border-red-200">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Erro nos Valores</AlertTitle>
-              <AlertDescription>
-                A soma do Sinal, Reforço, Complemento (Na escritura) e{' '}
-                {type === 'a_vista' ? 'Saldo' : 'Financiado'} deve ser exatamente igual ao Valor
-                Total. Por favor, revise os valores.
-              </AlertDescription>
-            </Alert>
-          )}
-
           <FinancingBlock type={type} />
+          <BalanceCheckBlock form={form} type={type} />
         </div>
         <div className="flex justify-end pt-4 pb-12">
           <Button
