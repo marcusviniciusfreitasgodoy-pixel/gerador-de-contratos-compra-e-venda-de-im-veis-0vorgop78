@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { contractSchema, type ContractFormValues } from '@/lib/schemas'
 import { PersonBlock, PropertyBlock, FinancialBlock, FinancingBlock } from './ContractBlocks'
 import { ArrowLeft, Loader2, CheckCircle2 } from 'lucide-react'
-import { createContract } from '@/services/contracts'
+import { createContract, generateContractDocx } from '@/services/contracts'
 import { toast } from 'sonner'
 
 export function ContractForm({
@@ -31,16 +31,44 @@ export function ContractForm({
   const onSubmit = async (data: ContractFormValues) => {
     setIsGenerating(true)
     try {
-      await createContract(data)
-      toast.success('Contrato gerado com sucesso!')
-      setIsSuccess(true)
+      const savedContract = await createContract(data)
+
+      try {
+        const docxResponse = await generateContractDocx(savedContract)
+
+        if (docxResponse.base64 && docxResponse.filename) {
+          const byteCharacters = atob(docxResponse.base64)
+          const byteNumbers = new Array(byteCharacters.length)
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i)
+          }
+          const byteArray = new Uint8Array(byteNumbers)
+          const blob = new Blob([byteArray], {
+            type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          })
+
+          const url = window.URL.createObjectURL(blob)
+          const link = document.createElement('a')
+          link.href = url
+          link.download = docxResponse.filename
+          document.body.appendChild(link)
+          link.click()
+          link.remove()
+          window.URL.revokeObjectURL(url)
+        }
+
+        toast.success('Contrato gerado com sucesso!')
+        setIsSuccess(true)
+      } catch (err: any) {
+        toast.error('Erro ao gerar contrato. Tente novamente.', {
+          action: {
+            label: 'Tentar Novamente',
+            onClick: () => onSubmit(data),
+          },
+        })
+      }
     } catch (error) {
-      toast.error('Erro ao gerar contrato. Tente novamente.', {
-        action: {
-          label: 'Tentar Novamente',
-          onClick: () => onSubmit(data),
-        },
-      })
+      toast.error('Erro ao salvar contrato no sistema. Tente novamente.')
     } finally {
       setIsGenerating(false)
     }

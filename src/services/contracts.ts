@@ -11,6 +11,14 @@ const toPbDate = (dateStr?: string | null) => {
   }
 }
 
+export const generateContractDocx = async (data: any) => {
+  return await pb.send('/backend/v1/gerar-contrato-docx', {
+    method: 'POST',
+    body: JSON.stringify(data),
+    headers: { 'Content-Type': 'application/json' },
+  })
+}
+
 export const createContract = async (data: ContractFormValues) => {
   const payload = {
     ...data,
