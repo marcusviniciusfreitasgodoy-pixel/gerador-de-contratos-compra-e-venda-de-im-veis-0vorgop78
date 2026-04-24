@@ -5,12 +5,14 @@ import { Badge } from '@/components/ui/badge'
 import { Bot, Calendar, FileText, Loader2, ArrowRight } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import { useAuth } from '@/hooks/use-auth'
 import { AnalysisReportView } from '@/components/AnalysisReportView'
 import { cn } from '@/lib/utils'
 
 export default function AnalysisHistory() {
+  const { user, loading: authLoading } = useAuth()
   const [reports, setReports] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [selectedReport, setSelectedReport] = useState<any | null>(null)
@@ -49,6 +51,9 @@ export default function AnalysisHistory() {
         return 'bg-slate-100 text-slate-800 border-slate-200'
     }
   }
+
+  if (authLoading) return null
+  if (!user) return <Navigate to="/login" />
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-5xl">

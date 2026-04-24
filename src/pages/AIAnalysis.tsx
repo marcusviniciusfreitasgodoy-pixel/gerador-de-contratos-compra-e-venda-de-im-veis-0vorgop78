@@ -10,13 +10,15 @@ import {
 } from '@/components/ui/select'
 import { Loader2, FileText, UploadCloud, AlertCircle, RefreshCcw, Bot, History } from 'lucide-react'
 import { toast } from 'sonner'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams, Navigate } from 'react-router-dom'
 import pb from '@/lib/pocketbase/client'
+import { useAuth } from '@/hooks/use-auth'
 import { AnalysisReportView, type AnalysisReport } from '@/components/AnalysisReportView'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 
 export default function AIAnalysis() {
+  const { user, loading: authLoading } = useAuth()
   const [searchParams] = useSearchParams()
   const contractIdParam = searchParams.get('contractId')
 
@@ -105,7 +107,8 @@ export default function AIAnalysis() {
       clearTimeout(timeoutId)
 
       if (res.error) {
-        const msg = 'Não consegui analisar o contrato. Tente novamente.'
+        const msg =
+          'Unable to analyze the document. Please ensure the file contains readable text or check your AI configuration.'
         setErrorMsg(msg)
         toast.error(msg)
       } else {
@@ -115,13 +118,17 @@ export default function AIAnalysis() {
     } catch (error: any) {
       clearTimeout(timeoutId)
       console.error(error)
-      const msg = 'Não consegui analisar o contrato. Tente novamente.'
+      const msg =
+        'Unable to analyze the document. Please ensure the file contains readable text or check your AI configuration.'
       setErrorMsg(msg)
       toast.error(msg)
     } finally {
       setIsAnalyzing(false)
     }
   }
+
+  if (authLoading) return null
+  if (!user) return <Navigate to="/login" />
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-5xl">

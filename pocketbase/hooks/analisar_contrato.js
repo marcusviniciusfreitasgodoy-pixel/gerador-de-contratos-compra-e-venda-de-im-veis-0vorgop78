@@ -121,15 +121,26 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
 
         if (chatRes.statusCode !== 200) {
           $app.logger().error('Gemini AI failed', 'status', chatRes.statusCode, 'raw', chatRes.raw)
-          throw new Error('Falha na análise da IA com Gemini.')
+          return e.json(500, {
+            error:
+              'Unable to analyze the document. Please ensure the file contains readable text or check your AI configuration.',
+          })
         }
 
-        let textRes = chatRes.json.candidates[0].content.parts[0].text
-        textRes = textRes
-          .replace(/```json/g, '')
-          .replace(/```/g, '')
-          .trim()
-        analysisResult = JSON.parse(textRes)
+        try {
+          let textRes = chatRes.json.candidates[0].content.parts[0].text
+          textRes = textRes
+            .replace(/```json/g, '')
+            .replace(/```/g, '')
+            .trim()
+          analysisResult = JSON.parse(textRes)
+        } catch (parseErr) {
+          $app.logger().error('Gemini JSON parse failed', 'error', parseErr.message)
+          return e.json(500, {
+            error:
+              'Unable to analyze the document. Please ensure the file contains readable text or check your AI configuration.',
+          })
+        }
       } else if (openaiKey) {
         let extractedText = ''
         if (tipo === 'imagem' || tipo === 'image') {
@@ -212,10 +223,29 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
 
         if (chatRes.statusCode !== 200) {
           $app.logger().error('OpenAI AI failed', 'status', chatRes.statusCode, 'raw', chatRes.raw)
-          throw new Error('Falha na análise da IA.')
+          return e.json(500, {
+            error:
+              'Unable to analyze the document. Please ensure the file contains readable text or check your AI configuration.',
+          })
         }
 
-        analysisResult = JSON.parse(chatRes.json.choices[0].message.content)
+        try {
+          analysisResult = JSON.parse(chatRes.json.choices[0].message.content)
+        } catch (parseErr) {
+          $app
+            .logger()
+            .error(
+              'JSON Parse failed',
+              'error',
+              parseErr.message,
+              'content',
+              chatRes.json.choices[0].message.content,
+            )
+          return e.json(500, {
+            error:
+              'Unable to analyze the document. Please ensure the file contains readable text or check your AI configuration.',
+          })
+        }
       }
 
       try {
