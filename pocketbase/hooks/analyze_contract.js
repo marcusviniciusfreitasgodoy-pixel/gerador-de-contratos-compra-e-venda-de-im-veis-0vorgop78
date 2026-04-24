@@ -80,7 +80,7 @@ Passos obrigatórios:
 4. Faça um resumo executivo de 1-2 linhas do objetivo do contrato.
 5. Verifique a presença das 10 cláusulas estruturais obrigatórias (Identificação das partes, Objeto do contrato, Preço e forma de pagamento, Documentação necessária, Obrigações das partes, Imissão na posse, Multas e penalidades, Legislação aplicável, Foro competente, Assinaturas e testemunhas) e classifique cada uma como "CONFORME", "RISCO" ou "CRÍTICO".
 6. Analise a conformidade jurídica de cláusulas específicas.
-7. Classifique os riscos nas 5 categorias exatas: buyer, seller, execution, registration e financing.
+7. Classifique os riscos e detalhe cada um com categoria (buyer, seller, execution, registration, financing), título, descrição e severidade (ALTO, MÉDIO, BAIXO).
 8. Identifique cláusulas abusivas (ex: ferem o CDC, unilaterais). Para cada, explique a violação, dê recomendação e sugira nova redação.
 9. Identifique omissões críticas e sugira texto.
 10. Liste recomendações imediatas e recomendadas.
@@ -100,13 +100,9 @@ Responda ESTRITAMENTE no seguinte formato JSON (e nada mais):
   "legal_compliance": [
     { "clause_text": "string", "status": "CONFORME" | "RISCO" | "CRÍTICO", "legal_basis": "string (Art. X...)", "explanation": "string" }
   ],
-  "risks": {
-    "buyer": ["string"],
-    "seller": ["string"],
-    "execution": ["string"],
-    "registration": ["string"],
-    "financing": ["string"]
-  },
+  "risks": [
+    { "category": "buyer | seller | execution | registration | financing", "title": "string", "description": "string", "severity": "ALTO" | "MÉDIO" | "BAIXO" }
+  ],
   "abusive_clauses": [
     { "clause": "string", "violation": "string", "recommendation": "string", "drafting_suggestion": "string" }
   ],

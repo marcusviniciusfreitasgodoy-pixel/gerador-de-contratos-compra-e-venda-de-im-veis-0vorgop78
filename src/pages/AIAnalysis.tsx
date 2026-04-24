@@ -1,19 +1,21 @@
 import { useState, useRef } from 'react'
-import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Loader2, Scale, FileText, Bot, Upload, FileWarning } from 'lucide-react'
+import { Card } from '@/components/ui/card'
+import { Loader2, FileText, UploadCloud, AlertCircle, RefreshCcw, Bot } from 'lucide-react'
 import { toast } from 'sonner'
 import pb from '@/lib/pocketbase/client'
 import { AnalysisReportView, type AnalysisReport } from '@/components/AnalysisReportView'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Skeleton } from '@/components/ui/skeleton'
+import { cn } from '@/lib/utils'
 
 export default function AIAnalysis() {
-  const [text, setText] = useState('')
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [report, setReport] = useState<AnalysisReport | null>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [inputMode, setInputMode] = useState<'text' | 'file'>('text')
 
   const extractTextFromPDF = async (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -71,207 +73,211 @@ export default function AIAnalysis() {
     })
   }
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
+  const handleAnalyzeFile = async () => {
+    if (!selectedFile) return
+    setIsAnalyzing(true)
+    setErrorMsg(null)
     setReport(null)
 
-    if (file.type.startsWith('image/')) {
-      const base64 = await fileToBase64(file)
-      handleAnalyze({ image_base64: base64, fileName: file.name })
-      return
-    }
-
-    setIsAnalyzing(true)
-    toast.info('Extraindo texto do documento...')
     try {
-      let extractedText = ''
-      if (file.type === 'application/pdf') {
-        extractedText = await extractTextFromPDF(file)
-      } else if (file.name.endsWith('.docx') || file.type.includes('wordprocessingml')) {
-        extractedText = await extractTextFromDOCX(file)
-      } else if (file.type === 'text/plain') {
-        extractedText = await file.text()
-      } else {
-        toast.error('Formato não suportado. Use PDF, DOCX, TXT ou Imagens.')
-        setIsAnalyzing(false)
-        return
+      let payload: { text?: string; image_base64?: string; fileName?: string } = {
+        fileName: selectedFile.name,
       }
 
-      setText(extractedText)
-      setInputMode('text')
-      toast.success('Texto extraído! Iniciando análise...')
-      handleAnalyze({ text: extractedText, fileName: file.name })
-    } catch (err) {
-      setIsAnalyzing(false)
-      toast.error('Erro ao ler o arquivo. Tente colar o texto manualmente.')
-    }
-  }
+      if (selectedFile.type.startsWith('image/')) {
+        const base64 = await fileToBase64(selectedFile)
+        payload.image_base64 = base64
+      } else {
+        let extractedText = ''
+        if (selectedFile.type === 'application/pdf') {
+          extractedText = await extractTextFromPDF(selectedFile)
+        } else if (
+          selectedFile.name.endsWith('.docx') ||
+          selectedFile.type.includes('wordprocessingml')
+        ) {
+          extractedText = await extractTextFromDOCX(selectedFile)
+        } else if (selectedFile.type === 'text/plain') {
+          extractedText = await selectedFile.text()
+        } else {
+          throw new Error('Formato não suportado.')
+        }
+        payload.text = extractedText
+      }
 
-  const handleAnalyzeText = () => {
-    if (!text.trim()) {
-      toast.error('Insira o texto do contrato para análise.')
-      return
-    }
-    handleAnalyze({ text, fileName: 'Texto Colado' })
-  }
-
-  const handleAnalyze = async (payload: {
-    text?: string
-    image_base64?: string
-    fileName?: string
-  }) => {
-    setIsAnalyzing(true)
-    setReport(null)
-    try {
       const res = await pb.send('/backend/v1/ai/analyze-contract', {
         method: 'POST',
         body: JSON.stringify(payload),
       })
-      setReport(res.analysis)
-      toast.success('Análise concluída com sucesso!')
+
+      if (!res.analysis.is_real_estate_contract) {
+        setErrorMsg(
+          'Este não parece ser um contrato imobiliário. Envie um contrato de compra e venda, aluguel ou similar.',
+        )
+      } else {
+        setReport(res.analysis)
+        toast.success('Análise concluída com sucesso!')
+      }
     } catch (error: any) {
-      toast.error('Erro ao analisar o contrato.', {
-        description: error.message || 'Verifique se a chave da API está configurada no backend.',
-      })
+      console.error(error)
+      setErrorMsg(
+        'Este não parece ser um contrato imobiliário. Envie um contrato de compra e venda, aluguel ou similar.',
+      )
     } finally {
       setIsAnalyzing(false)
-      if (fileInputRef.current) fileInputRef.current.value = ''
     }
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-3">
+    <div className="container mx-auto px-4 py-12 max-w-5xl">
+      <div className="mb-10 text-center">
+        <div className="inline-flex items-center justify-center p-3 bg-purple-100 rounded-full mb-4">
           <Bot className="h-8 w-8 text-purple-600" />
+        </div>
+        <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-3 tracking-tight">
           Análise Jurídica com IA
         </h1>
-        <p className="text-slate-600 mt-2 text-lg">
-          Faça upload de documentos (PDF, DOCX, Imagem) ou cole o texto. A IA identificará riscos,
-          cláusulas abusivas e validará a estrutura do seu contrato imobiliário.
+        <p className="text-slate-600 text-lg max-w-2xl mx-auto">
+          Faça upload do seu contrato imobiliário e receba um relatório completo de riscos, omissões
+          e cláusulas abusivas.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div className="lg:col-span-4 space-y-4">
-          <Card className="h-full">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Entrada do Contrato
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-4">
-              <Tabs
-                value={inputMode}
-                onValueChange={(v) => setInputMode(v as any)}
-                className="w-full"
-              >
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="text">Texto</TabsTrigger>
-                  <TabsTrigger value="file">Arquivo</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="text" className="mt-4 flex flex-col h-[400px]">
-                  <Textarea
-                    placeholder="Cole aqui o conteúdo do contrato..."
-                    className="flex-grow resize-none min-h-[300px]"
-                    value={text}
-                    onChange={(e) => setText(e.target.value)}
-                  />
-                  <Button
-                    onClick={handleAnalyzeText}
-                    disabled={isAnalyzing || !text.trim()}
-                    className="w-full mt-4 bg-purple-600 hover:bg-purple-700 h-12 shrink-0"
-                  >
-                    {isAnalyzing ? (
-                      <>
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin" /> Analisando...
-                      </>
-                    ) : (
-                      <>
-                        <Scale className="w-5 h-5 mr-2" /> Iniciar Análise
-                      </>
-                    )}
-                  </Button>
-                </TabsContent>
-
-                <TabsContent value="file" className="mt-4 h-[400px]">
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-full h-full border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 hover:border-purple-400 transition-colors group p-6 text-center"
-                  >
-                    <div className="w-16 h-16 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                      <Upload size={32} />
-                    </div>
-                    <h3 className="font-semibold text-slate-800 text-lg mb-1">
-                      Selecione um arquivo
-                    </h3>
-                    <p className="text-slate-500 text-sm">
-                      Suporta PDF, DOCX, Imagens (JPG/PNG) e TXT
-                    </p>
-                    <input
-                      type="file"
-                      className="hidden"
-                      ref={fileInputRef}
-                      onChange={handleFileChange}
-                      accept=".pdf,.docx,.txt,image/*"
-                    />
+      {!report && !isAnalyzing && !errorMsg && (
+        <Card className="max-w-2xl mx-auto border-0 shadow-lg ring-1 ring-slate-200/50">
+          <div className="p-8">
+            <div
+              className={cn(
+                'border-2 border-dashed rounded-xl p-12 text-center transition-all duration-200 relative',
+                isDragging
+                  ? 'border-purple-500 bg-purple-50 scale-[1.02]'
+                  : 'border-slate-300 hover:bg-slate-50 hover:border-slate-400',
+                selectedFile && !isDragging && 'border-purple-300 bg-purple-50/30',
+              )}
+              onDragOver={(e) => {
+                e.preventDefault()
+                setIsDragging(true)
+              }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={(e) => {
+                e.preventDefault()
+                setIsDragging(false)
+                const f = e.dataTransfer.files?.[0]
+                if (f) setSelectedFile(f)
+              }}
+            >
+              {selectedFile ? (
+                <div className="flex flex-col items-center gap-4 animate-in zoom-in-95 duration-300">
+                  <div className="p-4 bg-white rounded-full shadow-sm">
+                    <FileText className="w-12 h-12 text-purple-600" />
                   </div>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
-        </div>
+                  <div>
+                    <p className="font-semibold text-slate-800 text-lg truncate max-w-xs px-4">
+                      {selectedFile.name}
+                    </p>
+                    <p className="text-sm text-slate-500 mt-1">
+                      {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setSelectedFile(null)
+                    }}
+                    className="mt-2"
+                  >
+                    Trocar Arquivo
+                  </Button>
+                </div>
+              ) : (
+                <div className="cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                  <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
+                    <UploadCloud className="w-10 h-10 text-slate-500" />
+                  </div>
+                  <h3 className="text-xl font-medium text-slate-700 mb-2">
+                    Arraste e solte seu contrato aqui
+                  </h3>
+                  <p className="text-slate-500 mb-8">Suporta PDF, DOCX, JPG e PNG</p>
+                  <Button variant="secondary" className="px-8 pointer-events-none">
+                    Selecionar Arquivo
+                  </Button>
+                </div>
+              )}
+              <input
+                type="file"
+                className="hidden"
+                ref={fileInputRef}
+                onChange={(e) => {
+                  const f = e.target.files?.[0]
+                  if (f) setSelectedFile(f)
+                }}
+                accept=".pdf,.docx,.jpg,.jpeg,.png,.txt"
+              />
+            </div>
 
-        <div className="lg:col-span-8">
-          {isAnalyzing ? (
-            <Card className="h-full flex items-center justify-center min-h-[600px] border-dashed border-2">
-              <div className="text-center space-y-4">
-                <Loader2 className="w-12 h-12 animate-spin text-purple-600 mx-auto" />
-                <p className="text-purple-700 font-semibold animate-pulse text-xl">
-                  A IA está revisando o contrato...
-                </p>
-                <div className="text-sm text-slate-500 max-w-sm mx-auto space-y-2 text-left bg-slate-50 p-4 rounded-lg">
-                  <p>✓ Lendo cláusulas e estruturando dados</p>
-                  <p>✓ Consultando base jurisprudencial (RAG)</p>
-                  <p>✓ Mapeando riscos estruturais e jurídicos</p>
-                </div>
+            {selectedFile && (
+              <div className="mt-8 flex justify-center animate-in slide-in-from-bottom-4 duration-300">
+                <Button
+                  size="lg"
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-8 h-14 text-lg w-full sm:w-auto shadow-md hover:shadow-lg transition-all"
+                  onClick={handleAnalyzeFile}
+                >
+                  Analisar com IA Jurídica
+                </Button>
               </div>
-            </Card>
-          ) : report ? (
-            !report.is_real_estate_contract ? (
-              <Card className="h-full flex items-center justify-center min-h-[600px] bg-red-50 border-red-200">
-                <div className="text-center space-y-4 px-6">
-                  <FileWarning className="w-16 h-16 text-red-500 mx-auto" />
-                  <h3 className="text-2xl font-bold text-red-800">Documento Inválido</h3>
-                  <p className="text-red-600 text-lg max-w-md mx-auto">
-                    Este não parece ser um contrato imobiliário. Envie um contrato de compra e
-                    venda, aluguel ou similar.
-                  </p>
-                </div>
-              </Card>
-            ) : (
-              <AnalysisReportView report={report} />
-            )
-          ) : (
-            <Card className="h-full flex items-center justify-center min-h-[600px] bg-slate-50 border-dashed">
-              <div className="text-center space-y-4 px-6">
-                <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto shadow-sm text-purple-300">
-                  <Scale size={40} />
-                </div>
-                <h3 className="text-xl font-medium text-slate-700">Nenhuma análise em andamento</h3>
-                <p className="text-slate-500 text-base max-w-md mx-auto">
-                  Faça o upload de um arquivo ou cole o texto ao lado para gerar o relatório
-                  completo de conformidade e riscos.
-                </p>
-              </div>
-            </Card>
-          )}
+            )}
+          </div>
+        </Card>
+      )}
+
+      {isAnalyzing && (
+        <div className="max-w-2xl mx-auto space-y-8 text-center py-16 animate-in fade-in zoom-in-95 duration-500">
+          <div className="relative w-24 h-24 mx-auto">
+            <div className="absolute inset-0 border-4 border-purple-100 rounded-full"></div>
+            <div className="absolute inset-0 border-4 border-purple-600 rounded-full border-t-transparent animate-spin"></div>
+            <Bot className="absolute inset-0 m-auto w-8 h-8 text-purple-600 animate-pulse" />
+          </div>
+          <h3 className="text-2xl font-bold text-purple-800 animate-pulse tracking-tight">
+            Analisando contrato... Aguarde
+          </h3>
+          <div className="max-w-md mx-auto space-y-4 pt-4">
+            <Skeleton className="h-4 w-full bg-purple-100/50 rounded-full" />
+            <Skeleton className="h-4 w-5/6 mx-auto bg-purple-100/50 rounded-full" />
+            <Skeleton className="h-4 w-4/6 mx-auto bg-purple-100/50 rounded-full" />
+          </div>
+          <p className="text-slate-500 text-sm mt-8 max-w-sm mx-auto">
+            Nossa IA está cruzando o texto com a base de conhecimento de Direito Imobiliário...
+          </p>
         </div>
-      </div>
+      )}
+
+      {errorMsg && (
+        <Card className="max-w-2xl mx-auto border-red-200 shadow-sm animate-in fade-in slide-in-from-bottom-4">
+          <div className="p-10 text-center space-y-6">
+            <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto">
+              <AlertCircle className="w-10 h-10 text-red-500" />
+            </div>
+            <p className="text-red-800 text-xl font-medium max-w-lg mx-auto leading-relaxed">
+              {errorMsg}
+            </p>
+            <div className="pt-4">
+              <Button
+                variant="outline"
+                className="border-red-200 text-red-700 hover:bg-red-50 px-8"
+                onClick={() => {
+                  setErrorMsg(null)
+                  setSelectedFile(null)
+                }}
+              >
+                <RefreshCcw className="w-4 h-4 mr-2" /> Tentar novamente
+              </Button>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {report && !isAnalyzing && !errorMsg && <AnalysisReportView report={report} />}
     </div>
   )
 }
