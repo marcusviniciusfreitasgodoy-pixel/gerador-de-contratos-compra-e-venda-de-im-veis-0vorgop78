@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { contractSchema, type ContractFormValues } from '@/lib/schemas'
 import { PersonBlock, PropertyBlock, FinancialBlock, FinancingBlock } from './ContractBlocks'
-import { ArrowLeft, Loader2, CheckCircle2, Wand2, FileText, Edit3 } from 'lucide-react'
+import { ArrowLeft, Loader2, CheckCircle2, Wand2, FileText, Edit3, AlertCircle } from 'lucide-react'
 import { createContract, generateContractDocx } from '@/services/contracts'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { addDays } from 'date-fns'
 import { toast } from 'sonner'
 import { generateDraftText } from '@/lib/draft-template'
@@ -179,6 +180,8 @@ export function ContractForm({
         valor_complemento: '',
         valor_financiado: '',
         instituicao_financeira: '',
+        taxa_juros: '',
+        prazo_meses: '',
       }
       Object.entries(data).forEach(([key, value]) => {
         if (value !== undefined) {
@@ -192,6 +195,8 @@ export function ContractForm({
         valor_complemento: 'R$ 25.000,00',
         valor_financiado: 'R$ 400.000,00',
         instituicao_financeira: 'Caixa Econômica Federal',
+        taxa_juros: '8.5',
+        prazo_meses: '360',
         valor_saldo: '',
         data_pagamento_saldo: undefined,
       }
@@ -343,6 +348,20 @@ export function ContractForm({
           <PersonBlock suffix="_comprador" title="Dados do Comprador" />
           <PropertyBlock />
           <FinancialBlock type={type} />
+
+          {(form.formState.errors.valor_saldo?.message?.includes('Sinal + Reforço') ||
+            form.formState.errors.valor_financiado?.message?.includes('Sinal + Reforço')) && (
+            <Alert variant="destructive" className="bg-red-50 border-red-200">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Erro nos Valores</AlertTitle>
+              <AlertDescription>
+                A soma do Sinal, Reforço, Complemento e{' '}
+                {type === 'a_vista' ? 'Saldo' : 'Financiado'} deve ser exatamente igual ao Valor
+                Total. Por favor, revise os valores.
+              </AlertDescription>
+            </Alert>
+          )}
+
           <FinancingBlock type={type} />
         </div>
         <div className="flex justify-end pt-4 pb-12">

@@ -71,6 +71,8 @@ export const contractSchema = z
     valor_financiado: z.string().optional(),
 
     instituicao_financeira: z.string().optional(),
+    taxa_juros: z.string().optional(),
+    prazo_meses: z.string().optional(),
     data_pagamento_saldo: z.string().optional(),
   })
   .superRefine((data, ctx) => {
