@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '@/hooks/use-auth'
-import { Navigate } from 'react-router-dom'
+import { Navigate, Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -74,6 +74,13 @@ export default function Login() {
                 'Entrar'
               )}
             </Button>
+
+            <div className="text-center text-sm text-slate-600 mt-6">
+              Não tem uma conta?{' '}
+              <Link to="/signup" className="text-blue-600 hover:underline font-semibold">
+                Cadastre-se
+              </Link>
+            </div>
           </form>
         </CardContent>
       </Card>
