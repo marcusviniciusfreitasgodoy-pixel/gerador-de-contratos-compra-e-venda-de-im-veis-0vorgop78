@@ -1,10 +1,7 @@
-// @deps docx@8.5.0
 routerAdd(
   'POST',
   '/backend/v1/gerar-contrato-docx',
   (e) => {
-    const { Document, Packer, Paragraph, TextRun, AlignmentType } = require('docx')
-
     const body = e.requestInfo().body
     if (!body) return e.badRequestError('Dados do contrato não fornecidos.')
 
@@ -65,168 +62,104 @@ routerAdd(
       data_pagamento_saldo,
     } = body
 
-    const doc = new Document({
-      creator: 'Godoy Prime Realty',
-      sections: [
-        {
-          properties: {},
-          children: [
-            new Paragraph({
-              children: [new TextRun({ text: 'Godoy Prime Realty', bold: true, size: 28 })],
-              alignment: AlignmentType.CENTER,
-            }),
-            new Paragraph({ text: '' }),
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: 'INSTRUMENTO PARTICULAR DE PROMESSA DE COMPRA E VENDA',
-                  bold: true,
-                  size: 24,
-                }),
-              ],
-              alignment: AlignmentType.CENTER,
-            }),
-            new Paragraph({ text: '' }),
+    const hoje = new Intl.DateTimeFormat('pt-BR').format(new Date())
 
-            new Paragraph({
-              children: [
-                new TextRun({ text: 'Cláusula 1 - Identificação das Partes', bold: true }),
-              ],
-            }),
-            new Paragraph({
-              text: `VENDEDOR: ${nome_vendedor || ''}, nacionalidade: ${nacionalidade_vendedor || ''}, estado civil: ${estado_civil_vendedor || ''}, profissão: ${profissao_vendedor || ''}, portador do RG nº ${rg_vendedor || ''} expedido por ${orgao_emissor_vendedor || ''}, inscrito no CPF sob o nº ${cpf_vendedor || ''}, residente e domiciliado em ${endereco_vendedor || ''}. E-mail: ${email_vendedor || ''}, Telefone: ${telefone_vendedor || ''}.`,
-            }),
-            new Paragraph({
-              text: `COMPRADOR: ${nome_comprador || ''}, nacionalidade: ${nacionalidade_comprador || ''}, estado civil: ${estado_civil_comprador || ''}, profissão: ${profissao_comprador || ''}, portador do RG nº ${rg_comprador || ''} expedido por ${orgao_emissor_comprador || ''}, inscrito no CPF sob o nº ${cpf_comprador || ''}, residente e domiciliado em ${endereco_comprador || ''}. E-mail: ${email_comprador || ''}, Telefone: ${telefone_comprador || ''}.`,
-            }),
-            new Paragraph({ text: '' }),
+    const pgtoHTML =
+      tipo === 'a_vista'
+        ? `
+      <ul>
+        <li>Sinal: ${formatCurrency(valor_sinal)} (por extenso).</li>
+        <li>Saldo: ${formatCurrency(valor_saldo)} (por extenso), com vencimento em ${formatDate(data_pagamento_saldo)}.</li>
+        <li>Comissão: ${formatCurrency(comissao)} (por extenso).</li>
+      </ul>
+    `
+        : `
+      <ul>
+        <li>Sinal: ${formatCurrency(valor_sinal)} (por extenso).</li>
+        <li>Reforço de Sinal: ${formatCurrency(valor_reforco)} (por extenso).</li>
+        <li>Complemento: ${formatCurrency(valor_complemento)} (por extenso).</li>
+        <li>Valor Financiado: ${formatCurrency(valor_financiado)} (por extenso), através da instituição financeira ${instituicao_financeira || ''}, com taxa de juros de ${taxa_juros || ''}% ao ano e prazo de ${prazo_meses || ''} meses.</li>
+        <li>Comissão: ${formatCurrency(comissao)} (por extenso).</li>
+      </ul>
+    `
 
-            new Paragraph({ children: [new TextRun({ text: 'Cláusula 2 - Objeto', bold: true })] }),
-            new Paragraph({
-              text: `O objeto do presente contrato é o imóvel situado em ${endereco_imovel || ''}, Matrícula nº ${matricula_imovel || ''}, registrado no RGI de ${rgi_imovel || ''}, Inscrição Municipal nº ${inscricao_municipal || ''}, possuindo área total de ${area_total || ''} m² e ${vagas_garagem || ''} vaga(s) de garagem.`,
-            }),
-            new Paragraph({ text: '' }),
+    const html = `
+    <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+    <head><meta charset='utf-8'><title>Contrato</title></head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.5; max-width: 800px; margin: 0 auto; padding: 20px;">
+      <h1 style="text-align: center; font-size: 28px;">Godoy Prime Realty</h1>
+      <br>
+      <h2 style="text-align: center; font-size: 24px;">INSTRUMENTO PARTICULAR DE PROMESSA DE COMPRA E VENDA</h2>
+      <br>
+      
+      <h3>Cláusula 1 - Identificação das Partes</h3>
+      <p><strong>VENDEDOR:</strong> ${nome_vendedor || ''}, nacionalidade: ${nacionalidade_vendedor || ''}, estado civil: ${estado_civil_vendedor || ''}, profissão: ${profissao_vendedor || ''}, portador do RG nº ${rg_vendedor || ''} expedido por ${orgao_emissor_vendedor || ''}, inscrito no CPF sob o nº ${cpf_vendedor || ''}, residente e domiciliado em ${endereco_vendedor || ''}. E-mail: ${email_vendedor || ''}, Telefone: ${telefone_vendedor || ''}.</p>
+      <p><strong>COMPRADOR:</strong> ${nome_comprador || ''}, nacionalidade: ${nacionalidade_comprador || ''}, estado civil: ${estado_civil_comprador || ''}, profissão: ${profissao_comprador || ''}, portador do RG nº ${rg_comprador || ''} expedido por ${orgao_emissor_comprador || ''}, inscrito no CPF sob o nº ${cpf_comprador || ''}, residente e domiciliado em ${endereco_comprador || ''}. E-mail: ${email_comprador || ''}, Telefone: ${telefone_comprador || ''}.</p>
+      <br>
 
-            new Paragraph({
-              children: [
-                new TextRun({ text: 'Cláusula 3 - Preço e Condições de Pagamento', bold: true }),
-              ],
-            }),
-            new Paragraph({
-              text: `O preço certo e ajustado para a presente compra e venda é de ${formatCurrency(valor_total)} (por extenso), que será pago da seguinte forma:`,
-            }),
-            ...(tipo === 'a_vista'
-              ? [
-                  new Paragraph({ text: `- Sinal: ${formatCurrency(valor_sinal)} (por extenso).` }),
-                  new Paragraph({
-                    text: `- Saldo: ${formatCurrency(valor_saldo)} (por extenso), com vencimento em ${formatDate(data_pagamento_saldo)}.`,
-                  }),
-                  new Paragraph({ text: `- Comissão: ${formatCurrency(comissao)} (por extenso).` }),
-                ]
-              : [
-                  new Paragraph({ text: `- Sinal: ${formatCurrency(valor_sinal)} (por extenso).` }),
-                  new Paragraph({
-                    text: `- Reforço de Sinal: ${formatCurrency(valor_reforco)} (por extenso).`,
-                  }),
-                  new Paragraph({
-                    text: `- Complemento: ${formatCurrency(valor_complemento)} (por extenso).`,
-                  }),
-                  new Paragraph({
-                    text: `- Valor Financiado: ${formatCurrency(valor_financiado)} (por extenso), através da instituição financeira ${instituicao_financeira || ''}, com taxa de juros de ${taxa_juros || ''}% ao ano e prazo de ${prazo_meses || ''} meses.`,
-                  }),
-                  new Paragraph({ text: `- Comissão: ${formatCurrency(comissao)} (por extenso).` }),
-                ]),
-            new Paragraph({ text: '' }),
+      <h3>Cláusula 2 - Objeto</h3>
+      <p>O objeto do presente contrato é o imóvel situado em ${endereco_imovel || ''}, Matrícula nº ${matricula_imovel || ''}, registrado no RGI de ${rgi_imovel || ''}, Inscrição Municipal nº ${inscricao_municipal || ''}, possuindo área total de ${area_total || ''} m² e ${vagas_garagem || ''} vaga(s) de garagem.</p>
+      <br>
 
-            new Paragraph({
-              children: [new TextRun({ text: 'Cláusula 4 - Documentação', bold: true })],
-            }),
-            new Paragraph({
-              text: 'As partes obrigam-se a apresentar as seguintes certidões e documentos: Ônus Reais, Quitação Fiscal, Quitação Condominial e Negativas Pessoais.',
-            }),
-            new Paragraph({ text: '' }),
+      <h3>Cláusula 3 - Preço e Condições de Pagamento</h3>
+      <p>O preço certo e ajustado para a presente compra e venda é de ${formatCurrency(valor_total)} (por extenso), que será pago da seguinte forma:</p>
+      ${pgtoHTML}
+      <br>
 
-            new Paragraph({
-              children: [new TextRun({ text: 'Cláusula 5 - Obrigações', bold: true })],
-            }),
-            new Paragraph({
-              text: 'O VENDEDOR obriga-se a transferir o domínio, garantir a habitabilidade e quitar impostos até a data da posse. O COMPRADOR obriga-se ao pagamento do preço, custos de registro e impostos futuros.',
-            }),
-            new Paragraph({ text: '' }),
+      <h3>Cláusula 4 - Documentação</h3>
+      <p>As partes obrigam-se a apresentar as seguintes certidões e documentos: Ônus Reais, Quitação Fiscal, Quitação Condominial e Negativas Pessoais.</p>
+      <br>
 
-            new Paragraph({ children: [new TextRun({ text: 'Cláusula 6 - Posse', bold: true })] }),
-            new Paragraph({
-              text: 'A posse do imóvel será transferida com a entrega das chaves, sujeita à penalidade de R$ 300,00 por dia em caso de atraso.',
-            }),
-            new Paragraph({ text: '' }),
+      <h3>Cláusula 5 - Obrigações</h3>
+      <p>O VENDEDOR obriga-se a transferir o domínio, garantir a habitabilidade e quitar impostos até a data da posse. O COMPRADOR obriga-se ao pagamento do preço, custos de registro e impostos futuros.</p>
+      <br>
 
-            new Paragraph({
-              children: [new TextRun({ text: 'Cláusula 7 - Penalidades', bold: true })],
-            }),
-            new Paragraph({
-              text: 'Em caso de rescisão por culpa do COMPRADOR, perderá este o sinal pago. Sendo a culpa do VENDEDOR, devolverá o sinal em dobro. Em caso de atraso, haverá multa e juros.',
-            }),
-            new Paragraph({ text: '' }),
+      <h3>Cláusula 6 - Posse</h3>
+      <p>A posse do imóvel será transferida com a entrega das chaves, sujeita à penalidade de R$ 300,00 por dia em caso de atraso.</p>
+      <br>
 
-            new Paragraph({
-              children: [new TextRun({ text: 'Cláusula 8 - Legislação', bold: true })],
-            }),
-            new Paragraph({
-              text: 'Este contrato é regido pelo Código Civil Brasileiro aplicável à espécie.',
-            }),
-            new Paragraph({ text: '' }),
+      <h3>Cláusula 7 - Penalidades</h3>
+      <p>Em caso de rescisão por culpa do COMPRADOR, perderá este o sinal pago. Sendo a culpa do VENDEDOR, devolverá o sinal em dobro. Em caso de atraso, haverá multa e juros.</p>
+      <br>
 
-            new Paragraph({ children: [new TextRun({ text: 'Cláusula 9 - Foro', bold: true })] }),
-            new Paragraph({
-              text: 'Fica eleito o Foro da Comarca do Rio de Janeiro para dirimir quaisquer dúvidas oriundas deste contrato.',
-            }),
-            new Paragraph({ text: '' }),
-            new Paragraph({ text: '' }),
+      <h3>Cláusula 8 - Legislação</h3>
+      <p>Este contrato é regido pelo Código Civil Brasileiro aplicável à espécie.</p>
+      <br>
 
-            new Paragraph({
-              text: `Rio de Janeiro, ${new Intl.DateTimeFormat('pt-BR').format(new Date())}`,
-            }),
-            new Paragraph({ text: 'Foro: Comarca do Rio de Janeiro' }),
-            new Paragraph({ text: '' }),
-            new Paragraph({ text: '_________________________________________________' }),
-            new Paragraph({ text: `VENDEDOR: ${nome_vendedor || ''}` }),
-            new Paragraph({ text: '' }),
-            new Paragraph({ text: '_________________________________________________' }),
-            new Paragraph({ text: `COMPRADOR: ${nome_comprador || ''}` }),
-            new Paragraph({ text: '' }),
-            new Paragraph({ text: '_________________________________________________' }),
-            new Paragraph({ text: 'TESTEMUNHA 1 (Nome e CPF):' }),
-            new Paragraph({ text: '' }),
-            new Paragraph({ text: '_________________________________________________' }),
-            new Paragraph({ text: 'TESTEMUNHA 2 (Nome e CPF):' }),
-          ],
-        },
-      ],
-    })
+      <h3>Cláusula 9 - Foro</h3>
+      <p>Fica eleito o Foro da Comarca do Rio de Janeiro para dirimir quaisquer dúvidas oriundas deste contrato.</p>
+      <br><br>
 
-    let base64 = ''
-    let hasError = false
-
-    Packer.toBase64(doc)
-      .then((b) => {
-        base64 = b
-      })
-      .catch((err) => {
-        hasError = true
-      })
-
-    if (hasError || !base64) {
-      return e.json(500, { message: 'Erro ao gerar contrato. Tente novamente.' })
-    }
+      <p>Rio de Janeiro, ${hoje}</p>
+      <p>Foro: Comarca do Rio de Janeiro</p>
+      <br><br>
+      
+      <p>_________________________________________________</p>
+      <p>VENDEDOR: ${nome_vendedor || ''}</p>
+      <br><br>
+      
+      <p>_________________________________________________</p>
+      <p>COMPRADOR: ${nome_comprador || ''}</p>
+      <br><br>
+      
+      <p>_________________________________________________</p>
+      <p>TESTEMUNHA 1 (Nome e CPF):</p>
+      <br><br>
+      
+      <p>_________________________________________________</p>
+      <p>TESTEMUNHA 2 (Nome e CPF):</p>
+    </body>
+    </html>
+  `
 
     const d = new Date().toISOString().split('T')[0]
     const filename =
-      `Contrato_${nome_vendedor || 'Vendedor'}_${nome_comprador || 'Comprador'}_${d}.docx`.replace(
+      `Contrato_${nome_vendedor || 'Vendedor'}_${nome_comprador || 'Comprador'}_${d}.doc`.replace(
         /\s+/g,
         '_',
       )
 
-    return e.json(200, { filename, base64 })
+    return e.json(200, { filename, html })
   },
   $apis.requireAuth(),
 )

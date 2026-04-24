@@ -36,7 +36,17 @@ export function ContractForm({
       try {
         const docxResponse = await generateContractDocx(savedContract)
 
-        if (docxResponse.base64 && docxResponse.filename) {
+        if (docxResponse.html && docxResponse.filename) {
+          const blob = new Blob([docxResponse.html], { type: 'application/msword' })
+          const url = window.URL.createObjectURL(blob)
+          const link = document.createElement('a')
+          link.href = url
+          link.download = docxResponse.filename
+          document.body.appendChild(link)
+          link.click()
+          link.remove()
+          window.URL.revokeObjectURL(url)
+        } else if (docxResponse.base64 && docxResponse.filename) {
           const byteCharacters = atob(docxResponse.base64)
           const byteNumbers = new Array(byteCharacters.length)
           for (let i = 0; i < byteCharacters.length; i++) {
