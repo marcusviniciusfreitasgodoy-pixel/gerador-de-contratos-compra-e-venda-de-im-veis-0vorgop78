@@ -78,7 +78,11 @@ export function AnalysisReportView({ report }: { report: AnalysisReport }) {
           </div>
         </CardHeader>
         <CardContent>
-          <p className="text-slate-700 leading-relaxed">{report.summary}</p>
+          <p className="text-slate-700 leading-relaxed">
+            {report.summary.startsWith('RESUMO EXECUTIVO:')
+              ? report.summary.replace('RESUMO EXECUTIVO:', '').trim()
+              : report.summary}
+          </p>
         </CardContent>
       </Card>
 
@@ -109,8 +113,10 @@ export function AnalysisReportView({ report }: { report: AnalysisReport }) {
                     <div className="mt-1">{getRiskIcon(finding.risk_level)}</div>
                     <div>
                       <CardTitle className="text-base text-slate-800">{finding.clause}</CardTitle>
-                      <CardDescription className="mt-1 text-sm text-slate-600 font-medium">
-                        Base Legal: {finding.legal_basis}
+                      <CardDescription className="mt-1 text-sm text-slate-700 font-medium">
+                        {finding.legal_basis.startsWith('FUNDAMENTAÇÃO LEGAL:')
+                          ? finding.legal_basis
+                          : `FUNDAMENTAÇÃO LEGAL: ${finding.legal_basis}`}
                       </CardDescription>
                     </div>
                   </div>
@@ -119,13 +125,26 @@ export function AnalysisReportView({ report }: { report: AnalysisReport }) {
                   </Badge>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-3 pb-5">
-                <p className="text-sm text-slate-700">{finding.description}</p>
-                <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                    Recomendação Prática
+              <CardContent className="space-y-4 pb-5">
+                <div className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
+                  {finding.description.startsWith('ANÁLISE CONTEXTUAL:') ? (
+                    finding.description
+                  ) : (
+                    <>
+                      <span className="font-semibold text-slate-800">ANÁLISE CONTEXTUAL:</span>{' '}
+                      {finding.description}
+                    </>
+                  )}
+                </div>
+                <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 mt-2">
+                  <span className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
+                    Recomendação
                   </span>
-                  <p className="text-sm text-slate-800 mt-1">{finding.recommendation}</p>
+                  <p className="text-sm text-slate-800 mt-1 leading-relaxed">
+                    {finding.recommendation.startsWith('RECOMENDAÇÃO PRÁTICA:')
+                      ? finding.recommendation.replace('RECOMENDAÇÃO PRÁTICA:', '').trim()
+                      : finding.recommendation}
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -136,9 +155,8 @@ export function AnalysisReportView({ report }: { report: AnalysisReport }) {
       <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mt-8 flex items-start gap-3">
         <Info className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
         <p className="text-sm text-blue-800 leading-relaxed font-medium">
-          ⚠️ AVISO JURÍDICO: Esta análise é gerada por Inteligência Artificial para suporte
-          informativo. Não substitui, em hipótese alguma, a assessoria jurídica profissional e a
-          revisão humana qualificada.
+          ⚠️ AVISO JURÍDICO: Esta análise é suporte informativo. Não substitui assessoria jurídica
+          profissional. Para questões críticas, consulte advogado especializado.
         </p>
       </div>
     </div>

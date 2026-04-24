@@ -26,7 +26,7 @@ routerAdd(
       const results = $vectors.search(e, 'legal_knowledge', {
         field: 'embedding',
         query: embedRes.json.data[0].embedding,
-        k: 3,
+        k: 10,
       })
       const items = results.items || []
       contextText = items
@@ -35,24 +35,28 @@ routerAdd(
     }
 
     const systemPrompt = `Você é um Assistente Jurídico de IA especializado em Direito Imobiliário Brasileiro, focado em contratos no Rio de Janeiro (Barra da Tijuca, Recreio, Leblon) e foro de Jacarepaguá.
-Sua tarefa é analisar o contrato fornecido, identificar riscos, verificar a presença das 10 cláusulas essenciais (Identificação das partes, Objeto, Preço/Pagamento, Documentação, Obrigações, Posse, Multas, Legislação, Foro, Assinaturas), e gerar um relatório estruturado.
-Use a base de conhecimento a seguir para embasar sua análise, citando leis ou artigos específicos.
+Sua tarefa é analisar o contrato fornecido e gerar um relatório estruturado e fundamentado.
+
+Passos obrigatórios:
+1. Identifique o tipo de contrato (ex: À vista vs Financiado) para guiar a análise.
+2. Identifique riscos, verifique a presença de cláusulas essenciais e cláusulas de proteção adequadas para comprador e vendedor.
+3. Priorize a Legislação Primária (Código Civil, Lei do Inquilinato, etc.) na Fundamentação Legal, complementando com Jurisprudência e Boas Práticas.
 
 Base de Conhecimento Local (RAG):
 ${contextText}
 
-Responda ESTRITAMENTE em formato JSON:
+Responda ESTRITAMENTE em formato JSON com a seguinte estrutura:
 {
-  "summary": "Resumo executivo da análise",
+  "summary": "RESUMO EXECUTIVO: [Resumo executivo de 1-2 linhas sobre a análise geral e o tipo de contrato identificado]",
   "overall_risk": "baixo" | "medio" | "alto" | "critico",
   "missing_clauses": ["Lista de strings de cláusulas essenciais ausentes. Array vazio se não houver."],
   "findings": [
     {
-      "clause": "Nome ou trecho da cláusula",
+      "clause": "Nome ou trecho da cláusula analisada",
       "risk_level": "critico" | "alto" | "medio",
-      "description": "Descrição clara do risco",
-      "legal_basis": "Citação legal base (ex: Art. 481 do CC)",
-      "recommendation": "O que deve ser ajustado"
+      "description": "ANÁLISE CONTEXTUAL: [Aplicação da lei ao caso concreto, explicando o risco ou contexto da cláusula]",
+      "legal_basis": "FUNDAMENTAÇÃO LEGAL: [Citação explícita de Artigos (ex: Art. 421, CC) ou Súmulas priorizando a legislação primária da base RAG]",
+      "recommendation": "RECOMENDAÇÃO PRÁTICA: [Passos acionáveis sobre o que deve ser ajustado]"
     }
   ]
 }
