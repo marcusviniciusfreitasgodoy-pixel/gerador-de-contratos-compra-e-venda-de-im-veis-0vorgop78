@@ -71,8 +71,6 @@ export const contractSchema = z
     valor_financiado: z.string().optional(),
 
     instituicao_financeira: z.string().optional(),
-    taxa_juros: z.string().optional(),
-    prazo_meses: z.string().optional(),
     data_pagamento_saldo: z.string().optional(),
   })
   .superRefine((data, ctx) => {
@@ -109,7 +107,8 @@ export const contractSchema = z
       if (sinal + reforco + complemento + saldo !== total) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Sinal + Reforço + Complemento + Saldo deve ser igual ao Valor Total',
+          message:
+            'Sinal + Reforço + Complemento (Na escritura) + Saldo deve ser igual ao Valor Total',
           path: ['valor_saldo'],
         })
       }
@@ -141,13 +140,15 @@ export const contractSchema = z
           path: ['valor_reforco'],
         })
       }
-      if (data.valor_complemento && complemento <= 0) {
+
+      if (!data.valor_complemento || complemento <= 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Valor deve ser maior que zero',
+          message: 'Obrigatório e deve ser maior que zero',
           path: ['valor_complemento'],
         })
       }
+
       if (data.valor_financiado && financiado <= 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -159,7 +160,8 @@ export const contractSchema = z
       if (sinal + reforco + complemento + financiado !== total) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Sinal + Reforço + Complemento + Financiado deve ser igual ao Valor Total',
+          message:
+            'Sinal + Reforço + Complemento (Na escritura) + Financiado deve ser igual ao Valor Total',
           path: ['valor_financiado'],
         })
       }

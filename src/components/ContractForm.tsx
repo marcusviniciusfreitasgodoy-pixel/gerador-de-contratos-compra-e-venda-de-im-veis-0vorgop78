@@ -5,7 +5,7 @@ import { Form } from '@/components/ui/form'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { contractSchema, type ContractFormValues } from '@/lib/schemas'
-import { PersonBlock, PropertyBlock, FinancialBlock, FinancingBlock } from './ContractBlocks'
+import { PersonBlock, PropertyBlock } from './ContractBlocks'
 import {
   ArrowLeft,
   Loader2,
@@ -44,6 +44,51 @@ function SellerBankBlock() {
         <FormInput name="vendedor_agencia" label="Agência" placeholder="Ex: 0001" />
         <FormInput name="vendedor_conta" label="Conta" placeholder="Ex: 12345-6" />
         <FormInput name="vendedor_pix" label="Chave Pix" placeholder="CPF/Email/Celular" />
+      </div>
+    </div>
+  )
+}
+
+function FinancialBlock({ type }: { type: 'a_vista' | 'financiado' }) {
+  return (
+    <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
+      <h3 className="font-semibold text-lg text-slate-800">Valores e Pagamento</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <FormInput name="valor_total" label="Valor Total" placeholder="R$ 0,00" />
+        <FormInput name="valor_sinal" label="Valor do Sinal" placeholder="R$ 0,00" />
+        <FormInput name="valor_reforco" label="Valor do Reforço" placeholder="R$ 0,00" />
+        <FormInput
+          name="valor_complemento"
+          label={
+            type === 'financiado' ? 'Complemento (Na escritura) *' : 'Complemento (Na escritura)'
+          }
+          placeholder="R$ 0,00"
+        />
+        {type === 'a_vista' && (
+          <>
+            <FormInput name="valor_saldo" label="Saldo Final" placeholder="R$ 0,00" />
+            <FormInput name="data_pagamento_saldo" label="Data Limite do Saldo" type="date" />
+          </>
+        )}
+        <FormInput name="comissao" label="Comissão Imobiliária" placeholder="R$ 0,00" />
+      </div>
+    </div>
+  )
+}
+
+function FinancingBlock({ type }: { type: 'a_vista' | 'financiado' }) {
+  if (type !== 'financiado') return null
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
+      <h3 className="font-semibold text-lg text-slate-800">Condições de Financiamento</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <FormInput name="valor_financiado" label="Valor Financiado" placeholder="R$ 0,00" />
+        <FormInput
+          name="instituicao_financeira"
+          label="Instituição Financeira"
+          placeholder="Banco"
+        />
       </div>
     </div>
   )
@@ -233,8 +278,6 @@ export function ContractForm({
         valor_complemento: '',
         valor_financiado: '',
         instituicao_financeira: '',
-        taxa_juros: '',
-        prazo_meses: '',
       }
       Object.entries(data).forEach(([key, value]) => {
         if (value !== undefined) {
@@ -248,8 +291,6 @@ export function ContractForm({
         valor_complemento: 'R$ 25.000,00',
         valor_financiado: 'R$ 400.000,00',
         instituicao_financeira: 'Caixa Econômica Federal',
-        taxa_juros: '8.5',
-        prazo_meses: '360',
         valor_saldo: '',
         data_pagamento_saldo: undefined,
       }
@@ -475,7 +516,7 @@ export function ContractForm({
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Erro nos Valores</AlertTitle>
               <AlertDescription>
-                A soma do Sinal, Reforço, Complemento e{' '}
+                A soma do Sinal, Reforço, Complemento (Na escritura) e{' '}
                 {type === 'a_vista' ? 'Saldo' : 'Financiado'} deve ser exatamente igual ao Valor
                 Total. Por favor, revise os valores.
               </AlertDescription>
