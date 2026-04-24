@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import {
@@ -10,21 +10,43 @@ import {
 } from '@/components/ui/select'
 import { Loader2, FileText, UploadCloud, AlertCircle, RefreshCcw, Bot, History } from 'lucide-react'
 import { toast } from 'sonner'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import pb from '@/lib/pocketbase/client'
 import { AnalysisReportView, type AnalysisReport } from '@/components/AnalysisReportView'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 
 export default function AIAnalysis() {
+  const [searchParams] = useSearchParams()
+  const contractIdParam = searchParams.get('contractId')
+
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [report, setReport] = useState<AnalysisReport | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [contractText, setContractText] = useState<string | null>(null)
   const [contractType, setContractType] = useState<string>('a_vista')
   const [isDragging, setIsDragging] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (contractIdParam) {
+      pb.collection('contracts')
+        .getOne(contractIdParam)
+        .then((contract) => {
+          if (contract.minuta_texto) {
+            setContractText(contract.minuta_texto)
+            const typeMap: Record<string, string> = {
+              'À Vista': 'a_vista',
+              Financiado: 'financiado',
+            }
+            setContractType(typeMap[contract.tipo] || contract.tipo || 'outro')
+          }
+        })
+        .catch(console.error)
+    }
+  }, [contractIdParam])
 
   const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -36,47 +58,66 @@ export default function AIAnalysis() {
   }
 
   const handleAnalyzeFile = async () => {
-    if (!selectedFile) return
+    if (!selectedFile && !contractText) return
     setIsAnalyzing(true)
     setErrorMsg(null)
     setReport(null)
 
-    try {
-      let tipo = 'outro'
-      if (selectedFile.type === 'application/pdf') tipo = 'pdf'
-      else if (
-        selectedFile.name.endsWith('.docx') ||
-        selectedFile.type.includes('wordprocessingml')
-      )
-        tipo = 'docx'
-      else if (selectedFile.type.startsWith('image/')) tipo = 'imagem'
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 30000)
 
-      const base64Data = await fileToBase64(selectedFile)
+    try {
+      let base64Data = ''
+      let tipo = 'outro'
+      let fileName = 'contrato_gerado.txt'
+
+      if (selectedFile) {
+        if (selectedFile.type === 'application/pdf') tipo = 'pdf'
+        else if (
+          selectedFile.name.endsWith('.docx') ||
+          selectedFile.type.includes('wordprocessingml')
+        )
+          tipo = 'docx'
+        else if (selectedFile.type.startsWith('image/')) tipo = 'imagem'
+
+        fileName = selectedFile.name
+        const b64 = await fileToBase64(selectedFile)
+        base64Data = b64.split(',')[1] || b64
+      } else if (contractText) {
+        tipo = 'txt'
+        base64Data = btoa(unescape(encodeURIComponent(contractText)))
+      }
 
       const payload = {
         arquivo: base64Data,
         tipo,
         tipoContrato: contractType,
-        fileName: selectedFile.name,
+        fileName,
+        contractId: contractIdParam || undefined,
       }
 
       const res = await pb.send('/backend/v1/analisar-contrato', {
         method: 'POST',
         body: JSON.stringify(payload),
+        signal: controller.signal,
       })
 
+      clearTimeout(timeoutId)
+
       if (res.error) {
-        setErrorMsg(res.error)
+        const msg = 'Não consegui analisar o contrato. Tente novamente.'
+        setErrorMsg(msg)
+        toast.error(msg)
       } else {
         setReport(res)
         toast.success('Análise concluída com sucesso!')
       }
     } catch (error: any) {
+      clearTimeout(timeoutId)
       console.error(error)
-      setErrorMsg(
-        error.response?.data?.error ||
-          'Não consegui analisar o contrato. Verifique o arquivo e tente novamente.',
-      )
+      const msg = 'Não consegui analisar o contrato. Tente novamente.'
+      setErrorMsg(msg)
+      toast.error(msg)
     } finally {
       setIsAnalyzing(false)
     }
@@ -188,13 +229,31 @@ export default function AIAnalysis() {
                 ref={fileInputRef}
                 onChange={(e) => {
                   const f = e.target.files?.[0]
-                  if (f) setSelectedFile(f)
+                  if (f) {
+                    setSelectedFile(f)
+                    setContractText(null)
+                  }
                 }}
                 accept=".pdf,.docx,.jpg,.jpeg,.png,.txt"
               />
             </div>
 
-            {selectedFile && (
+            {contractText && !selectedFile && (
+              <div className="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <FileText className="w-8 h-8 text-purple-600" />
+                  <div>
+                    <p className="font-medium text-slate-800">Contrato Carregado do Sistema</p>
+                    <p className="text-sm text-slate-500">Pronto para análise</p>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => setContractText(null)}>
+                  Remover
+                </Button>
+              </div>
+            )}
+
+            {(selectedFile || contractText) && (
               <div className="mt-8 flex justify-center animate-in slide-in-from-bottom-4 duration-300">
                 <Button
                   size="lg"
@@ -246,7 +305,6 @@ export default function AIAnalysis() {
                 className="border-red-200 text-red-700 hover:bg-red-50 px-8"
                 onClick={() => {
                   setErrorMsg(null)
-                  setSelectedFile(null)
                 }}
               >
                 <RefreshCcw className="w-4 h-4 mr-2" /> Tentar novamente
