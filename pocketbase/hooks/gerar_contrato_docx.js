@@ -90,14 +90,15 @@ routerAdd(
       const pgtoHTML =
         tipo === 'a_vista'
           ? `
-        <ul>
-          <li>Sinal: ${formatCurrency(valor_sinal)} (por extenso).</li>
-          <li>Saldo: ${formatCurrency(valor_saldo)} (por extenso), com vencimento em ${formatDate(data_pagamento_saldo)}.</li>
-          <li>Comissão: ${formatCurrency(comissao)} (por extenso).</li>
-        </ul>
-      `
-          : `
-        <ul>
+          <ul>
+            <li>Sinal: ${formatCurrency(valor_sinal)} (por extenso).</li>
+            ${valor_reforco && Number(valor_reforco) > 0 ? `<li>Reforço de Sinal: ${formatCurrency(valor_reforco)} (por extenso).</li>` : ''}
+            ${valor_complemento && Number(valor_complemento) > 0 ? `<li>Complemento: ${formatCurrency(valor_complemento)} (por extenso).</li>` : ''}
+            ${valor_saldo && Number(valor_saldo) > 0 ? `<li>Saldo: ${formatCurrency(valor_saldo)} (por extenso), com vencimento em ${formatDate(data_pagamento_saldo)}.</li>` : ''}
+            <li>Comissão: ${formatCurrency(comissao)} (por extenso).</li>
+          </ul>
+        `
+          : `        <ul>
           <li>Sinal: ${formatCurrency(valor_sinal)} (por extenso).</li>
           <li>Reforço de Sinal: ${formatCurrency(valor_reforco)} (por extenso).</li>
           <li>Complemento: ${formatCurrency(valor_complemento)} (por extenso).</li>

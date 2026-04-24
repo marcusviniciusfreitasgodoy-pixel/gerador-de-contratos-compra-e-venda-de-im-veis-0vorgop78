@@ -79,6 +79,9 @@ export const contractSchema = z
 
     if (data.tipo === 'a_vista') {
       const saldo = parseCurrencySafe(data.valor_saldo)
+      const reforco = parseCurrencySafe(data.valor_reforco)
+      const complemento = parseCurrencySafe(data.valor_complemento)
+
       if (data.valor_saldo && saldo <= 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -86,10 +89,25 @@ export const contractSchema = z
           path: ['valor_saldo'],
         })
       }
-      if (sinal + saldo !== total) {
+      if (data.valor_reforco && reforco <= 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Sinal + Saldo deve ser igual ao Valor Total',
+          message: 'Valor deve ser maior que zero',
+          path: ['valor_reforco'],
+        })
+      }
+      if (data.valor_complemento && complemento <= 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Valor deve ser maior que zero',
+          path: ['valor_complemento'],
+        })
+      }
+
+      if (sinal + reforco + complemento + saldo !== total) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Sinal + Reforço + Complemento + Saldo deve ser igual ao Valor Total',
           path: ['valor_saldo'],
         })
       }

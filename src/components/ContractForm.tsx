@@ -14,68 +14,17 @@ import { generateDraftText } from '@/lib/draft-template'
 import { useAuth } from '@/hooks/use-auth'
 import { useEffect } from 'react'
 import { parseCurrency, formatCurrency } from '@/lib/formatters'
-import { useFormContext } from 'react-hook-form'
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
+import { FormInput } from './FormInput'
 
 function SellerBankBlock() {
-  const { control } = useFormContext()
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
       <h3 className="font-semibold text-lg text-slate-800">Dados Bancários do Vendedor</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <FormField
-          control={control}
-          name="vendedor_banco"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Banco</FormLabel>
-              <FormControl>
-                <Input {...field} value={field.value || ''} placeholder="Ex: Itaú" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={control}
-          name="vendedor_agencia"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Agência</FormLabel>
-              <FormControl>
-                <Input {...field} value={field.value || ''} placeholder="Ex: 0001" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={control}
-          name="vendedor_conta"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Conta</FormLabel>
-              <FormControl>
-                <Input {...field} value={field.value || ''} placeholder="Ex: 12345-6" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={control}
-          name="vendedor_pix"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Chave Pix</FormLabel>
-              <FormControl>
-                <Input {...field} value={field.value || ''} placeholder="CPF/Email/Celular" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <FormInput name="vendedor_banco" label="Banco" placeholder="Ex: Itaú" />
+        <FormInput name="vendedor_agencia" label="Agência" placeholder="Ex: 0001" />
+        <FormInput name="vendedor_conta" label="Conta" placeholder="Ex: 12345-6" />
+        <FormInput name="vendedor_pix" label="Chave Pix" placeholder="CPF/Email/Celular" />
       </div>
     </div>
   )
@@ -394,9 +343,8 @@ export function ContractForm({
           <PersonBlock suffix="_comprador" title="Dados do Comprador" />
           <PropertyBlock />
           <FinancialBlock type={type} />
-          {type === 'financiado' && <FinancingBlock />}
+          <FinancingBlock type={type} />
         </div>
-
         <div className="flex justify-end pt-4 pb-12">
           <Button
             type="submit"

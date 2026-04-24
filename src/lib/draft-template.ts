@@ -1,4 +1,10 @@
 import type { ContractFormValues } from './schemas'
+import { parseCurrency } from './formatters'
+
+const parseCurrencySafe = (val: string | undefined | null) => {
+  if (!val) return 0
+  return parseCurrency(val) || 0
+}
 
 const formatCurrency = (val: string | undefined | null) => {
   if (!val) return 'R$ 0,00'
@@ -18,8 +24,20 @@ export const generateDraftText = (data: ContractFormValues, user?: any): string 
 
   let pgtoText = ''
   if (data.tipo === 'a_vista') {
-    pgtoText = `- Sinal: ${formatCurrency(data.valor_sinal)} (por extenso).
-- Saldo: ${formatCurrency(data.valor_saldo)} (por extenso), com vencimento em ${formatDate(data.data_pagamento_saldo)}.
+    const reforcoText =
+      data.valor_reforco && parseCurrencySafe(data.valor_reforco) > 0
+        ? `\n- Reforço de Sinal: ${formatCurrency(data.valor_reforco)} (por extenso).`
+        : ''
+    const complementoText =
+      data.valor_complemento && parseCurrencySafe(data.valor_complemento) > 0
+        ? `\n- Complemento: ${formatCurrency(data.valor_complemento)} (por extenso).`
+        : ''
+    const saldoText =
+      data.valor_saldo && parseCurrencySafe(data.valor_saldo) > 0
+        ? `\n- Saldo: ${formatCurrency(data.valor_saldo)} (por extenso), com vencimento em ${formatDate(data.data_pagamento_saldo)}.`
+        : ''
+
+    pgtoText = `- Sinal: ${formatCurrency(data.valor_sinal)} (por extenso).${reforcoText}${complementoText}${saldoText}
 - Comissão: ${formatCurrency(data.comissao)} (por extenso).`
   } else {
     pgtoText = `- Sinal: ${formatCurrency(data.valor_sinal)} (por extenso).

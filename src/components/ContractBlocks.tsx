@@ -1,6 +1,8 @@
 import { useFormContext } from 'react-hook-form'
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { FormInput } from './FormInput'
+import { formatCurrency } from '@/lib/formatters'
 
 export function PersonBlock({
   suffix,
@@ -239,78 +241,37 @@ export function PropertyBlock() {
 }
 
 export function FinancialBlock({ type }: { type: 'a_vista' | 'financiado' }) {
-  const { control } = useFormContext()
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
       <h3 className="font-semibold text-lg text-slate-800">Valores e Pagamento</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <FormField
-          control={control}
+        <FormInput
           name="valor_total"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Valor Total do Imóvel</FormLabel>
-              <FormControl>
-                <Input {...field} value={field.value || ''} placeholder="R$ 0,00" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Valor Total do Imóvel"
+          placeholder="R$ 0,00"
+          mask={formatCurrency}
         />
-        <FormField
-          control={control}
+        <FormInput
           name="valor_sinal"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Valor do Sinal (Arras)</FormLabel>
-              <FormControl>
-                <Input {...field} value={field.value || ''} placeholder="R$ 0,00" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Valor do Sinal (Arras)"
+          placeholder="R$ 0,00"
+          mask={formatCurrency}
         />
-        <FormField
-          control={control}
+        <FormInput
           name="comissao"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Valor da Comissão</FormLabel>
-              <FormControl>
-                <Input {...field} value={field.value || ''} placeholder="R$ 0,00" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Valor da Comissão"
+          placeholder="R$ 0,00"
+          mask={formatCurrency}
         />
         {type === 'a_vista' && (
           <>
-            <FormField
-              control={control}
+            <FormInput
               name="valor_saldo"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Valor do Saldo</FormLabel>
-                  <FormControl>
-                    <Input {...field} value={field.value || ''} placeholder="R$ 0,00" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Valor do Saldo"
+              placeholder="R$ 0,00"
+              mask={formatCurrency}
             />
-            <FormField
-              control={control}
-              name="data_pagamento_saldo"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Data de Pagamento do Saldo</FormLabel>
-                  <FormControl>
-                    <Input {...field} value={field.value || ''} type="date" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <FormInput name="data_pagamento_saldo" label="Data de Pagamento do Saldo" type="date" />
           </>
         )}
       </div>
@@ -318,64 +279,34 @@ export function FinancialBlock({ type }: { type: 'a_vista' | 'financiado' }) {
   )
 }
 
-export function FinancingBlock() {
-  const { control } = useFormContext()
+export function FinancingBlock({ type }: { type: 'a_vista' | 'financiado' }) {
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
       <h3 className="font-semibold text-lg text-slate-800">Condições de Financiamento</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <FormField
-          control={control}
+        <FormInput
           name="valor_reforco"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Reforço de Sinal (Opcional)</FormLabel>
-              <FormControl>
-                <Input {...field} value={field.value || ''} placeholder="R$ 0,00" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Reforço de Sinal (Opcional)"
+          placeholder="R$ 0,00"
+          mask={formatCurrency}
         />
-        <FormField
-          control={control}
+        <FormInput
           name="valor_complemento"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Complemento (Recursos Próprios)</FormLabel>
-              <FormControl>
-                <Input {...field} value={field.value || ''} placeholder="R$ 0,00" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Complemento (Recursos Próprios)"
+          placeholder="R$ 0,00"
+          mask={formatCurrency}
         />
-        <FormField
-          control={control}
-          name="valor_financiado"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Valor a ser Financiado</FormLabel>
-              <FormControl>
-                <Input {...field} value={field.value || ''} placeholder="R$ 0,00" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={control}
-          name="instituicao_financeira"
-          render={({ field }) => (
-            <FormItem className="sm:col-span-2">
-              <FormLabel>Instituição Financeira (Banco)</FormLabel>
-              <FormControl>
-                <Input {...field} value={field.value || ''} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {type === 'financiado' && (
+          <>
+            <FormInput
+              name="valor_financiado"
+              label="Valor a ser Financiado"
+              placeholder="R$ 0,00"
+              mask={formatCurrency}
+            />
+            <FormInput name="instituicao_financeira" label="Instituição Financeira (Banco)" />
+          </>
+        )}
       </div>
     </div>
   )
