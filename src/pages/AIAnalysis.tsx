@@ -8,8 +8,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Loader2, FileText, UploadCloud, AlertCircle, RefreshCcw, Bot } from 'lucide-react'
+import { Loader2, FileText, UploadCloud, AlertCircle, RefreshCcw, Bot, History } from 'lucide-react'
 import { toast } from 'sonner'
+import { Link } from 'react-router-dom'
 import pb from '@/lib/pocketbase/client'
 import { AnalysisReportView, type AnalysisReport } from '@/components/AnalysisReportView'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -56,6 +57,7 @@ export default function AIAnalysis() {
         arquivo: base64Data,
         tipo,
         tipoContrato: contractType,
+        fileName: selectedFile.name,
       }
 
       const res = await pb.send('/backend/v1/analisar-contrato', {
@@ -93,6 +95,13 @@ export default function AIAnalysis() {
           Faça upload do seu contrato imobiliário e receba um relatório completo de riscos, omissões
           e conformidade legal.
         </p>
+        <div className="mt-6">
+          <Button variant="outline" asChild className="rounded-full shadow-sm">
+            <Link to="/history">
+              <History className="w-4 h-4 mr-2" /> Ver Histórico de Análises
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {!report && !isAnalyzing && !errorMsg && (

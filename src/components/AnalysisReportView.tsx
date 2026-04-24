@@ -154,7 +154,7 @@ export function AnalysisReportView({ report }: { report: AnalysisReport }) {
 
         <TabsContent value="riscos" className="space-y-4 focus:outline-none">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {report.risks?.map((risk, idx) => (
+            {report.riscos?.map((risk, idx) => (
               <Card
                 key={idx}
                 className="border-l-4 shadow-sm"
@@ -201,7 +201,7 @@ export function AnalysisReportView({ report }: { report: AnalysisReport }) {
                 </CardContent>
               </Card>
             ))}
-            {(!report.risks || report.risks.length === 0) && (
+            {(!report.riscos || report.riscos.length === 0) && (
               <div className="col-span-full py-16 text-center text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-200">
                 <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-3" />
                 Nenhum risco significativo identificado.
@@ -343,18 +343,28 @@ export function AnalysisReportView({ report }: { report: AnalysisReport }) {
               </CardContent>
             </Card>
           </div>
-
-          <div className="flex justify-end pt-6 border-t border-slate-100 mt-8">
-            <Button
-              size="lg"
-              onClick={() => window.print()}
-              className="bg-slate-800 hover:bg-slate-900 w-full sm:w-auto"
-            >
-              <Download className="w-5 h-5 mr-2" /> Baixar relatório em PDF
-            </Button>
-          </div>
         </TabsContent>
       </Tabs>
+
+      <div className="mt-8 p-4 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-500 print:block hidden">
+        <strong>AVISO JURÍDICO:</strong> Este relatório é gerado automaticamente por Inteligência
+        Artificial e tem caráter puramente informativo e auxiliar. Não substitui a avaliação,
+        revisão ou parecer de um advogado devidamente qualificado e inscrito na OAB. A plataforma
+        não se responsabiliza por eventuais erros, omissões ou interpretações divergentes da
+        jurisprudência atualizada.
+      </div>
+
+      <div className="flex justify-end pt-6 border-t border-slate-100 mt-8 print:hidden">
+        <Button
+          size="lg"
+          onClick={() => {
+            setTimeout(() => window.print(), 100)
+          }}
+          className="bg-slate-800 hover:bg-slate-900 w-full sm:w-auto"
+        >
+          <Download className="w-5 h-5 mr-2" /> Baixar relatório em PDF
+        </Button>
+      </div>
     </div>
   )
 }

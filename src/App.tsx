@@ -8,6 +8,7 @@ import Home from '@/pages/Home'
 import Profile from '@/pages/Profile'
 import Login from '@/pages/Login'
 import AIAnalysis from '@/pages/AIAnalysis'
+import AnalysisHistory from '@/pages/AnalysisHistory'
 import SignUp from '@/pages/SignUp'
 import NotFound from '@/pages/NotFound'
 
@@ -24,6 +25,7 @@ const App = () => (
             <Route path="/" element={<Home />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/analysis" element={<AIAnalysis />} />
+            <Route path="/history" element={<AnalysisHistory />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

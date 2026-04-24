@@ -6,6 +6,8 @@ routerAdd(
     let arquivo = body.arquivo || ''
     const tipo = (body.tipo || '').toLowerCase()
     const tipoContrato = body.tipoContrato || 'outro'
+    const contractId = body.contractId || null
+    const fileName = body.fileName || ''
 
     try {
       if (arquivo.includes('base64,')) {
@@ -220,6 +222,12 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
         const reportsCol = $app.findCollectionByNameOrId('analysis_reports')
         const reportRecord = new Record(reportsCol)
         reportRecord.set('user', e.auth.id)
+        if (contractId) {
+          reportRecord.set('contract', contractId)
+        }
+        if (fileName) {
+          reportRecord.set('file_name', fileName)
+        }
         reportRecord.set('analysis_result', analysisResult)
 
         let summaryText = ''

@@ -58,6 +58,7 @@ export function ContractForm({
 }) {
   const [isGenerating, setIsGenerating] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [generatedContractId, setGeneratedContractId] = useState<string | null>(null)
   const [isPreviewMode, setIsPreviewMode] = useState(false)
   const [draftText, setDraftText] = useState('')
   const [isAnalyzing, setIsAnalyzing] = useState(false)
@@ -65,18 +66,30 @@ export function ContractForm({
   const [analysisReport, setAnalysisReport] = useState<AnalysisReport | null>(null)
   const { user } = useAuth()
 
-  const handleAnalyzeAI = async () => {
+  const handleAnalyzeAI = async (fromSuccess = false) => {
     setIsAnalyzing(true)
     try {
-      const res = await pb.send('/backend/v1/ai/analyze-contract', {
+      const encodedText = btoa(unescape(encodeURIComponent(draftText)))
+      const res = await pb.send('/backend/v1/analisar-contrato', {
         method: 'POST',
-        body: JSON.stringify({ text: draftText }),
+        body: JSON.stringify({
+          arquivo: encodedText,
+          tipo: 'txt',
+          tipoContrato: type,
+          contractId: fromSuccess ? generatedContractId : null,
+        }),
       })
-      setAnalysisReport(res.analysis)
-      setShowAnalysisModal(true)
+
+      if (res.error) {
+        toast.error(res.error)
+      } else {
+        setAnalysisReport(res)
+        setShowAnalysisModal(true)
+      }
     } catch (err: any) {
       toast.error('Erro ao analisar contrato.', {
-        description: err.message || 'Verifique se a chave OPENAI_API_KEY está configurada.',
+        description:
+          err.response?.data?.error || err.message || 'Verifique sua conexão ou configuração.',
       })
     } finally {
       setIsAnalyzing(false)
@@ -114,6 +127,7 @@ export function ContractForm({
     try {
       const data = form.getValues()
       const savedContract = await createContract(data, draftText)
+      setGeneratedContractId(savedContract.id)
 
       try {
         const docxResponse = await generateContractDocx({
@@ -296,7 +310,7 @@ export function ContractForm({
           </Button>
           <Button
             variant="secondary"
-            onClick={handleAnalyzeAI}
+            onClick={() => handleAnalyzeAI(false)}
             disabled={isGenerating || isAnalyzing}
             className="bg-purple-100 hover:bg-purple-200 text-purple-700 h-14 px-6 text-lg border border-purple-200 shadow-sm"
           >
@@ -357,7 +371,8 @@ export function ContractForm({
         <p className="text-slate-600 text-lg max-w-md mx-auto">
           O contrato foi salvo no sistema de forma segura.
         </p>
-        <div className="flex justify-center gap-4 mt-10">
+
+        <div className="flex flex-col sm:flex-row justify-center gap-4 mt-10">
           <Button
             variant="outline"
             size="lg"
@@ -369,7 +384,40 @@ export function ContractForm({
           >
             Novo Contrato
           </Button>
+          <Button
+            size="lg"
+            onClick={() => handleAnalyzeAI(true)}
+            disabled={isAnalyzing}
+            className="bg-purple-600 hover:bg-purple-700 text-white h-14 px-8 text-base shadow-md shadow-purple-200"
+          >
+            {isAnalyzing ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" /> Analisando...
+              </>
+            ) : (
+              <>
+                <Bot className="w-5 h-5 mr-2" /> Analisar com IA Jurídica
+              </>
+            )}
+          </Button>
         </div>
+
+        <Dialog open={showAnalysisModal} onOpenChange={setShowAnalysisModal}>
+          <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto p-0">
+            <div className="p-6 border-b sticky top-0 bg-white z-10">
+              <DialogTitle className="text-2xl flex items-center gap-2">
+                <Bot className="w-7 h-7 text-purple-600" />
+                Relatório de Análise Jurídica
+              </DialogTitle>
+              <DialogDescription className="text-base mt-2">
+                Análise baseada em jurisprudência e legislação aplicável ao contrato elaborado.
+              </DialogDescription>
+            </div>
+            <div className="p-6">
+              {analysisReport && <AnalysisReportView report={analysisReport} />}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     )
   }
