@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-24T18:41:13.915Z",
+  "generatedAt": "2026-04-24T18:52:14.184Z",
   "collections": [
     {
       "name": "users",
@@ -393,6 +393,128 @@
           "type": "text",
           "required": false,
           "system": false
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "name": "legal_knowledge",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != ''",
+        "view": "@request.auth.id != ''",
+        "create": "@request.auth.id != ''",
+        "update": "@request.auth.id != ''",
+        "delete": "@request.auth.id != ''"
+      },
+      "fields": [
+        {
+          "name": "title",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "content",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "category",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["legislacao", "jurisprudencia", "boas_praticas"]
+        },
+        {
+          "name": "embedding",
+          "type": "vector",
+          "required": false,
+          "system": false,
+          "vectorDimensions": 1536,
+          "vectorDistance": "cosine"
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "name": "analysis_reports",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != '' && user = @request.auth.id",
+        "view": "@request.auth.id != '' && user = @request.auth.id",
+        "create": "@request.auth.id != ''",
+        "update": "@request.auth.id != '' && user = @request.auth.id",
+        "delete": "@request.auth.id != '' && user = @request.auth.id"
+      },
+      "fields": [
+        {
+          "name": "user",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "contract",
+          "type": "relation",
+          "required": false,
+          "system": false,
+          "collectionRef": "contracts"
+        },
+        {
+          "name": "file_name",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "analysis_result",
+          "type": "json",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "summary",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "risk_level",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["baixo", "medio", "alto", "critico"]
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
         }
       ],
       "indexes": []

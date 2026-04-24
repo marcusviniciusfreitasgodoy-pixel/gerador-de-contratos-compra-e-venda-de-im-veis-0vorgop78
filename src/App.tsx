@@ -7,6 +7,7 @@ import Layout from '@/components/Layout'
 import Home from '@/pages/Home'
 import Profile from '@/pages/Profile'
 import Login from '@/pages/Login'
+import AIAnalysis from '@/pages/AIAnalysis'
 import SignUp from '@/pages/SignUp'
 import NotFound from '@/pages/NotFound'
 
@@ -22,6 +23,7 @@ const App = () => (
           <Route element={<Layout />}>
             <Route path="/" element={<Home />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/ai-analysis" element={<AIAnalysis />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

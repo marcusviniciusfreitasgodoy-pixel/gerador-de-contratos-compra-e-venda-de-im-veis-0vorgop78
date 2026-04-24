@@ -6,8 +6,26 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { contractSchema, type ContractFormValues } from '@/lib/schemas'
 import { PersonBlock, PropertyBlock, FinancialBlock, FinancingBlock } from './ContractBlocks'
-import { ArrowLeft, Loader2, CheckCircle2, Wand2, FileText, Edit3, AlertCircle } from 'lucide-react'
+import {
+  ArrowLeft,
+  Loader2,
+  CheckCircle2,
+  Wand2,
+  FileText,
+  Edit3,
+  AlertCircle,
+  Bot,
+} from 'lucide-react'
 import { createContract, generateContractDocx } from '@/services/contracts'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
+import { AnalysisReportView, type AnalysisReport } from './AnalysisReportView'
+import pb from '@/lib/pocketbase/client'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { addDays } from 'date-fns'
 import { toast } from 'sonner'
@@ -42,7 +60,28 @@ export function ContractForm({
   const [isSuccess, setIsSuccess] = useState(false)
   const [isPreviewMode, setIsPreviewMode] = useState(false)
   const [draftText, setDraftText] = useState('')
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [showAnalysisModal, setShowAnalysisModal] = useState(false)
+  const [analysisReport, setAnalysisReport] = useState<AnalysisReport | null>(null)
   const { user } = useAuth()
+
+  const handleAnalyzeAI = async () => {
+    setIsAnalyzing(true)
+    try {
+      const res = await pb.send('/backend/v1/ai/analyze-contract', {
+        method: 'POST',
+        body: JSON.stringify({ text: draftText }),
+      })
+      setAnalysisReport(res.analysis)
+      setShowAnalysisModal(true)
+    } catch (err: any) {
+      toast.error('Erro ao analisar contrato.', {
+        description: err.message || 'Verifique se a chave OPENAI_API_KEY está configurada.',
+      })
+    } finally {
+      setIsAnalyzing(false)
+    }
+  }
 
   const form = useForm<ContractFormValues>({
     resolver: zodResolver(contractSchema),
@@ -246,18 +285,34 @@ export function ContractForm({
           />
         </div>
 
-        <div className="flex justify-end gap-4 pt-4 pb-12">
+        <div className="flex flex-col sm:flex-row justify-end gap-4 pt-4 pb-12">
           <Button
             variant="outline"
             onClick={() => setIsPreviewMode(false)}
-            disabled={isGenerating}
+            disabled={isGenerating || isAnalyzing}
             className="h-14 px-8 text-lg"
           >
             Voltar
           </Button>
           <Button
+            variant="secondary"
+            onClick={handleAnalyzeAI}
+            disabled={isGenerating || isAnalyzing}
+            className="bg-purple-100 hover:bg-purple-200 text-purple-700 h-14 px-6 text-lg border border-purple-200 shadow-sm"
+          >
+            {isAnalyzing ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" /> Analisando...
+              </>
+            ) : (
+              <>
+                <Bot className="w-5 h-5 mr-2" /> Analisar com IA Jurídica
+              </>
+            )}
+          </Button>
+          <Button
             onClick={handleGenerateFinal}
-            disabled={isGenerating}
+            disabled={isGenerating || isAnalyzing}
             className="bg-blue-600 hover:bg-blue-700 h-14 px-8 text-lg shadow-lg shadow-blue-200"
           >
             {isGenerating ? (
@@ -271,6 +326,21 @@ export function ContractForm({
             )}
           </Button>
         </div>
+
+        <Dialog open={showAnalysisModal} onOpenChange={setShowAnalysisModal}>
+          <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+            <DialogHeader className="mb-4">
+              <DialogTitle className="text-2xl flex items-center gap-2">
+                <Bot className="w-7 h-7 text-purple-600" />
+                Relatório de Análise Jurídica
+              </DialogTitle>
+              <DialogDescription className="text-base">
+                Análise baseada em jurisprudência e legislação aplicável ao contrato elaborado.
+              </DialogDescription>
+            </DialogHeader>
+            {analysisReport && <AnalysisReportView report={analysisReport} />}
+          </DialogContent>
+        </Dialog>
       </div>
     )
   }
