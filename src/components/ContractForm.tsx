@@ -328,17 +328,19 @@ export function ContractForm({
         </div>
 
         <Dialog open={showAnalysisModal} onOpenChange={setShowAnalysisModal}>
-          <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
-            <DialogHeader className="mb-4">
+          <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto p-0">
+            <div className="p-6 border-b sticky top-0 bg-white z-10">
               <DialogTitle className="text-2xl flex items-center gap-2">
                 <Bot className="w-7 h-7 text-purple-600" />
                 Relatório de Análise Jurídica
               </DialogTitle>
-              <DialogDescription className="text-base">
+              <DialogDescription className="text-base mt-2">
                 Análise baseada em jurisprudência e legislação aplicável ao contrato elaborado.
               </DialogDescription>
-            </DialogHeader>
-            {analysisReport && <AnalysisReportView report={analysisReport} />}
+            </div>
+            <div className="p-6">
+              {analysisReport && <AnalysisReportView report={analysisReport} />}
+            </div>
           </DialogContent>
         </Dialog>
       </div>

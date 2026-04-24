@@ -3,16 +3,52 @@ routerAdd(
   '/backend/v1/ai/analyze-contract',
   (e) => {
     const body = e.requestInfo().body || {}
-    const text = (body.text || '').trim()
+    let text = (body.text || '').trim()
+    const imageBase64 = body.image_base64 || null
     const contractId = body.contractId || null
     const fileName = body.fileName || null
-
-    if (!text) return e.badRequestError('Missing contract text')
 
     const apiKey = $secrets.get('OPENAI_API_KEY')
     if (!apiKey) return e.internalServerError('OPENAI_API_KEY not configured')
 
-    const embedText = text.substring(0, 8000)
+    let extractedText = text
+
+    if (imageBase64) {
+      const extractRes = $http.send({
+        url: 'https://api.openai.com/v1/chat/completions',
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + apiKey },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          messages: [
+            {
+              role: 'user',
+              content: [
+                {
+                  type: 'text',
+                  text: 'Extraia todo o texto legível desta imagem de contrato. Retorne APENAS o texto extraído, de forma contínua e estruturada, sem comentários.',
+                },
+                { type: 'image_url', image_url: { url: imageBase64 } },
+              ],
+            },
+          ],
+        }),
+        timeout: 60,
+      })
+
+      if (extractRes.statusCode !== 200) {
+        $app
+          .logger()
+          .error('OpenAI Vision failed', 'status', extractRes.statusCode, 'raw', extractRes.raw)
+        return e.internalServerError('Falha ao extrair texto da imagem.')
+      }
+      extractedText = extractRes.json.choices[0].message.content.trim()
+    }
+
+    if (!extractedText) return e.badRequestError('Nenhum texto para analisar.')
+
+    // RAG - Context Search
+    const embedText = extractedText.substring(0, 8000)
     const embedRes = $http.send({
       url: 'https://api.openai.com/v1/embeddings',
       method: 'POST',
@@ -34,36 +70,54 @@ routerAdd(
         .join('\n\n')
     }
 
-    const systemPrompt = `Você é um Assistente Jurídico de IA especializado em Direito Imobiliário Brasileiro, focado em contratos no Rio de Janeiro (Barra da Tijuca, Recreio, Leblon) e foro de Jacarepaguá.
-Sua tarefa é analisar o contrato fornecido e gerar um relatório estruturado e fundamentado.
+    const systemPrompt = `Você é um Assistente Jurídico de IA especializado em Direito Imobiliário Brasileiro.
+Sua tarefa é analisar o contrato fornecido e gerar um relatório estruturado e detalhado.
 
 Passos obrigatórios:
-1. Identifique o tipo de contrato (ex: À vista vs Financiado) para guiar a análise.
-2. Identifique riscos, verifique a presença de cláusulas essenciais e cláusulas de proteção adequadas para comprador e vendedor.
-3. Priorize a Legislação Primária (Código Civil, Lei do Inquilinato, etc.) na Fundamentação Legal, complementando com Jurisprudência e Boas Práticas.
+1. Verifique se o texto se trata de um contrato imobiliário (ex: compra e venda, aluguel, promessa, financiamento, incorporação). Se NÃO for, defina "is_real_estate_contract" como false e deixe os demais campos vazios.
+2. Identifique o tipo de contrato.
+3. Resuma as partes envolvidas.
+4. Faça um resumo executivo de 1-2 linhas do objetivo do contrato.
+5. Verifique a presença das 10 cláusulas estruturais obrigatórias (Identificação das partes, Objeto do contrato, Preço e forma de pagamento, Documentação necessária, Obrigações das partes, Imissão na posse, Multas e penalidades, Legislação aplicável, Foro competente, Assinaturas e testemunhas) e classifique cada uma como "CONFORME", "RISCO" ou "CRÍTICO".
+6. Analise a conformidade jurídica de cláusulas específicas.
+7. Classifique os riscos nas 5 categorias exatas: buyer, seller, execution, registration e financing.
+8. Identifique cláusulas abusivas (ex: ferem o CDC, unilaterais). Para cada, explique a violação, dê recomendação e sugira nova redação.
+9. Identifique omissões críticas e sugira texto.
+10. Liste recomendações imediatas e recomendadas.
 
-Base de Conhecimento Local (RAG):
+Contexto Jurídico (RAG):
 ${contextText}
 
-Responda ESTRITAMENTE em formato JSON com a seguinte estrutura:
+Responda ESTRITAMENTE no seguinte formato JSON (e nada mais):
 {
-  "summary": "RESUMO EXECUTIVO: [Resumo executivo de 1-2 linhas sobre a análise geral e o tipo de contrato identificado]",
-  "overall_risk": "baixo" | "medio" | "alto" | "critico",
-  "missing_clauses": ["Lista de strings de cláusulas essenciais ausentes. Array vazio se não houver."],
-  "findings": [
-    {
-      "clause": "Nome ou trecho da cláusula analisada",
-      "risk_level": "critico" | "alto" | "medio",
-      "description": "ANÁLISE CONTEXTUAL: [Aplicação da lei ao caso concreto, explicando o risco ou contexto da cláusula]",
-      "legal_basis": "FUNDAMENTAÇÃO LEGAL: [Citação explícita de Artigos (ex: Art. 421, CC) ou Súmulas priorizando a legislação primária da base RAG]",
-      "recommendation": "RECOMENDAÇÃO PRÁTICA: [Passos acionáveis sobre o que deve ser ajustado]"
-    }
-  ]
-}
-Lembrete de níveis de risco:
-- critico (vermelho): viola normas imperativas ou falta de cláusulas obrigatórias vitais.
-- alto (amarelo): desvantagem excessiva para uma das partes.
-- medio (verde): sugestões de clareza ou melhoria.`
+  "is_real_estate_contract": true ou false,
+  "contract_type": "string",
+  "parties": "string",
+  "summary": "string",
+  "structural_compliance": [
+    { "clause": "string (nome da cláusula obrigatória)", "present": true ou false, "status": "CONFORME" | "RISCO" | "CRÍTICO", "details": "string" }
+  ],
+  "legal_compliance": [
+    { "clause_text": "string", "status": "CONFORME" | "RISCO" | "CRÍTICO", "legal_basis": "string (Art. X...)", "explanation": "string" }
+  ],
+  "risks": {
+    "buyer": ["string"],
+    "seller": ["string"],
+    "execution": ["string"],
+    "registration": ["string"],
+    "financing": ["string"]
+  },
+  "abusive_clauses": [
+    { "clause": "string", "violation": "string", "recommendation": "string", "drafting_suggestion": "string" }
+  ],
+  "omissions": [
+    { "missing_item": "string", "drafting_suggestion": "string" }
+  ],
+  "recommendations": {
+    "immediate": ["string"],
+    "recommended": ["string"]
+  }
+}`
 
     const chatRes = $http.send({
       url: 'https://api.openai.com/v1/chat/completions',
@@ -73,20 +127,21 @@ Lembrete de níveis de risco:
         model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: 'Contrato a analisar:\n\n' + text },
+          { role: 'user', content: 'Contrato a analisar:\n\n' + extractedText },
         ],
         response_format: { type: 'json_object' },
       }),
-      timeout: 60,
+      timeout: 90,
     })
 
     if (chatRes.statusCode !== 200) {
       $app.logger().error('OpenAI chat failed', 'status', chatRes.statusCode, 'raw', chatRes.raw)
-      return e.internalServerError('AI Analysis failed. Check logs.')
+      return e.internalServerError('Falha na análise da IA.')
     }
 
     const analysisResult = JSON.parse(chatRes.json.choices[0].message.content)
 
+    // Save report to database
     const reportsCol = $app.findCollectionByNameOrId('analysis_reports')
     const reportRecord = new Record(reportsCol)
     reportRecord.set('user', e.auth.id)
@@ -99,7 +154,19 @@ Lembrete de níveis de risco:
     if (fileName) reportRecord.set('file_name', fileName)
     reportRecord.set('analysis_result', analysisResult)
     reportRecord.set('summary', analysisResult.summary || 'Resumo não gerado')
-    reportRecord.set('risk_level', analysisResult.overall_risk || 'medio')
+
+    // Auto-calculate risk
+    let risk = 'baixo'
+    if (analysisResult.is_real_estate_contract) {
+      const hasCritical =
+        analysisResult.structural_compliance?.some((c) => c.status === 'CRÍTICO') ||
+        analysisResult.legal_compliance?.some((c) => c.status === 'CRÍTICO')
+      const hasRisco =
+        analysisResult.structural_compliance?.some((c) => c.status === 'RISCO') ||
+        analysisResult.legal_compliance?.some((c) => c.status === 'RISCO')
+      risk = hasCritical ? 'critico' : hasRisco ? 'alto' : 'baixo'
+    }
+    reportRecord.set('risk_level', risk)
     $app.save(reportRecord)
 
     return e.json(200, {
