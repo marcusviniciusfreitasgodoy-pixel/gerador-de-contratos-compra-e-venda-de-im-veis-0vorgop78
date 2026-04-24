@@ -1,4 +1,3 @@
-// @deps buffer@6.0.3
 routerAdd(
   'POST',
   '/backend/v1/analisar-contrato',
@@ -159,9 +158,32 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
             throw new Error('Falha na extração da imagem com OpenAI.')
           }
         } else {
-          const { Buffer } = require('buffer')
           try {
-            extractedText = Buffer.from(arquivo, 'base64').toString('utf8')
+            const atobFn =
+              typeof atob !== 'undefined'
+                ? atob
+                : (str) => {
+                    const chars =
+                      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/='
+                    let output = ''
+                    str = String(str).replace(/[=]+$/, '')
+                    for (
+                      let bc = 0, bs, buffer, idx = 0;
+                      (buffer = str.charAt(idx++));
+                      ~buffer && ((bs = bc % 4 ? bs * 64 + buffer : buffer), bc++ % 4)
+                        ? (output += String.fromCharCode(255 & (bs >> ((-2 * bc) & 6))))
+                        : 0
+                    ) {
+                      buffer = chars.indexOf(buffer)
+                    }
+                    return output
+                  }
+            const binStr = atobFn(arquivo)
+            try {
+              extractedText = decodeURIComponent(escape(binStr))
+            } catch (err) {
+              extractedText = binStr
+            }
           } catch (e) {
             extractedText = arquivo
           }
