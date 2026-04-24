@@ -33,7 +33,7 @@ import { generateDraftText } from '@/lib/draft-template'
 import { useAuth } from '@/hooks/use-auth'
 import { useEffect } from 'react'
 import { parseCurrency, formatCurrency } from '@/lib/formatters'
-import { FormInput } from './FormInput'
+import { FormInput, FormCurrencyInput } from './FormInput'
 
 function SellerBankBlock() {
   return (
@@ -54,10 +54,10 @@ function FinancialBlock({ type }: { type: 'a_vista' | 'financiado' }) {
     <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
       <h3 className="font-semibold text-lg text-slate-800">Valores e Pagamento</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <FormInput name="valor_total" label="Valor Total" placeholder="R$ 0,00" />
-        <FormInput name="valor_sinal" label="Valor do Sinal" placeholder="R$ 0,00" />
-        <FormInput name="valor_reforco" label="Valor do Reforço" placeholder="R$ 0,00" />
-        <FormInput
+        <FormCurrencyInput name="valor_total" label="Valor Total" placeholder="R$ 0,00" />
+        <FormCurrencyInput name="valor_sinal" label="Valor do Sinal" placeholder="R$ 0,00" />
+        <FormCurrencyInput name="valor_reforco" label="Valor do Reforço" placeholder="R$ 0,00" />
+        <FormCurrencyInput
           name="valor_complemento"
           label={
             type === 'financiado' ? 'Complemento (Na escritura) *' : 'Complemento (Na escritura)'
@@ -66,11 +66,11 @@ function FinancialBlock({ type }: { type: 'a_vista' | 'financiado' }) {
         />
         {type === 'a_vista' && (
           <>
-            <FormInput name="valor_saldo" label="Saldo Final" placeholder="R$ 0,00" />
+            <FormCurrencyInput name="valor_saldo" label="Saldo Final" placeholder="R$ 0,00" />
             <FormInput name="data_pagamento_saldo" label="Data Limite do Saldo" type="date" />
           </>
         )}
-        <FormInput name="comissao" label="Comissão Imobiliária" placeholder="R$ 0,00" />
+        <FormCurrencyInput name="comissao" label="Comissão Imobiliária" placeholder="R$ 0,00" />
       </div>
     </div>
   )
@@ -83,7 +83,7 @@ function FinancingBlock({ type }: { type: 'a_vista' | 'financiado' }) {
     <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
       <h3 className="font-semibold text-lg text-slate-800">Condições de Financiamento</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FormInput name="valor_financiado" label="Valor Financiado" placeholder="R$ 0,00" />
+        <FormCurrencyInput name="valor_financiado" label="Valor Financiado" placeholder="R$ 0,00" />
         <FormInput
           name="instituicao_financeira"
           label="Instituição Financeira"
@@ -171,7 +171,19 @@ export function ContractForm({
     setIsGenerating(true)
     try {
       const data = form.getValues()
-      const savedContract = await createContract(data, draftText)
+
+      const payloadForDb = {
+        ...data,
+        valor_total: parseCurrency(data.valor_total),
+        valor_sinal: parseCurrency(data.valor_sinal),
+        valor_reforco: parseCurrency(data.valor_reforco),
+        valor_complemento: parseCurrency(data.valor_complemento),
+        valor_saldo: parseCurrency(data.valor_saldo),
+        valor_financiado: parseCurrency(data.valor_financiado),
+        comissao: parseCurrency(data.comissao),
+      }
+
+      const savedContract = await createContract(payloadForDb as any, draftText)
       setGeneratedContractId(savedContract.id)
 
       try {

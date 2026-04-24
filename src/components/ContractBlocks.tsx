@@ -1,49 +1,4 @@
-import { FormInput } from './FormInput'
-import { useFormContext } from 'react-hook-form'
-import { formatCurrency } from '@/lib/formatters'
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { ChangeEvent } from 'react'
-
-function CurrencyInput({
-  name,
-  label,
-  placeholder,
-}: {
-  name: string
-  label: string
-  placeholder?: string
-}) {
-  const { control } = useFormContext()
-
-  return (
-    <FormField
-      control={control}
-      name={name}
-      render={({ field }) => {
-        const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-          const formatted = formatCurrency(e.target.value)
-          field.onChange(formatted)
-        }
-
-        return (
-          <FormItem>
-            <FormLabel>{label}</FormLabel>
-            <FormControl>
-              <Input
-                {...field}
-                value={field.value || ''}
-                onChange={handleChange}
-                placeholder={placeholder}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )
-      }}
-    />
-  )
-}
+import { FormInput, FormCurrencyInput } from './FormInput'
 
 export function PersonBlock({
   suffix,
@@ -96,28 +51,28 @@ export function FinancialBlock({ type }: { type: 'a_vista' | 'financiado' }) {
     <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
       <h3 className="font-semibold text-lg text-slate-800">Valores e Pagamento</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <CurrencyInput name="valor_total" label="Valor Total" placeholder="R$ 0,00" />
-        <CurrencyInput name="valor_sinal" label="Sinal (Arras)" placeholder="R$ 0,00" />
-        <CurrencyInput
+        <FormCurrencyInput name="valor_total" label="Valor Total" placeholder="R$ 0,00" />
+        <FormCurrencyInput name="valor_sinal" label="Sinal (Arras)" placeholder="R$ 0,00" />
+        <FormCurrencyInput
           name="valor_reforco"
           label="Reforço de Sinal (Opcional)"
           placeholder="R$ 0,00"
         />
-        <CurrencyInput
+        <FormCurrencyInput
           name="valor_complemento"
           label="Complemento (Opcional)"
           placeholder="R$ 0,00"
         />
 
         {type === 'a_vista' && (
-          <CurrencyInput name="valor_saldo" label="Saldo Remanescente" placeholder="R$ 0,00" />
+          <FormCurrencyInput name="valor_saldo" label="Saldo Remanescente" placeholder="R$ 0,00" />
         )}
 
         {type === 'a_vista' && (
           <FormInput name="data_pagamento_saldo" label="Data de Pagamento do Saldo" type="date" />
         )}
 
-        <CurrencyInput name="comissao" label="Valor da Comissão" placeholder="R$ 0,00" />
+        <FormCurrencyInput name="comissao" label="Valor da Comissão" placeholder="R$ 0,00" />
       </div>
     </div>
   )
@@ -130,7 +85,7 @@ export function FinancingBlock({ type }: { type: 'a_vista' | 'financiado' }) {
     <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
       <h3 className="font-semibold text-lg text-slate-800">Condições de Financiamento</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <CurrencyInput name="valor_financiado" label="Valor Financiado" placeholder="R$ 0,00" />
+        <FormCurrencyInput name="valor_financiado" label="Valor Financiado" placeholder="R$ 0,00" />
         <FormInput
           name="instituicao_financeira"
           label="Instituição Financeira"
