@@ -12,7 +12,7 @@ const formatDate = (dateStr?: string) => {
   return `${d}/${m}/${y}`
 }
 
-export const generateDraftText = (data: ContractFormValues): string => {
+export const generateDraftText = (data: ContractFormValues, user?: any): string => {
   const hojeDate = new Date()
   const hoje = `${String(hojeDate.getDate()).padStart(2, '0')}/${String(hojeDate.getMonth() + 1).padStart(2, '0')}/${hojeDate.getFullYear()}`
 
@@ -29,7 +29,19 @@ export const generateDraftText = (data: ContractFormValues): string => {
 - Comissão: ${formatCurrency(data.comissao)} (por extenso).`
   }
 
-  return `Godoy Prime Realty
+  const brokerBankInfo = user?.banco_nome
+    ? `
+O pagamento da comissão de corretagem deverá ser depositado na conta bancária de titularidade de ${user.imobiliaria_nome || user.name}, CPF/CNPJ: ${user.imobiliaria_documento || ''}, CRECI: ${user.creci || ''}.
+Banco: ${user.banco_nome}, Agência: ${user.agencia}, Conta: ${user.conta}, Chave Pix: ${user.chave_pix}.`
+    : ''
+
+  const sellerBankInfo = data.vendedor_banco
+    ? `
+Os pagamentos devidos ao VENDEDOR deverão ser efetuados na seguinte conta bancária:
+Banco: ${data.vendedor_banco}, Agência: ${data.vendedor_agencia}, Conta: ${data.vendedor_conta}, Chave Pix: ${data.vendedor_pix}.`
+    : ''
+
+  return `${user?.imobiliaria_nome || 'Godoy Prime Realty'}
 
 INSTRUMENTO PARTICULAR DE PROMESSA DE COMPRA E VENDA
 
@@ -44,6 +56,8 @@ O objeto do presente contrato é o imóvel situado em ${data.endereco_imovel || 
 Cláusula 3 - Preço e Condições de Pagamento
 O preço certo e ajustado para a presente compra e venda é de ${formatCurrency(data.valor_total)} (por extenso), que será pago da seguinte forma:
 ${pgtoText}
+${sellerBankInfo}
+${brokerBankInfo}
 
 Cláusula 4 - Documentação
 As partes obrigam-se a apresentar as seguintes certidões e documentos: Ônus Reais, Quitação Fiscal, Quitação Condominial e Negativas Pessoais.

@@ -66,6 +66,11 @@ routerAdd(
       valor_financiado,
       instituicao_financeira,
       data_pagamento_saldo,
+      vendedor_banco,
+      vendedor_agencia,
+      vendedor_conta,
+      vendedor_pix,
+      user_details,
     } = body
 
     const hojeDate = new Date()
@@ -101,8 +106,23 @@ routerAdd(
         </ul>
       `
 
+      const sellerBankInfo = vendedor_banco
+        ? `
+        <p>Os pagamentos devidos ao VENDEDOR deverão ser efetuados na seguinte conta bancária:</p>
+        <p>Banco: ${vendedor_banco}, Agência: ${vendedor_agencia}, Conta: ${vendedor_conta}, Chave Pix: ${vendedor_pix}.</p>
+      `
+        : ''
+
+      const user = user_details
+      const brokerBankInfo = user?.banco_nome
+        ? `
+        <p>O pagamento da comissão de corretagem deverá ser depositado na conta bancária de titularidade de ${user.imobiliaria_nome || user.name}, CPF/CNPJ: ${user.imobiliaria_documento || ''}, CRECI: ${user.creci || ''}.</p>
+        <p>Banco: ${user.banco_nome}, Agência: ${user.agencia}, Conta: ${user.conta}, Chave Pix: ${user.chave_pix}.</p>
+      `
+        : ''
+
       bodyContent = `
-        <h1 style="text-align: center; font-size: 28px;">Godoy Prime Realty</h1>
+        <h1 style="text-align: center; font-size: 28px;">${user?.imobiliaria_nome || 'Godoy Prime Realty'}</h1>
         <br>
         <h2 style="text-align: center; font-size: 24px;">INSTRUMENTO PARTICULAR DE PROMESSA DE COMPRA E VENDA</h2>
         <br>
@@ -119,6 +139,8 @@ routerAdd(
         <h3>Cláusula 3 - Preço e Condições de Pagamento</h3>
         <p>O preço certo e ajustado para a presente compra e venda é de ${formatCurrency(valor_total)} (por extenso), que será pago da seguinte forma:</p>
         ${pgtoHTML}
+        ${sellerBankInfo}
+        ${brokerBankInfo}
         <br>
 
         <h3>Cláusula 4 - Documentação</h3>

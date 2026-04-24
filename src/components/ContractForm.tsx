@@ -11,6 +11,75 @@ import { createContract, generateContractDocx } from '@/services/contracts'
 import { addDays } from 'date-fns'
 import { toast } from 'sonner'
 import { generateDraftText } from '@/lib/draft-template'
+import { useAuth } from '@/hooks/use-auth'
+import { useEffect } from 'react'
+import { parseCurrency, formatCurrency } from '@/lib/formatters'
+import { useFormContext } from 'react-hook-form'
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+
+function SellerBankBlock() {
+  const { control } = useFormContext()
+  return (
+    <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
+      <h3 className="font-semibold text-lg text-slate-800">Dados Bancários do Vendedor</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <FormField
+          control={control}
+          name="vendedor_banco"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Banco</FormLabel>
+              <FormControl>
+                <Input {...field} value={field.value || ''} placeholder="Ex: Itaú" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={control}
+          name="vendedor_agencia"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Agência</FormLabel>
+              <FormControl>
+                <Input {...field} value={field.value || ''} placeholder="Ex: 0001" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={control}
+          name="vendedor_conta"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Conta</FormLabel>
+              <FormControl>
+                <Input {...field} value={field.value || ''} placeholder="Ex: 12345-6" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={control}
+          name="vendedor_pix"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Chave Pix</FormLabel>
+              <FormControl>
+                <Input {...field} value={field.value || ''} placeholder="CPF/Email/Celular" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+    </div>
+  )
+}
 
 export function ContractForm({
   type,
@@ -23,6 +92,7 @@ export function ContractForm({
   const [isSuccess, setIsSuccess] = useState(false)
   const [isPreviewMode, setIsPreviewMode] = useState(false)
   const [draftText, setDraftText] = useState('')
+  const { user } = useAuth()
 
   const form = useForm<ContractFormValues>({
     resolver: zodResolver(contractSchema),
@@ -33,8 +103,20 @@ export function ContractForm({
     mode: 'onChange',
   })
 
+  const valorTotalStr = form.watch('valor_total')
+
+  useEffect(() => {
+    if (!user?.comissao_padrao_percentual) return
+    const total = parseCurrency(valorTotalStr)
+    if (total && total > 0) {
+      const comissaoCalc = total * (user.comissao_padrao_percentual / 100)
+      const formatted = formatCurrency((comissaoCalc * 100).toFixed(0))
+      form.setValue('comissao', formatted, { shouldValidate: true })
+    }
+  }, [valorTotalStr, user?.comissao_padrao_percentual, form])
+
   const onSubmit = (data: ContractFormValues) => {
-    setDraftText(generateDraftText(data))
+    setDraftText(generateDraftText(data, user))
     setIsPreviewMode(true)
   }
 
@@ -45,7 +127,10 @@ export function ContractForm({
       const savedContract = await createContract(data, draftText)
 
       try {
-        const docxResponse = await generateContractDocx(savedContract)
+        const docxResponse = await generateContractDocx({
+          ...savedContract,
+          user_details: user,
+        })
 
         if (docxResponse.html && docxResponse.filename) {
           const blob = new Blob([docxResponse.html], { type: 'application/msword' })
@@ -125,6 +210,11 @@ export function ContractForm({
       inscricao_municipal: '01.02.003.0045.001',
       area_total: '150.5',
       vagas_garagem: '2',
+
+      vendedor_banco: 'Banco do Brasil',
+      vendedor_agencia: '1234',
+      vendedor_conta: '56789-0',
+      vendedor_pix: '123.456.789-00',
 
       valor_total: 'R$ 500.000,00',
       valor_sinal: 'R$ 50.000,00',
@@ -300,6 +390,7 @@ export function ContractForm({
 
         <div className="space-y-8">
           <PersonBlock suffix="_vendedor" title="Dados do Vendedor" />
+          <SellerBankBlock />
           <PersonBlock suffix="_comprador" title="Dados do Comprador" />
           <PropertyBlock />
           <FinancialBlock type={type} />

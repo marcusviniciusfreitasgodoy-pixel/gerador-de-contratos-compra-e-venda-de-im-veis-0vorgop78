@@ -51,6 +51,11 @@ export const contractSchema = z
       .string()
       .min(1, 'Obrigatório')
       .refine((v) => parseCurrencySafe(v) > 0, 'Valor deve ser maior que zero'),
+    vendedor_banco: z.string().optional(),
+    vendedor_agencia: z.string().optional(),
+    vendedor_conta: z.string().optional(),
+    vendedor_pix: z.string().optional(),
+
     valor_sinal: z
       .string()
       .min(1, 'Obrigatório')
@@ -142,3 +147,20 @@ export const contractSchema = z
   })
 
 export type ContractFormValues = z.infer<typeof contractSchema>
+
+export const profileSchema = z.object({
+  name: z.string().min(1, 'Obrigatório'),
+  imobiliaria_nome: z.string().min(1, 'Obrigatório'),
+  imobiliaria_documento: z.string().min(1, 'Obrigatório'),
+  creci: z.string().min(1, 'Obrigatório'),
+  banco_nome: z.string().min(1, 'Obrigatório'),
+  agencia: z.string().min(1, 'Obrigatório'),
+  conta: z.string().min(1, 'Obrigatório'),
+  chave_pix: z.string().min(1, 'Obrigatório'),
+  comissao_padrao_percentual: z.coerce
+    .number()
+    .min(0, 'Valor mínimo é 0')
+    .max(100, 'Valor máximo é 100'),
+})
+
+export type ProfileFormValues = z.infer<typeof profileSchema>

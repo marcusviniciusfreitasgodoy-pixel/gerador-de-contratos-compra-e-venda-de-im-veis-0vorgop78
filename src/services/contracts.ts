@@ -34,6 +34,10 @@ export const createContract = async (data: ContractFormValues, minutaTexto?: str
     valor_financiado: parseCurrency(data.valor_financiado),
     comissao: parseCurrency(data.comissao),
     data_pagamento_saldo: toPbDate(data.data_pagamento_saldo),
+    vendedor_banco: data.vendedor_banco,
+    vendedor_agencia: data.vendedor_agencia,
+    vendedor_conta: data.vendedor_conta,
+    vendedor_pix: data.vendedor_pix,
   }
 
   return await pb.collection('contracts').create(payload)

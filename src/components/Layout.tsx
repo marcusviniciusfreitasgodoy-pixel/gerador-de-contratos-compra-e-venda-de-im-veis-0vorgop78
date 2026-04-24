@@ -1,7 +1,7 @@
 import { Outlet, Navigate, Link } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
-import { LogOut, FileText } from 'lucide-react'
+import { LogOut, FileText, UserCircle } from 'lucide-react'
 
 export default function Layout() {
   const { user, signOut, loading } = useAuth()
@@ -21,9 +21,13 @@ export default function Layout() {
             <span>Skip Contracts</span>
           </Link>
           <div className="flex items-center gap-4">
-            <span className="text-sm font-medium text-slate-600 hidden sm:inline-block bg-slate-100 px-3 py-1 rounded-full">
-              {user.email}
-            </span>
+            <Link
+              to="/profile"
+              className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-blue-600 bg-slate-100 hover:bg-blue-50 px-3 py-1.5 rounded-full transition-colors"
+            >
+              <UserCircle className="w-4 h-4" />
+              <span className="hidden sm:inline-block">{user.name || user.email}</span>
+            </Link>
             <Button
               variant="ghost"
               size="sm"

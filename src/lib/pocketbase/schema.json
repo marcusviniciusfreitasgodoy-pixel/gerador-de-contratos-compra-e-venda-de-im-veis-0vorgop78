@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-24T16:34:44.661Z",
+  "generatedAt": "2026-04-24T16:43:16.617Z",
   "collections": [
     {
       "name": "users",
@@ -37,6 +37,54 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "imobiliaria_nome",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "imobiliaria_documento",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "creci",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "banco_nome",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "agencia",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "conta",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "chave_pix",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "comissao_padrao_percentual",
+          "type": "number",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": [
@@ -319,6 +367,30 @@
         {
           "name": "minuta_texto",
           "type": "editor",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "vendedor_banco",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "vendedor_agencia",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "vendedor_conta",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "vendedor_pix",
+          "type": "text",
           "required": false,
           "system": false
         }
