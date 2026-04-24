@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-24T15:46:34.470Z",
+  "generatedAt": "2026-04-24T15:51:50.773Z",
   "collections": [
     {
       "name": "users",
@@ -63,42 +63,6 @@
           "collectionRef": "users"
         },
         {
-          "name": "type",
-          "type": "text",
-          "required": true,
-          "system": false
-        },
-        {
-          "name": "seller_data",
-          "type": "json",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "buyer_data",
-          "type": "json",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "property_data",
-          "type": "json",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "financial_data",
-          "type": "json",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "financing_details",
-          "type": "json",
-          "required": false,
-          "system": false
-        },
-        {
           "name": "created",
           "type": "autodate",
           "required": false,
@@ -111,6 +75,246 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "tipo",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "status",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "nome_vendedor",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "nome_comprador",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cpf_vendedor",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cpf_comprador",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "rg_vendedor",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "rg_comprador",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "orgao_emissor_vendedor",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "orgao_emissor_comprador",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "nacionalidade_vendedor",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "nacionalidade_comprador",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "estado_civil_vendedor",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "estado_civil_comprador",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "profissao_vendedor",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "profissao_comprador",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "endereco_vendedor",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "endereco_comprador",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "email_vendedor",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "email_comprador",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "telefone_vendedor",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "telefone_comprador",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "endereco_imovel",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "matricula_imovel",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "rgi_imovel",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "inscricao_municipal",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "area_total",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "vagas_garagem",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_total",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_sinal",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_reforco",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_complemento",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_saldo",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_financiado",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "comissao",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "instituicao_financeira",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "taxa_juros",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "prazo_meses",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "data_liberacao_credito",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "data_pagamento_saldo",
+          "type": "date",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": []

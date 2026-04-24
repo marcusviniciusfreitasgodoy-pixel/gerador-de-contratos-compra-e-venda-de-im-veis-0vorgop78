@@ -27,3 +27,10 @@ export const formatCurrency = (v: string) => {
     currency: 'BRL',
   }).format(Number(num) / 100)
 }
+
+export const parseCurrency = (v: string | undefined | null): number | null => {
+  if (!v) return null
+  const num = v.replace(/\D/g, '')
+  if (!num) return null
+  return Number(num) / 100
+}
