@@ -1,23 +1,27 @@
-/* 404 Page - Displays when a user attempts to access a non-existent route - translate to the language of the user */
-import { useLocation } from 'react-router-dom'
+import { useLocation, Link } from 'react-router-dom'
 import { useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { FileQuestion } from 'lucide-react'
 
 const NotFound = () => {
   const location = useLocation()
 
   useEffect(() => {
-    console.error('404 Error: User attempted to access non-existent route:', location.pathname)
+    console.error('Erro 404: Usuário tentou acessar rota inexistente:', location.pathname)
   }, [location.pathname])
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">404</h1>
-        <p className="text-xl text-gray-600 mb-4">Oops! Page not found</p>
-        <a href="/" className="text-blue-500 hover:text-blue-700 underline">
-          Return to Home
-        </a>
+    <div className="min-h-[80vh] flex flex-col items-center justify-center animate-fade-in-up">
+      <div className="h-20 w-20 bg-muted/50 rounded-full flex items-center justify-center mb-6">
+        <FileQuestion className="h-10 w-10 text-muted-foreground" />
       </div>
+      <h1 className="text-4xl font-bold mb-2 tracking-tight">404</h1>
+      <p className="text-lg text-muted-foreground mb-8 text-center max-w-md">
+        Ops! A página que você está procurando não foi encontrada ou foi movida.
+      </p>
+      <Button asChild size="lg" className="shadow-sm">
+        <Link to="/">Voltar para o Dashboard</Link>
+      </Button>
     </div>
   )
 }
