@@ -16,59 +16,45 @@ import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
 export interface AnalysisReport {
-  is_real_estate_contract: boolean
-  contract_type: string
-  parties: string
-  summary: string
-  structural_compliance: Array<{
-    clause: string
-    present: boolean
-    status: 'CONFORME' | 'RISCO' | 'CRÍTICO'
-    details: string
-  }>
-  legal_compliance: Array<{
-    clause_text: string
-    status: 'CONFORME' | 'RISCO' | 'CRÍTICO'
-    legal_basis: string
-    explanation: string
-  }>
-  risks: Array<{
-    category: string
-    title: string
-    description: string
-    severity: 'ALTO' | 'MÉDIO' | 'BAIXO'
-  }>
-  abusive_clauses: Array<{
-    clause: string
-    violation: string
-    recommendation: string
-    drafting_suggestion: string
-  }>
-  omissions: Array<{
-    missing_item: string
-    drafting_suggestion: string
-  }>
-  recommendations: {
-    immediate: string[]
-    recommended: string[]
+  conformidade: {
+    status: 'conforme' | 'risco' | 'critico' | string
+    clausulasEncontradas: string[]
+    clausulasFaltando: string[]
   }
+  riscos: Array<{
+    titulo: string
+    descricao: string
+    severidade: 'ALTO' | 'MEDIO' | 'BAIXO' | string
+    embasamento: string
+  }>
+  omissoes: Array<{
+    clausula: string
+    importancia: 'CRITICA' | 'IMPORTANTE' | 'RECOMENDADA' | string
+    redacaoPadrao: string
+  }>
+  clausulasAbusivas: Array<{
+    texto: string
+    motivo: string
+    recomendacao: string
+  }>
+  recomendacoes: {
+    imediatas: string[]
+    recomendadas: string[]
+  }
+  reportId?: string
 }
 
 export function AnalysisReportView({ report }: { report: AnalysisReport }) {
-  const hasCritical =
-    report.structural_compliance?.some((c) => c.status === 'CRÍTICO') ||
-    report.legal_compliance?.some((c) => c.status === 'CRÍTICO')
-  const hasRisk =
-    report.structural_compliance?.some((c) => c.status === 'RISCO') ||
-    report.legal_compliance?.some((c) => c.status === 'RISCO')
-  const generalStatus = hasCritical ? 'CRÍTICO' : hasRisk ? 'RISCO' : 'CONFORME'
+  const generalStatus = report.conformidade?.status?.toUpperCase() || 'DESCONHECIDO'
 
   const getRiskColor = (level: string) => {
-    switch (level) {
+    switch (level?.toUpperCase()) {
+      case 'CRITICO':
       case 'CRÍTICO':
       case 'ALTO':
         return 'bg-red-100 text-red-800 border-red-200'
       case 'RISCO':
+      case 'MEDIO':
       case 'MÉDIO':
         return 'bg-yellow-100 text-yellow-800 border-yellow-200'
       case 'CONFORME':
@@ -87,14 +73,10 @@ export function AnalysisReportView({ report }: { report: AnalysisReport }) {
             <ShieldAlert className="w-6 h-6 text-purple-600" />
             Relatório de Compliance Jurídico
           </h2>
-          <p className="text-slate-600 font-medium">{report.contract_type}</p>
         </div>
-        <div className="text-sm font-medium text-slate-600 bg-white border border-slate-200 shadow-sm px-4 py-2 rounded-lg max-w-sm text-left md:text-right">
-          <span className="block text-xs text-slate-400 uppercase tracking-wider mb-0.5">
-            Partes
-          </span>
-          {report.parties}
-        </div>
+        <Badge className={cn('text-sm px-4 py-1.5 shadow-sm', getRiskColor(generalStatus))}>
+          Status: {generalStatus}
+        </Badge>
       </div>
 
       <Tabs defaultValue="conformidade" className="w-full">
@@ -103,7 +85,7 @@ export function AnalysisReportView({ report }: { report: AnalysisReport }) {
             Conformidade
           </TabsTrigger>
           <TabsTrigger value="riscos" className="whitespace-nowrap px-4 py-2.5">
-            Riscos
+            Riscos Analisados
           </TabsTrigger>
           <TabsTrigger value="omissoes" className="whitespace-nowrap px-4 py-2.5">
             Omissões
@@ -118,53 +100,53 @@ export function AnalysisReportView({ report }: { report: AnalysisReport }) {
 
         <TabsContent value="conformidade" className="space-y-6 focus:outline-none">
           <Card>
-            <CardHeader className="pb-4">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Status Geral</CardTitle>
-                <Badge className={cn('text-sm px-3 py-1', getRiskColor(generalStatus))}>
-                  {generalStatus === 'CONFORME' && '✅ '}
-                  {generalStatus === 'RISCO' && '⚠️ '}
-                  {generalStatus === 'CRÍTICO' && '🔴 '}
-                  {generalStatus}
-                </Badge>
-              </div>
+            <CardHeader>
+              <CardTitle className="text-lg">Cláusulas Essenciais</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-slate-700 mb-8 leading-relaxed bg-slate-50 p-4 rounded-lg border border-slate-100">
-                <span className="font-semibold block mb-1">Resumo Executivo:</span>
-                {report.summary}
-              </p>
-
-              <h4 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-purple-600" /> Checklist Estrutural
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {report.structural_compliance?.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className={cn(
-                      'flex items-start gap-3 p-4 rounded-lg border',
-                      item.present ? 'bg-white border-slate-200' : 'bg-red-50/50 border-red-100',
-                    )}
-                  >
-                    {item.present ? (
-                      <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
-                    ) : (
-                      <XCircle className="w-5 h-5 text-red-500 mt-0.5 shrink-0" />
-                    )}
-                    <div>
-                      <p
-                        className={cn(
-                          'font-medium mb-1',
-                          item.present ? 'text-slate-800' : 'text-red-800',
-                        )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-semibold text-green-700 mb-3 flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4" /> Presentes
+                  </h4>
+                  <ul className="space-y-2">
+                    {report.conformidade?.clausulasEncontradas?.map((c, i) => (
+                      <li
+                        key={i}
+                        className="text-sm text-slate-700 flex items-start gap-2 bg-green-50/50 p-2 rounded border border-green-100"
                       >
-                        {item.clause}
-                      </p>
-                      <p className="text-sm text-slate-500 leading-snug">{item.details}</p>
-                    </div>
-                  </div>
-                ))}
+                        <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
+                        {c}
+                      </li>
+                    ))}
+                    {!report.conformidade?.clausulasEncontradas?.length && (
+                      <li className="text-sm text-slate-500 italic">
+                        Nenhuma cláusula identificada corretamente.
+                      </li>
+                    )}
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-red-700 mb-3 flex items-center gap-2">
+                    <XCircle className="w-4 h-4" /> Ausentes
+                  </h4>
+                  <ul className="space-y-2">
+                    {report.conformidade?.clausulasFaltando?.map((c, i) => (
+                      <li
+                        key={i}
+                        className="text-sm text-slate-700 flex items-start gap-2 bg-red-50/50 p-2 rounded border border-red-100"
+                      >
+                        <XCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                        {c}
+                      </li>
+                    ))}
+                    {!report.conformidade?.clausulasFaltando?.length && (
+                      <li className="text-sm text-slate-500 italic">
+                        Nenhuma cláusula essencial ausente.
+                      </li>
+                    )}
+                  </ul>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -178,9 +160,9 @@ export function AnalysisReportView({ report }: { report: AnalysisReport }) {
                 className="border-l-4 shadow-sm"
                 style={{
                   borderLeftColor:
-                    risk.severity === 'ALTO'
+                    risk.severidade?.toUpperCase() === 'ALTO'
                       ? '#ef4444'
-                      : risk.severity === 'MÉDIO'
+                      : risk.severidade?.toUpperCase() === 'MEDIO'
                         ? '#f59e0b'
                         : '#3b82f6',
                 }}
@@ -191,31 +173,31 @@ export function AnalysisReportView({ report }: { report: AnalysisReport }) {
                       <AlertTriangle
                         className={cn(
                           'w-5 h-5 mt-0.5 shrink-0',
-                          risk.severity === 'ALTO'
+                          risk.severidade?.toUpperCase() === 'ALTO'
                             ? 'text-red-500'
-                            : risk.severity === 'MÉDIO'
+                            : risk.severidade?.toUpperCase() === 'MEDIO'
                               ? 'text-yellow-500'
                               : 'text-blue-500',
                         )}
                       />
-                      <CardTitle className="text-base leading-tight">{risk.title}</CardTitle>
+                      <CardTitle className="text-base leading-tight">{risk.titulo}</CardTitle>
                     </div>
                     <Badge
                       variant="outline"
-                      className={cn('shrink-0', getRiskColor(risk.severity))}
+                      className={cn('shrink-0', getRiskColor(risk.severidade))}
                     >
-                      {risk.severity}
+                      {risk.severidade}
                     </Badge>
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-slate-600 mb-3">{risk.description}</p>
-                  <Badge
-                    variant="secondary"
-                    className="text-xs uppercase tracking-wider bg-slate-100 text-slate-500 hover:bg-slate-100 border-0"
-                  >
-                    {risk.category}
-                  </Badge>
+                <CardContent className="space-y-3">
+                  <p className="text-sm text-slate-600">{risk.descricao}</p>
+                  {risk.embasamento && (
+                    <div className="bg-slate-50 p-2 rounded border border-slate-100 text-xs text-slate-500 flex items-start gap-1">
+                      <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                      <span>{risk.embasamento}</span>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}
@@ -229,29 +211,30 @@ export function AnalysisReportView({ report }: { report: AnalysisReport }) {
         </TabsContent>
 
         <TabsContent value="omissoes" className="space-y-4 focus:outline-none">
-          {report.omissions?.map((omission, idx) => (
+          {report.omissoes?.map((omission, idx) => (
             <Card key={idx} className="border-amber-200 shadow-sm">
-              <CardHeader className="bg-amber-50/30 pb-4">
+              <CardHeader className="bg-amber-50/30 pb-4 flex flex-row items-center justify-between">
                 <CardTitle className="text-base text-amber-900 flex items-center gap-2">
                   <AlertOctagon className="w-5 h-5 text-amber-600" />
-                  {omission.missing_item}
+                  {omission.clausula}
                 </CardTitle>
+                <Badge variant="outline" className="bg-white">
+                  {omission.importancia}
+                </Badge>
               </CardHeader>
               <CardContent className="pt-4 space-y-4">
                 <div className="bg-white p-4 rounded-lg border border-slate-200 text-sm text-slate-700 shadow-sm">
                   <span className="block font-semibold mb-2 text-slate-800">
-                    Sugestão de Redação (Template):
+                    Sugestão de Redação:
                   </span>
-                  <p className="whitespace-pre-wrap leading-relaxed">
-                    {omission.drafting_suggestion}
-                  </p>
+                  <p className="whitespace-pre-wrap leading-relaxed">{omission.redacaoPadrao}</p>
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
                   className="w-full sm:w-auto text-slate-700"
                   onClick={() => {
-                    navigator.clipboard.writeText(omission.drafting_suggestion)
+                    navigator.clipboard.writeText(omission.redacaoPadrao)
                     toast.success('Copiado para a área de transferência!')
                   }}
                 >
@@ -260,7 +243,7 @@ export function AnalysisReportView({ report }: { report: AnalysisReport }) {
               </CardContent>
             </Card>
           ))}
-          {(!report.omissions || report.omissions.length === 0) && (
+          {(!report.omissoes || report.omissoes.length === 0) && (
             <div className="py-16 text-center text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-200">
               <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-3" />
               Nenhuma omissão crítica identificada.
@@ -269,8 +252,8 @@ export function AnalysisReportView({ report }: { report: AnalysisReport }) {
         </TabsContent>
 
         <TabsContent value="abusivas" className="space-y-4 focus:outline-none">
-          {report.abusive_clauses?.length > 0 ? (
-            report.abusive_clauses.map((item, idx) => (
+          {report.clausulasAbusivas?.length > 0 ? (
+            report.clausulasAbusivas.map((item, idx) => (
               <Card key={idx} className="border-red-200 shadow-sm">
                 <CardHeader className="bg-red-50/50 pb-4 border-b border-red-100">
                   <CardTitle className="text-base text-red-800 flex items-center gap-2">
@@ -281,30 +264,22 @@ export function AnalysisReportView({ report }: { report: AnalysisReport }) {
                 <CardContent className="pt-5 space-y-5">
                   <div>
                     <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1 block">
-                      Texto Original
+                      Texto Encontrado
                     </span>
                     <div className="bg-slate-100 p-4 rounded-md italic text-sm text-slate-700 border border-slate-200">
-                      "{item.clause}"
+                      "{item.texto}"
                     </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="text-sm">
-                      <span className="font-semibold text-red-700 block mb-1">Violação Legal:</span>
-                      <p className="text-slate-700 leading-relaxed">{item.violation}</p>
+                      <span className="font-semibold text-red-700 block mb-1">Motivo:</span>
+                      <p className="text-slate-700 leading-relaxed">{item.motivo}</p>
                     </div>
                     <div className="text-sm">
                       <span className="font-semibold text-amber-700 block mb-1">Recomendação:</span>
-                      <p className="text-slate-700 leading-relaxed">{item.recommendation}</p>
+                      <p className="text-slate-700 leading-relaxed">{item.recomendacao}</p>
                     </div>
                   </div>
-                  {item.drafting_suggestion && (
-                    <div className="bg-green-50 p-4 rounded-lg border border-green-200 text-sm mt-2">
-                      <span className="font-semibold text-green-800 block mb-2">
-                        Sugestão de Nova Redação:
-                      </span>
-                      <p className="text-green-900 leading-relaxed">{item.drafting_suggestion}</p>
-                    </div>
-                  )}
                 </CardContent>
               </Card>
             ))
@@ -324,21 +299,18 @@ export function AnalysisReportView({ report }: { report: AnalysisReport }) {
               <CardHeader className="bg-red-50/50 border-b border-red-100 pb-4">
                 <CardTitle className="text-base text-red-800 flex items-center gap-2">
                   <AlertTriangle className="w-5 h-5" /> Ações Imediatas
-                  <span className="text-xs font-normal text-red-600 ml-auto hidden sm:inline">
-                    (Antes de Assinar)
-                  </span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-5">
                 <ul className="space-y-4">
-                  {report.recommendations?.immediate?.map((rec, i) => (
+                  {report.recomendacoes?.imediatas?.map((rec, i) => (
                     <li key={i} className="flex items-start gap-3 text-sm text-slate-700">
                       <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-2 shrink-0" />
                       <span className="leading-relaxed">{rec}</span>
                     </li>
                   ))}
-                  {(!report.recommendations?.immediate ||
-                    report.recommendations.immediate.length === 0) && (
+                  {(!report.recomendacoes?.imediatas ||
+                    report.recomendacoes.imediatas.length === 0) && (
                     <li className="text-sm text-slate-500 italic">
                       Nenhuma ação imediata pendente.
                     </li>
@@ -351,21 +323,18 @@ export function AnalysisReportView({ report }: { report: AnalysisReport }) {
               <CardHeader className="bg-blue-50/50 border-b border-blue-100 pb-4">
                 <CardTitle className="text-base text-blue-800 flex items-center gap-2">
                   <Info className="w-5 h-5" /> Ações Recomendadas
-                  <span className="text-xs font-normal text-blue-600 ml-auto hidden sm:inline">
-                    (Melhorias)
-                  </span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-5">
                 <ul className="space-y-4">
-                  {report.recommendations?.recommended?.map((rec, i) => (
+                  {report.recomendacoes?.recomendadas?.map((rec, i) => (
                     <li key={i} className="flex items-start gap-3 text-sm text-slate-700">
                       <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 shrink-0" />
                       <span className="leading-relaxed">{rec}</span>
                     </li>
                   ))}
-                  {(!report.recommendations?.recommended ||
-                    report.recommendations.recommended.length === 0) && (
+                  {(!report.recomendacoes?.recomendadas ||
+                    report.recomendacoes.recomendadas.length === 0) && (
                     <li className="text-sm text-slate-500 italic">
                       Nenhuma recomendação adicional.
                     </li>
@@ -381,7 +350,7 @@ export function AnalysisReportView({ report }: { report: AnalysisReport }) {
               onClick={() => window.print()}
               className="bg-slate-800 hover:bg-slate-900 w-full sm:w-auto"
             >
-              <Download className="w-5 h-5 mr-2" /> Baixar relatório completo em PDF
+              <Download className="w-5 h-5 mr-2" /> Baixar relatório em PDF
             </Button>
           </div>
         </TabsContent>

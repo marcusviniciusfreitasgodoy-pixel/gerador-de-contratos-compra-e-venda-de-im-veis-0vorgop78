@@ -1,0 +1,231 @@
+// @deps buffer@6.0.3
+routerAdd(
+  'POST',
+  '/backend/v1/analisar-contrato',
+  (e) => {
+    const body = e.requestInfo().body || {}
+    let arquivo = body.arquivo || ''
+    const tipo = (body.tipo || '').toLowerCase()
+    const tipoContrato = body.tipoContrato || 'outro'
+
+    try {
+      if (arquivo.includes('base64,')) {
+        arquivo = arquivo.split('base64,')[1]
+      }
+
+      const geminiKey = $secrets.get('GEMINI_API_KEY')
+      const openaiKey = $secrets.get('OPENAI_API_KEY')
+
+      if (!geminiKey && !openaiKey) {
+        return e.json(500, {
+          error: 'Nenhuma chave de IA configurada (GEMINI_API_KEY ou OPENAI_API_KEY).',
+        })
+      }
+
+      let contextText = ''
+      if (openaiKey) {
+        const embedText = `Contrato do tipo: ${tipoContrato}`
+        const embedRes = $http.send({
+          url: 'https://api.openai.com/v1/embeddings',
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + openaiKey },
+          body: JSON.stringify({ model: 'text-embedding-3-small', input: embedText }),
+          timeout: 15,
+        })
+        if (embedRes.statusCode === 200) {
+          const results = $vectors.search(e, 'legal_knowledge', {
+            field: 'embedding',
+            query: embedRes.json.data[0].embedding,
+            k: 5,
+          })
+          const items = results.items || []
+          contextText = items
+            .map((r) => r.getString('title') + ': ' + r.getString('content'))
+            .join('\n\n')
+        }
+      }
+
+      const systemPrompt = `Você é um Assistente Jurídico de IA especializado em Direito Imobiliário Brasileiro.
+Analise o contrato fornecido (${tipoContrato}) considerando a legislação (Código Civil, STJ, TJRJ).
+
+Contexto Jurídico (RAG):
+${contextText}
+
+Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código):
+{
+  "conformidade": {
+    "status": "conforme" | "risco" | "critico",
+    "clausulasEncontradas": ["string"],
+    "clausulasFaltando": ["string"]
+  },
+  "riscos": [
+    {
+      "titulo": "string",
+      "descricao": "string",
+      "severidade": "ALTO" | "MEDIO" | "BAIXO",
+      "embasamento": "string"
+    }
+  ],
+  "omissoes": [
+    {
+      "clausula": "string",
+      "importancia": "CRITICA" | "IMPORTANTE" | "RECOMENDADA",
+      "redacaoPadrao": "string"
+    }
+  ],
+  "clausulasAbusivas": [
+    {
+      "texto": "string",
+      "motivo": "string",
+      "recomendacao": "string"
+    }
+  ],
+  "recomendacoes": {
+    "imediatas": ["string"],
+    "recomendadas": ["string"]
+  }
+}`
+
+      let analysisResult = null
+
+      if (geminiKey) {
+        let mimeType = 'application/pdf'
+        if (tipo === 'imagem' || tipo === 'image') mimeType = 'image/jpeg'
+        if (tipo === 'docx')
+          mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        if (tipo === 'txt') mimeType = 'text/plain'
+
+        const chatRes = $http.send({
+          url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${geminiKey}`,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: systemPrompt }] },
+            contents: [
+              {
+                role: 'user',
+                parts: [
+                  { text: `Por favor, analise este contrato do tipo ${tipoContrato}.` },
+                  { inline_data: { mime_type: mimeType, data: arquivo } },
+                ],
+              },
+            ],
+            generationConfig: {
+              temperature: 0.1,
+              responseMimeType: 'application/json',
+            },
+          }),
+          timeout: 30,
+        })
+
+        if (chatRes.statusCode !== 200) {
+          $app.logger().error('Gemini AI failed', 'status', chatRes.statusCode, 'raw', chatRes.raw)
+          throw new Error('Falha na análise da IA com Gemini.')
+        }
+
+        let textRes = chatRes.json.candidates[0].content.parts[0].text
+        textRes = textRes
+          .replace(/```json/g, '')
+          .replace(/```/g, '')
+          .trim()
+        analysisResult = JSON.parse(textRes)
+      } else if (openaiKey) {
+        let extractedText = ''
+        if (tipo === 'imagem' || tipo === 'image') {
+          const extractRes = $http.send({
+            url: 'https://api.openai.com/v1/chat/completions',
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + openaiKey },
+            body: JSON.stringify({
+              model: 'gpt-4o',
+              messages: [
+                {
+                  role: 'user',
+                  content: [
+                    {
+                      type: 'text',
+                      text: 'Extraia o texto legível desta imagem. Retorne apenas o texto.',
+                    },
+                    { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${arquivo}` } },
+                  ],
+                },
+              ],
+            }),
+            timeout: 30,
+          })
+          if (extractRes.statusCode === 200) {
+            extractedText = extractRes.json.choices[0].message.content
+          } else {
+            throw new Error('Falha na extração da imagem com OpenAI.')
+          }
+        } else {
+          const { Buffer } = require('buffer')
+          try {
+            extractedText = Buffer.from(arquivo, 'base64').toString('utf8')
+          } catch (e) {
+            extractedText = arquivo
+          }
+        }
+
+        const chatRes = $http.send({
+          url: 'https://api.openai.com/v1/chat/completions',
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + openaiKey },
+          body: JSON.stringify({
+            model: 'gpt-4o',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              {
+                role: 'user',
+                content: `Analise este contrato (${tipoContrato}):\n\n${extractedText}`,
+              },
+            ],
+            response_format: { type: 'json_object' },
+            temperature: 0.1,
+          }),
+          timeout: 30,
+        })
+
+        if (chatRes.statusCode !== 200) {
+          $app.logger().error('OpenAI AI failed', 'status', chatRes.statusCode, 'raw', chatRes.raw)
+          throw new Error('Falha na análise da IA.')
+        }
+
+        analysisResult = JSON.parse(chatRes.json.choices[0].message.content)
+      }
+
+      try {
+        const reportsCol = $app.findCollectionByNameOrId('analysis_reports')
+        const reportRecord = new Record(reportsCol)
+        reportRecord.set('user', e.auth.id)
+        reportRecord.set('analysis_result', analysisResult)
+
+        let summaryText = ''
+        if (analysisResult.conformidade && analysisResult.conformidade.status) {
+          summaryText = `Status geral: ${analysisResult.conformidade.status}. Riscos: ${analysisResult.riscos ? analysisResult.riscos.length : 0}`
+        }
+        reportRecord.set('summary', summaryText)
+
+        let risk = 'baixo'
+        if (analysisResult.conformidade) {
+          const s = (analysisResult.conformidade.status || '').toLowerCase()
+          if (s === 'critico' || s === 'crítico') risk = 'critico'
+          else if (s === 'risco') risk = 'alto'
+          else risk = 'baixo'
+        }
+        reportRecord.set('risk_level', risk)
+
+        $app.save(reportRecord)
+        analysisResult.reportId = reportRecord.id
+      } catch (saveErr) {
+        $app.logger().error('Erro ao salvar report', 'err', saveErr.message)
+      }
+
+      return e.json(200, analysisResult)
+    } catch (err) {
+      $app.logger().error('Erro na rota analisar-contrato', 'error', err.message)
+      return e.json(500, { error: 'Não consegui analisar o contrato. Tente novamente.' })
+    }
+  },
+  $apis.requireAuth(),
+)

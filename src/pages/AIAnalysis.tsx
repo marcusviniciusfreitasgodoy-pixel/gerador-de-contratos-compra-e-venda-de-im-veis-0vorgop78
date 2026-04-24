@@ -1,6 +1,13 @@
 import { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Loader2, FileText, UploadCloud, AlertCircle, RefreshCcw, Bot } from 'lucide-react'
 import { toast } from 'sonner'
 import pb from '@/lib/pocketbase/client'
@@ -12,57 +19,11 @@ export default function AIAnalysis() {
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [report, setReport] = useState<AnalysisReport | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [contractType, setContractType] = useState<string>('a_vista')
   const [isDragging, setIsDragging] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
-
-  const extractTextFromPDF = async (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const script = document.createElement('script')
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js'
-      document.body.appendChild(script)
-      script.onload = async () => {
-        try {
-          const pdfjsLib = (window as any).pdfjsLib
-          pdfjsLib.GlobalWorkerOptions.workerSrc =
-            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
-
-          const arrayBuffer = await file.arrayBuffer()
-          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
-          let extractedText = ''
-          for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i)
-            const textContent = await page.getTextContent()
-            const pageText = textContent.items.map((item: any) => item.str).join(' ')
-            extractedText += pageText + '\n\n'
-          }
-          resolve(extractedText)
-        } catch (e) {
-          reject(e)
-        }
-      }
-      script.onerror = () => reject(new Error('Failed to load PDF.js'))
-    })
-  }
-
-  const extractTextFromDOCX = async (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const script = document.createElement('script')
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js'
-      document.body.appendChild(script)
-      script.onload = async () => {
-        try {
-          const arrayBuffer = await file.arrayBuffer()
-          const result = await (window as any).mammoth.extractRawText({ arrayBuffer })
-          resolve(result.value)
-        } catch (e) {
-          reject(e)
-        }
-      }
-      script.onerror = () => reject(new Error('Failed to load Mammoth.js'))
-    })
-  }
 
   const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -80,47 +41,39 @@ export default function AIAnalysis() {
     setReport(null)
 
     try {
-      let payload: { text?: string; image_base64?: string; fileName?: string } = {
-        fileName: selectedFile.name,
+      let tipo = 'outro'
+      if (selectedFile.type === 'application/pdf') tipo = 'pdf'
+      else if (
+        selectedFile.name.endsWith('.docx') ||
+        selectedFile.type.includes('wordprocessingml')
+      )
+        tipo = 'docx'
+      else if (selectedFile.type.startsWith('image/')) tipo = 'imagem'
+
+      const base64Data = await fileToBase64(selectedFile)
+
+      const payload = {
+        arquivo: base64Data,
+        tipo,
+        tipoContrato: contractType,
       }
 
-      if (selectedFile.type.startsWith('image/')) {
-        const base64 = await fileToBase64(selectedFile)
-        payload.image_base64 = base64
-      } else {
-        let extractedText = ''
-        if (selectedFile.type === 'application/pdf') {
-          extractedText = await extractTextFromPDF(selectedFile)
-        } else if (
-          selectedFile.name.endsWith('.docx') ||
-          selectedFile.type.includes('wordprocessingml')
-        ) {
-          extractedText = await extractTextFromDOCX(selectedFile)
-        } else if (selectedFile.type === 'text/plain') {
-          extractedText = await selectedFile.text()
-        } else {
-          throw new Error('Formato não suportado.')
-        }
-        payload.text = extractedText
-      }
-
-      const res = await pb.send('/backend/v1/ai/analyze-contract', {
+      const res = await pb.send('/backend/v1/analisar-contrato', {
         method: 'POST',
         body: JSON.stringify(payload),
       })
 
-      if (!res.analysis.is_real_estate_contract) {
-        setErrorMsg(
-          'Este não parece ser um contrato imobiliário. Envie um contrato de compra e venda, aluguel ou similar.',
-        )
+      if (res.error) {
+        setErrorMsg(res.error)
       } else {
-        setReport(res.analysis)
+        setReport(res)
         toast.success('Análise concluída com sucesso!')
       }
     } catch (error: any) {
       console.error(error)
       setErrorMsg(
-        'Este não parece ser um contrato imobiliário. Envie um contrato de compra e venda, aluguel ou similar.',
+        error.response?.data?.error ||
+          'Não consegui analisar o contrato. Verifique o arquivo e tente novamente.',
       )
     } finally {
       setIsAnalyzing(false)
@@ -138,16 +91,32 @@ export default function AIAnalysis() {
         </h1>
         <p className="text-slate-600 text-lg max-w-2xl mx-auto">
           Faça upload do seu contrato imobiliário e receba um relatório completo de riscos, omissões
-          e cláusulas abusivas.
+          e conformidade legal.
         </p>
       </div>
 
       {!report && !isAnalyzing && !errorMsg && (
         <Card className="max-w-2xl mx-auto border-0 shadow-lg ring-1 ring-slate-200/50">
           <div className="p-8">
+            <div className="mb-6 space-y-2">
+              <label className="text-sm font-semibold text-slate-700">Tipo de Contrato</label>
+              <Select value={contractType} onValueChange={setContractType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o tipo de contrato" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="a_vista">Compra e Venda (À Vista)</SelectItem>
+                  <SelectItem value="financiado">Compra e Venda (Financiado)</SelectItem>
+                  <SelectItem value="aluguel">Aluguel / Locação</SelectItem>
+                  <SelectItem value="promessa">Promessa de Compra e Venda</SelectItem>
+                  <SelectItem value="outro">Outro</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <div
               className={cn(
-                'border-2 border-dashed rounded-xl p-12 text-center transition-all duration-200 relative',
+                'border-2 border-dashed rounded-xl p-12 text-center transition-all duration-200 relative mt-4',
                 isDragging
                   ? 'border-purple-500 bg-purple-50 scale-[1.02]'
                   : 'border-slate-300 hover:bg-slate-50 hover:border-slate-400',
@@ -247,7 +216,8 @@ export default function AIAnalysis() {
             <Skeleton className="h-4 w-4/6 mx-auto bg-purple-100/50 rounded-full" />
           </div>
           <p className="text-slate-500 text-sm mt-8 max-w-sm mx-auto">
-            Nossa IA está cruzando o texto com a base de conhecimento de Direito Imobiliário...
+            Nossa IA está cruzando o texto com a legislação e jurisprudência... Pode levar até 30
+            segundos.
           </p>
         </div>
       )}
