@@ -1,36 +1,14 @@
-export const formatCPF = (v: string) => {
-  return v
-    .replace(/\D/g, '')
-    .replace(/(\d{3})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d{1,2})/, '$1-$2')
-    .replace(/(-\d{2})\d+?$/, '$1')
+export const parseCurrency = (val: string | null | undefined): number => {
+  if (!val) return 0
+  if (typeof val === 'number') return val
+  const digits = val.replace(/[^\d-]/g, '')
+  if (!digits) return 0
+  return parseInt(digits, 10) / 100
 }
 
-export const formatPhone = (v: string) => {
-  return v
-    .replace(/\D/g, '')
-    .replace(/(\d{2})(\d)/, '($1) $2')
-    .replace(/(\d{5})(\d)/, '$1-$2')
-    .replace(/(-\d{4})\d+?$/, '$1')
-}
-
-export const formatNumber = (v: string) => {
-  return v.replace(/\D/g, '')
-}
-
-export const formatCurrency = (v: string) => {
-  const num = v.replace(/\D/g, '')
-  if (!num) return ''
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(Number(num) / 100)
-}
-
-export const parseCurrency = (v: string | undefined | null): number | null => {
-  if (!v) return null
-  const num = v.replace(/\D/g, '')
-  if (!num) return null
-  return Number(num) / 100
+export const formatCurrency = (val: number | string): string => {
+  if (val === undefined || val === null || val === '') return ''
+  const num = typeof val === 'string' ? parseInt(val.replace(/[^\d-]/g, '') || '0', 10) / 100 : val
+  if (isNaN(num)) return ''
+  return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }

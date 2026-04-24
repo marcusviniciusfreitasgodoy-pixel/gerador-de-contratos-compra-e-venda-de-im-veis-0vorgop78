@@ -4,10 +4,10 @@ import { ContractForm } from '@/components/ContractForm'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export default function Home() {
-  const [contractType, setContractType] = useState<'A_VISTA' | 'FINANCIADO' | null>(null)
+  const [contractType, setContractType] = useState<'a_vista' | 'financiado' | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleSelect = (type: 'A_VISTA' | 'FINANCIADO') => {
+  const handleSelect = (type: 'a_vista' | 'financiado') => {
     setIsLoading(true)
     setTimeout(() => {
       setContractType(type)

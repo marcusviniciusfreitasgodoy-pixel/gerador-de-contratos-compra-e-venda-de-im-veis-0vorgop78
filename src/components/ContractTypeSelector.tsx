@@ -1,47 +1,46 @@
+import { Button } from '@/components/ui/button'
 import { FileText, Building } from 'lucide-react'
-import { Card, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 
 export function ContractTypeSelector({
   onSelect,
 }: {
-  onSelect: (type: 'A_VISTA' | 'FINANCIADO') => void
+  onSelect: (type: 'a_vista' | 'financiado') => void
 }) {
   return (
-    <div className="max-w-4xl mx-auto mt-12 animate-in fade-in slide-in-from-bottom-4">
-      <h2 className="text-2xl font-medium mb-10 text-center text-slate-600">
-        Qual tipo de contrato você deseja gerar?
-      </h2>
-      <div className="grid md:grid-cols-2 gap-8">
-        <Card
-          className="cursor-pointer border-2 border-slate-200 hover:border-blue-500 hover:bg-blue-50/30 transition-all duration-300 shadow-sm hover:shadow-xl rounded-2xl overflow-hidden group"
-          onClick={() => onSelect('A_VISTA')}
-        >
-          <CardContent className="p-10 flex flex-col items-center text-center space-y-6">
-            <div className="p-6 bg-blue-100 rounded-full group-hover:bg-blue-200 transition-colors">
-              <FileText className="w-16 h-16 text-blue-700" />
-            </div>
-            <CardTitle className="text-3xl font-extrabold text-slate-800">À Vista</CardTitle>
-            <CardDescription className="text-lg text-slate-600 leading-relaxed">
-              Sinal + Saldo. Ideal para pagamentos diretos sem intervenção bancária e processos
-              rápidos.
-            </CardDescription>
-          </CardContent>
-        </Card>
-        <Card
-          className="cursor-pointer border-2 border-slate-200 hover:border-blue-500 hover:bg-blue-50/30 transition-all duration-300 shadow-sm hover:shadow-xl rounded-2xl overflow-hidden group"
-          onClick={() => onSelect('FINANCIADO')}
-        >
-          <CardContent className="p-10 flex flex-col items-center text-center space-y-6">
-            <div className="p-6 bg-blue-100 rounded-full group-hover:bg-blue-200 transition-colors">
-              <Building className="w-16 h-16 text-blue-700" />
-            </div>
-            <CardTitle className="text-3xl font-extrabold text-slate-800">Financiado</CardTitle>
-            <CardDescription className="text-lg text-slate-600 leading-relaxed">
-              Sinal + Reforço + Complemento + Financiado. Preparado para compras com crédito
-              imobiliário.
-            </CardDescription>
-          </CardContent>
-        </Card>
+    <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto animate-in fade-in">
+      <div
+        className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-all hover:border-blue-200 text-center flex flex-col justify-between group cursor-pointer"
+        onClick={() => onSelect('a_vista')}
+      >
+        <div>
+          <div className="mx-auto w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+            <FileText className="h-8 w-8" />
+          </div>
+          <h2 className="text-2xl font-bold mb-4 text-slate-800">À Vista</h2>
+          <p className="text-slate-600 mb-8">
+            Pagamento com sinal e saldo, sem financiamento bancário.
+          </p>
+        </div>
+        <Button className="w-full h-12 text-lg bg-blue-600 hover:bg-blue-700 pointer-events-none">
+          Gerar À Vista
+        </Button>
+      </div>
+      <div
+        className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-all hover:border-blue-200 text-center flex flex-col justify-between group cursor-pointer"
+        onClick={() => onSelect('financiado')}
+      >
+        <div>
+          <div className="mx-auto w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+            <Building className="h-8 w-8" />
+          </div>
+          <h2 className="text-2xl font-bold mb-4 text-slate-800">Financiado</h2>
+          <p className="text-slate-600 mb-8">
+            Pagamento com sinal, recursos próprios e financiamento bancário.
+          </p>
+        </div>
+        <Button className="w-full h-12 text-lg bg-emerald-600 hover:bg-emerald-700 pointer-events-none">
+          Gerar Financiado
+        </Button>
       </div>
     </div>
   )

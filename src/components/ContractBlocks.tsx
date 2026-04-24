@@ -1,29 +1,6 @@
 import { useFormContext } from 'react-hook-form'
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-
-const formatCurrency = (value: string) => {
-  if (!value) return ''
-  const numbers = value.replace(/\D/g, '')
-  if (!numbers) return ''
-  const amount = (Number(numbers) / 100).toFixed(2)
-  const [integers, decimals] = amount.split('.')
-  const formattedIntegers = integers.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-  return `R$ ${formattedIntegers},${decimals}`
-}
-
-const applyMask = (value: string, mask: string) => {
-  let i = 0
-  const v = value.replace(/\D/g, '')
-  return mask.replace(/#/g, () => v[i++] || '').replace(/([^#0-9])+$/g, '')
-}
-
-const maskCPF = (v: string) => applyMask(v, '###.###.###-##')
-const maskPhone = (v: string) => {
-  const n = v.replace(/\D/g, '')
-  return applyMask(n, n.length <= 10 ? '(##) ####-####' : '(##) #####-####')
-}
 
 export function PersonBlock({
   suffix,
@@ -34,11 +11,9 @@ export function PersonBlock({
 }) {
   const { control } = useFormContext()
   return (
-    <Card className="border-slate-200 shadow-sm">
-      <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-4">
-        <CardTitle className="text-lg text-slate-800">{title}</CardTitle>
-      </CardHeader>
-      <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 pt-6">
+    <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
+      <h3 className="font-semibold text-lg text-slate-800">{title}</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <FormField
           control={control}
           name={`nome${suffix}`}
@@ -59,12 +34,7 @@ export function PersonBlock({
             <FormItem>
               <FormLabel>CPF</FormLabel>
               <FormControl>
-                <Input
-                  {...field}
-                  value={field.value || ''}
-                  onChange={(e) => field.onChange(maskCPF(e.target.value))}
-                  maxLength={14}
-                />
+                <Input {...field} value={field.value || ''} placeholder="000.000.000-00" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -139,8 +109,8 @@ export function PersonBlock({
           control={control}
           name={`endereco${suffix}`}
           render={({ field }) => (
-            <FormItem className="md:col-span-2">
-              <FormLabel>Endereço</FormLabel>
+            <FormItem className="sm:col-span-2">
+              <FormLabel>Endereço Completo</FormLabel>
               <FormControl>
                 <Input {...field} value={field.value || ''} />
               </FormControl>
@@ -153,9 +123,9 @@ export function PersonBlock({
           name={`email${suffix}`}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>E-mail</FormLabel>
               <FormControl>
-                <Input type="email" {...field} value={field.value || ''} />
+                <Input {...field} value={field.value || ''} type="email" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -168,35 +138,28 @@ export function PersonBlock({
             <FormItem>
               <FormLabel>Telefone</FormLabel>
               <FormControl>
-                <Input
-                  {...field}
-                  value={field.value || ''}
-                  onChange={(e) => field.onChange(maskPhone(e.target.value))}
-                  maxLength={15}
-                />
+                <Input {...field} value={field.value || ''} placeholder="(00) 00000-0000" />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }
 
 export function PropertyBlock() {
   const { control } = useFormContext()
   return (
-    <Card className="border-slate-200 shadow-sm">
-      <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-4">
-        <CardTitle className="text-lg text-slate-800">Dados do Imóvel</CardTitle>
-      </CardHeader>
-      <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 pt-6">
+    <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
+      <h3 className="font-semibold text-lg text-slate-800">Dados do Imóvel</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <FormField
           control={control}
           name="endereco_imovel"
           render={({ field }) => (
-            <FormItem className="md:col-span-2">
+            <FormItem className="sm:col-span-2 lg:col-span-3">
               <FormLabel>Endereço do Imóvel</FormLabel>
               <FormControl>
                 <Input {...field} value={field.value || ''} />
@@ -223,7 +186,7 @@ export function PropertyBlock() {
           name="rgi_imovel"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>RGI</FormLabel>
+              <FormLabel>RGI (Cartório)</FormLabel>
               <FormControl>
                 <Input {...field} value={field.value || ''} />
               </FormControl>
@@ -236,7 +199,7 @@ export function PropertyBlock() {
           name="inscricao_municipal"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Inscrição Municipal</FormLabel>
+              <FormLabel>Inscrição Municipal (IPTU)</FormLabel>
               <FormControl>
                 <Input {...field} value={field.value || ''} />
               </FormControl>
@@ -249,9 +212,9 @@ export function PropertyBlock() {
           name="area_total"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Área Total</FormLabel>
+              <FormLabel>Área Total (m²)</FormLabel>
               <FormControl>
-                <Input {...field} value={field.value || ''} />
+                <Input {...field} value={field.value || ''} type="number" step="0.01" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -264,44 +227,31 @@ export function PropertyBlock() {
             <FormItem>
               <FormLabel>Vagas de Garagem</FormLabel>
               <FormControl>
-                <Input type="number" {...field} value={field.value || ''} />
+                <Input {...field} value={field.value || ''} type="number" />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }
 
 export function FinancialBlock({ type }: { type: 'a_vista' | 'financiado' }) {
   const { control } = useFormContext()
-
-  const handleCurrency =
-    (onChange: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
-      onChange(formatCurrency(e.target.value))
-    }
-
   return (
-    <Card className="border-slate-200 shadow-sm">
-      <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-4">
-        <CardTitle className="text-lg text-slate-800">Dados Financeiros</CardTitle>
-      </CardHeader>
-      <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 pt-6">
+    <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
+      <h3 className="font-semibold text-lg text-slate-800">Valores e Pagamento</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <FormField
           control={control}
           name="valor_total"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Valor Total</FormLabel>
+              <FormLabel>Valor Total do Imóvel</FormLabel>
               <FormControl>
-                <Input
-                  placeholder="R$ 0,00"
-                  {...field}
-                  value={field.value || ''}
-                  onChange={handleCurrency(field.onChange)}
-                />
+                <Input {...field} value={field.value || ''} placeholder="R$ 0,00" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -312,14 +262,9 @@ export function FinancialBlock({ type }: { type: 'a_vista' | 'financiado' }) {
           name="valor_sinal"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Valor do Sinal</FormLabel>
+              <FormLabel>Valor do Sinal (Arras)</FormLabel>
               <FormControl>
-                <Input
-                  placeholder="R$ 0,00"
-                  {...field}
-                  value={field.value || ''}
-                  onChange={handleCurrency(field.onChange)}
-                />
+                <Input {...field} value={field.value || ''} placeholder="R$ 0,00" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -330,20 +275,14 @@ export function FinancialBlock({ type }: { type: 'a_vista' | 'financiado' }) {
           name="comissao"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Comissão</FormLabel>
+              <FormLabel>Valor da Comissão</FormLabel>
               <FormControl>
-                <Input
-                  placeholder="R$ 0,00"
-                  {...field}
-                  value={field.value || ''}
-                  onChange={handleCurrency(field.onChange)}
-                />
+                <Input {...field} value={field.value || ''} placeholder="R$ 0,00" />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-
         {type === 'a_vista' && (
           <>
             <FormField
@@ -353,12 +292,7 @@ export function FinancialBlock({ type }: { type: 'a_vista' | 'financiado' }) {
                 <FormItem>
                   <FormLabel>Valor do Saldo</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="R$ 0,00"
-                      {...field}
-                      value={field.value || ''}
-                      onChange={handleCurrency(field.onChange)}
-                    />
+                    <Input {...field} value={field.value || ''} placeholder="R$ 0,00" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -371,7 +305,7 @@ export function FinancialBlock({ type }: { type: 'a_vista' | 'financiado' }) {
                 <FormItem>
                   <FormLabel>Data de Pagamento do Saldo</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} value={field.value || ''} />
+                    <Input {...field} value={field.value || ''} type="date" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -379,79 +313,51 @@ export function FinancialBlock({ type }: { type: 'a_vista' | 'financiado' }) {
             />
           </>
         )}
-
-        {type === 'financiado' && (
-          <>
-            <FormField
-              control={control}
-              name="valor_reforco"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Valor de Reforço de Sinal</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="R$ 0,00"
-                      {...field}
-                      value={field.value || ''}
-                      onChange={handleCurrency(field.onChange)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={control}
-              name="valor_complemento"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Valor de Complemento</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="R$ 0,00"
-                      {...field}
-                      value={field.value || ''}
-                      onChange={handleCurrency(field.onChange)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </>
-        )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }
 
 export function FinancingBlock() {
   const { control } = useFormContext()
-
-  const handleCurrency =
-    (onChange: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
-      onChange(formatCurrency(e.target.value))
-    }
-
   return (
-    <Card className="border-slate-200 shadow-sm">
-      <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-4">
-        <CardTitle className="text-lg text-slate-800">Detalhes de Financiamento</CardTitle>
-      </CardHeader>
-      <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 pt-6">
+    <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
+      <h3 className="font-semibold text-lg text-slate-800">Condições de Financiamento</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <FormField
+          control={control}
+          name="valor_reforco"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Reforço de Sinal (Opcional)</FormLabel>
+              <FormControl>
+                <Input {...field} value={field.value || ''} placeholder="R$ 0,00" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={control}
+          name="valor_complemento"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Complemento (Recursos Próprios)</FormLabel>
+              <FormControl>
+                <Input {...field} value={field.value || ''} placeholder="R$ 0,00" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <FormField
           control={control}
           name="valor_financiado"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Valor Financiado</FormLabel>
+              <FormLabel>Valor a ser Financiado</FormLabel>
               <FormControl>
-                <Input
-                  placeholder="R$ 0,00"
-                  {...field}
-                  value={field.value || ''}
-                  onChange={handleCurrency(field.onChange)}
-                />
+                <Input {...field} value={field.value || ''} placeholder="R$ 0,00" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -461,8 +367,8 @@ export function FinancingBlock() {
           control={control}
           name="instituicao_financeira"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Instituição Financeira</FormLabel>
+            <FormItem className="sm:col-span-2">
+              <FormLabel>Instituição Financeira (Banco)</FormLabel>
               <FormControl>
                 <Input {...field} value={field.value || ''} />
               </FormControl>
@@ -470,7 +376,7 @@ export function FinancingBlock() {
             </FormItem>
           )}
         />
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }
