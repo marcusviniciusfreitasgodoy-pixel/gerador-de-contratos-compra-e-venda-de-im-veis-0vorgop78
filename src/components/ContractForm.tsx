@@ -5,8 +5,9 @@ import { Form } from '@/components/ui/form'
 import { Button } from '@/components/ui/button'
 import { contractSchema, type ContractFormValues } from '@/lib/schemas'
 import { PersonBlock, PropertyBlock, FinancialBlock, FinancingBlock } from './ContractBlocks'
-import { ArrowLeft, Loader2, CheckCircle2 } from 'lucide-react'
+import { ArrowLeft, Loader2, CheckCircle2, Wand2 } from 'lucide-react'
 import { createContract, generateContractDocx } from '@/services/contracts'
+import { addDays } from 'date-fns'
 import { toast } from 'sonner'
 
 export function ContractForm({
@@ -84,6 +85,81 @@ export function ContractForm({
     }
   }
 
+  const handleFillDummyData = () => {
+    const commonData = {
+      nome_vendedor: 'Marcos da Silva Sauro',
+      cpf_vendedor: '123.456.789-00',
+      rg_vendedor: 'MG-12.345.678',
+      orgao_emissor_vendedor: 'SSP/MG',
+      nacionalidade_vendedor: 'Brasileiro',
+      estado_civil_vendedor: 'Casado',
+      profissao_vendedor: 'Engenheiro',
+      endereco_vendedor: 'Rua das Flores, 123, Bairro Jardim, Belo Horizonte/MG',
+      email_vendedor: 'vendedor.teste@exemplo.com',
+      telefone_vendedor: '(31) 98888-7777',
+
+      nome_comprador: 'Ana Beatriz de Souza',
+      cpf_comprador: '987.654.321-11',
+      rg_comprador: '12.345.678-9',
+      orgao_emissor_comprador: 'DETRAN/RJ',
+      nacionalidade_comprador: 'Brasileira',
+      estado_civil_comprador: 'Solteira',
+      profissao_comprador: 'Advogada',
+      endereco_comprador: 'Av. Atlântica, 456, Copacabana, Rio de Janeiro/RJ',
+      email_comprador: 'comprador.teste@exemplo.com',
+      telefone_comprador: '(21) 99999-8888',
+
+      endereco_imovel: 'Rua Alameda dos Anjos, nº 10, Condomínio Solar, Curitiba/PR',
+      matricula_imovel: '123.456-A',
+      rgi_imovel: '2º Ofício de Registro de Imóveis',
+      inscricao_municipal: '01.02.003.0045.001',
+      area_total: 150.5,
+      vagas_garagem: 2,
+
+      valor_total: 500000,
+      valor_sinal: 50000,
+      comissao: 5,
+    }
+
+    if (type === 'a_vista') {
+      const data = {
+        ...commonData,
+        valor_saldo: 450000,
+        data_pagamento_saldo: addDays(new Date(), 30),
+        valor_reforco: 0,
+        valor_complemento: 0,
+        valor_financiado: 0,
+        instituicao_financeira: '',
+        taxa_juros: 0,
+        prazo_meses: 0,
+        data_liberacao_credito: undefined,
+      }
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== undefined) {
+          form.setValue(key as any, value as any, { shouldValidate: true, shouldDirty: true })
+        }
+      })
+    } else {
+      const data = {
+        ...commonData,
+        valor_reforco: 25000,
+        valor_complemento: 25000,
+        valor_financiado: 400000,
+        instituicao_financeira: 'Caixa Econômica Federal',
+        taxa_juros: 9.5,
+        prazo_meses: 360,
+        data_liberacao_credito: addDays(new Date(), 60),
+        valor_saldo: 0,
+        data_pagamento_saldo: undefined,
+      }
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== undefined) {
+          form.setValue(key as any, value as any, { shouldValidate: true, shouldDirty: true })
+        }
+      })
+    }
+  }
+
   if (isSuccess) {
     return (
       <div className="text-center space-y-6 py-20 animate-in fade-in slide-in-from-bottom-4 bg-white rounded-2xl shadow-sm border border-slate-100">
@@ -140,6 +216,15 @@ export function ContractForm({
               </p>
             </div>
           </div>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={handleFillDummyData}
+            className="w-full sm:w-auto flex items-center justify-center gap-2 font-medium bg-slate-100 hover:bg-slate-200 text-slate-800 transition-colors"
+          >
+            <Wand2 className="w-4 h-4 text-blue-600" />
+            Preencher Dados de Teste
+          </Button>
         </div>
 
         <div className="space-y-8">
