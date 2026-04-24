@@ -113,26 +113,23 @@ export function ContractForm({
       matricula_imovel: '123.456-A',
       rgi_imovel: '2º Ofício de Registro de Imóveis',
       inscricao_municipal: '01.02.003.0045.001',
-      area_total: 150.5,
-      vagas_garagem: 2,
+      area_total: '150.5',
+      vagas_garagem: '2',
 
-      valor_total: 500000,
-      valor_sinal: 50000,
-      comissao: 5,
+      valor_total: 'R$ 500.000,00',
+      valor_sinal: 'R$ 50.000,00',
+      comissao: 'R$ 25.000,00',
     }
 
     if (type === 'a_vista') {
       const data = {
         ...commonData,
-        valor_saldo: 450000,
-        data_pagamento_saldo: addDays(new Date(), 30),
-        valor_reforco: 0,
-        valor_complemento: 0,
-        valor_financiado: 0,
+        valor_saldo: 'R$ 450.000,00',
+        data_pagamento_saldo: addDays(new Date(), 30).toISOString().split('T')[0],
+        valor_reforco: '',
+        valor_complemento: '',
+        valor_financiado: '',
         instituicao_financeira: '',
-        taxa_juros: 0,
-        prazo_meses: 0,
-        data_liberacao_credito: undefined,
       }
       Object.entries(data).forEach(([key, value]) => {
         if (value !== undefined) {
@@ -142,14 +139,11 @@ export function ContractForm({
     } else {
       const data = {
         ...commonData,
-        valor_reforco: 25000,
-        valor_complemento: 25000,
-        valor_financiado: 400000,
+        valor_reforco: 'R$ 25.000,00',
+        valor_complemento: 'R$ 25.000,00',
+        valor_financiado: 'R$ 400.000,00',
         instituicao_financeira: 'Caixa Econômica Federal',
-        taxa_juros: 9.5,
-        prazo_meses: 360,
-        data_liberacao_credito: addDays(new Date(), 60),
-        valor_saldo: 0,
+        valor_saldo: '',
         data_pagamento_saldo: undefined,
       }
       Object.entries(data).forEach(([key, value]) => {

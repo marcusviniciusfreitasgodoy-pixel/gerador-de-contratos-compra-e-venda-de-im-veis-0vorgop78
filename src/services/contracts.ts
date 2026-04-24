@@ -32,9 +32,6 @@ export const createContract = async (data: ContractFormValues) => {
     valor_saldo: parseCurrency(data.valor_saldo),
     valor_financiado: parseCurrency(data.valor_financiado),
     comissao: parseCurrency(data.comissao),
-    taxa_juros: data.taxa_juros ? Number(data.taxa_juros) : null,
-    prazo_meses: data.prazo_meses ? Number(data.prazo_meses) : null,
-    data_liberacao_credito: toPbDate(data.data_liberacao_credito),
     data_pagamento_saldo: toPbDate(data.data_pagamento_saldo),
   }
 

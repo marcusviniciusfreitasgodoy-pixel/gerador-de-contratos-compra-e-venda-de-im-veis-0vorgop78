@@ -66,9 +66,6 @@ export const contractSchema = z
     valor_financiado: z.string().optional(),
 
     instituicao_financeira: z.string().optional(),
-    taxa_juros: z.string().optional(),
-    prazo_meses: z.string().optional(),
-    data_liberacao_credito: z.string().optional(),
     data_pagamento_saldo: z.string().optional(),
   })
   .superRefine((data, ctx) => {
@@ -140,44 +137,6 @@ export const contractSchema = z
           message: 'Sinal + Reforço + Complemento + Financiado deve ser igual ao Valor Total',
           path: ['valor_financiado'],
         })
-      }
-
-      if (data.taxa_juros) {
-        const taxaStr = data.taxa_juros.replace(/\D/g, '')
-        const taxaNum = parseInt(taxaStr, 10)
-        if (isNaN(taxaNum) || taxaNum < 0 || taxaNum > 30) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: 'Taxa deve estar entre 0% e 30%',
-            path: ['taxa_juros'],
-          })
-        }
-      }
-
-      if (data.prazo_meses) {
-        const prazoStr = data.prazo_meses.replace(/\D/g, '')
-        const prazo = parseInt(prazoStr, 10)
-        if (isNaN(prazo) || prazo < 1 || prazo > 360) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: 'Prazo deve estar entre 1 e 360 meses',
-            path: ['prazo_meses'],
-          })
-        }
-      }
-
-      if (data.data_liberacao_credito) {
-        const [year, month, day] = data.data_liberacao_credito.split('-').map(Number)
-        const date = new Date(year, month - 1, day)
-        const today = new Date()
-        today.setHours(0, 0, 0, 0)
-        if (date <= today) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: 'Data deve ser no futuro',
-            path: ['data_liberacao_credito'],
-          })
-        }
       }
     }
   })

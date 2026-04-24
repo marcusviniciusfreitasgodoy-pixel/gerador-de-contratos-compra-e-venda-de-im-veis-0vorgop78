@@ -1,5 +1,5 @@
 import { FormInput } from './FormInput'
-import { formatCPF, formatPhone, formatCurrency, formatNumber } from '@/lib/formatters'
+import { formatCPF, formatPhone, formatCurrency } from '@/lib/formatters'
 
 export function PersonBlock({
   suffix,
@@ -9,33 +9,19 @@ export function PersonBlock({
   title: string
 }) {
   return (
-    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-6">
-      <h3 className="text-xl font-bold text-slate-800">{title}</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="space-y-4 p-6 bg-white border border-slate-200 rounded-xl shadow-sm">
+      <h3 className="text-lg font-bold text-slate-800 border-b pb-2">{title}</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <FormInput name={`nome${suffix}`} label="Nome Completo" required />
-        <FormInput name={`cpf${suffix}`} label="CPF" required mask={formatCPF} />
+        <FormInput name={`cpf${suffix}`} label="CPF" mask={formatCPF} required />
         <FormInput name={`rg${suffix}`} label="RG" required />
         <FormInput name={`orgao_emissor${suffix}`} label="Órgão Emissor" required />
         <FormInput name={`nacionalidade${suffix}`} label="Nacionalidade" required />
-        <FormInput
-          name={`estado_civil${suffix}`}
-          label="Estado Civil"
-          required
-          options={[
-            { label: 'Solteiro(a)', value: 'solteiro' },
-            { label: 'Casado(a)', value: 'casado' },
-            { label: 'Divorciado(a)', value: 'divorciado' },
-            { label: 'Viúvo(a)', value: 'viuvo' },
-          ]}
-        />
+        <FormInput name={`estado_civil${suffix}`} label="Estado Civil" required />
         <FormInput name={`profissao${suffix}`} label="Profissão" required />
-        <FormInput name={`telefone${suffix}`} label="Telefone" required mask={formatPhone} />
-        <div className="md:col-span-2">
-          <FormInput name={`email${suffix}`} label="E-mail" required type="email" />
-        </div>
-        <div className="md:col-span-2">
-          <FormInput name={`endereco${suffix}`} label="Endereço Completo" required />
-        </div>
+        <FormInput name={`endereco${suffix}`} label="Endereço" required />
+        <FormInput name={`email${suffix}`} label="Email" type="email" required />
+        <FormInput name={`telefone${suffix}`} label="Telefone" mask={formatPhone} required />
       </div>
     </div>
   )
@@ -43,17 +29,15 @@ export function PersonBlock({
 
 export function PropertyBlock() {
   return (
-    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-6">
-      <h3 className="text-xl font-bold text-slate-800">Dados do Imóvel</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="md:col-span-2">
-          <FormInput name="endereco_imovel" label="Endereço do Imóvel" required />
-        </div>
+    <div className="space-y-4 p-6 bg-white border border-slate-200 rounded-xl shadow-sm">
+      <h3 className="text-lg font-bold text-slate-800 border-b pb-2">Dados do Imóvel</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <FormInput name="endereco_imovel" label="Endereço do Imóvel" required />
         <FormInput name="matricula_imovel" label="Matrícula" required />
         <FormInput name="rgi_imovel" label="RGI" required />
-        <FormInput name="inscricao_municipal" label="Inscrição Municipal (IPTU)" required />
-        <FormInput name="area_total" label="Área Total (m²)" required mask={formatNumber} />
-        <FormInput name="vagas_garagem" label="Vagas de Garagem" required mask={formatNumber} />
+        <FormInput name="inscricao_municipal" label="Inscrição Municipal" required />
+        <FormInput name="area_total" label="Área Total (m²)" type="number" step="0.01" required />
+        <FormInput name="vagas_garagem" label="Vagas de Garagem" type="number" required />
       </div>
     </div>
   )
@@ -61,32 +45,44 @@ export function PropertyBlock() {
 
 export function FinancialBlock({ type }: { type: 'a_vista' | 'financiado' }) {
   return (
-    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-6">
-      <h3 className="text-xl font-bold text-slate-800">Dados Financeiros</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FormInput name="valor_total" label="Valor Total (R$)" required mask={formatCurrency} />
-        <FormInput name="valor_sinal" label="Valor do Sinal (R$)" required mask={formatCurrency} />
-        <FormInput name="comissao" label="Comissão (%) ou (R$)" required mask={formatCurrency} />
-
+    <div className="space-y-4 p-6 bg-white border border-slate-200 rounded-xl shadow-sm">
+      <h3 className="text-lg font-bold text-slate-800 border-b pb-2">Dados Financeiros</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <FormInput
+          name="valor_total"
+          label="Valor Total"
+          mask={formatCurrency}
+          placeholder="R$ 0,00"
+          required
+        />
+        <FormInput
+          name="valor_sinal"
+          label="Valor do Sinal"
+          mask={formatCurrency}
+          placeholder="R$ 0,00"
+          required
+        />
+        <FormInput
+          name="comissao"
+          label="Comissão"
+          mask={formatCurrency}
+          placeholder="R$ 0,00"
+          required
+        />
         {type === 'a_vista' && (
           <>
-            <FormInput name="valor_saldo" label="Valor do Saldo (R$)" mask={formatCurrency} />
-            <FormInput name="data_pagamento_saldo" label="Data Pagamento Saldo" type="date" />
-          </>
-        )}
-
-        {type === 'financiado' && (
-          <>
-            <FormInput name="valor_reforco" label="Valor do Reforço (R$)" mask={formatCurrency} />
             <FormInput
-              name="valor_complemento"
-              label="Valor do Complemento (R$)"
+              name="valor_saldo"
+              label="Valor do Saldo"
               mask={formatCurrency}
+              placeholder="R$ 0,00"
+              required
             />
             <FormInput
-              name="valor_financiado"
-              label="Valor Financiado (R$)"
-              mask={formatCurrency}
+              name="data_pagamento_saldo"
+              label="Data Pagamento Saldo"
+              type="date"
+              required
             />
           </>
         )}
@@ -97,13 +93,29 @@ export function FinancialBlock({ type }: { type: 'a_vista' | 'financiado' }) {
 
 export function FinancingBlock() {
   return (
-    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-6">
-      <h3 className="text-xl font-bold text-slate-800">Detalhes do Financiamento</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="space-y-4 p-6 bg-white border border-slate-200 rounded-xl shadow-sm">
+      <h3 className="text-lg font-bold text-slate-800 border-b pb-2">Detalhes de Financiamento</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <FormInput
+          name="valor_reforco"
+          label="Valor de Reforço"
+          mask={formatCurrency}
+          placeholder="R$ 0,00"
+        />
+        <FormInput
+          name="valor_complemento"
+          label="Valor de Complemento"
+          mask={formatCurrency}
+          placeholder="R$ 0,00"
+        />
+        <FormInput
+          name="valor_financiado"
+          label="Valor Financiado"
+          mask={formatCurrency}
+          placeholder="R$ 0,00"
+          required
+        />
         <FormInput name="instituicao_financeira" label="Instituição Financeira" />
-        <FormInput name="taxa_juros" label="Taxa de Juros (%)" mask={formatNumber} />
-        <FormInput name="prazo_meses" label="Prazo (meses)" mask={formatNumber} />
-        <FormInput name="data_liberacao_credito" label="Previsão Liberação Crédito" type="date" />
       </div>
     </div>
   )
