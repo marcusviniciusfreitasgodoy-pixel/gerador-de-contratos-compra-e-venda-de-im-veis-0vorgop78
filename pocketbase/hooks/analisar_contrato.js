@@ -18,32 +18,43 @@ routerAdd(
       const openaiKey = $secrets.get('OPENAI_API_KEY')
 
       if (!geminiKey && !openaiKey) {
-        return e.json(500, {
-          error: 'Nenhuma chave de IA configurada (GEMINI_API_KEY ou OPENAI_API_KEY).',
-        })
+        return e.badRequestError(
+          'Nenhuma chave de IA configurada (GEMINI_API_KEY ou OPENAI_API_KEY). Configure no painel de administração.',
+        )
       }
 
       let contextText = ''
-      if (openaiKey) {
-        const embedText = `Contrato do tipo: ${tipoContrato}`
-        const embedRes = $http.send({
-          url: 'https://api.openai.com/v1/embeddings',
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + openaiKey },
-          body: JSON.stringify({ model: 'text-embedding-3-small', input: embedText }),
-          timeout: 15,
-        })
-        if (embedRes.statusCode === 200) {
-          const results = $vectors.search(e, 'legal_knowledge', {
-            field: 'embedding',
-            query: embedRes.json.data[0].embedding,
-            k: 5,
+      try {
+        if (openaiKey) {
+          const embedText = `Contrato do tipo: ${tipoContrato}`
+          const embedRes = $http.send({
+            url: 'https://api.openai.com/v1/embeddings',
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + openaiKey },
+            body: JSON.stringify({ model: 'text-embedding-3-small', input: embedText }),
+            timeout: 15,
           })
-          const items = results.items || []
-          contextText = items
+          if (embedRes.statusCode === 200) {
+            const results = $vectors.search(e, 'legal_knowledge', {
+              field: 'embedding',
+              query: embedRes.json.data[0].embedding,
+              k: 5,
+            })
+            const items = results.items || []
+            contextText = items
+              .map((r) => r.getString('title') + ': ' + r.getString('content'))
+              .join('\n\n')
+          }
+        }
+
+        if (!contextText) {
+          const records = $app.findRecordsByFilter('legal_knowledge', '', '-updated', 10, 0)
+          contextText = records
             .map((r) => r.getString('title') + ': ' + r.getString('content'))
             .join('\n\n')
         }
+      } catch (err) {
+        $app.logger().warn('Falha ao buscar base de conhecimento', 'error', err.message)
       }
 
       const systemPrompt = `Você é um Assistente Jurídico de IA especializado em Direito Imobiliário Brasileiro.
@@ -116,15 +127,14 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
               responseMimeType: 'application/json',
             },
           }),
-          timeout: 30,
+          timeout: 120,
         })
 
         if (chatRes.statusCode !== 200) {
           $app.logger().error('Gemini AI failed', 'status', chatRes.statusCode, 'raw', chatRes.raw)
-          return e.json(500, {
-            error:
-              'Unable to analyze the document. Please ensure the file contains readable text or check your AI configuration.',
-          })
+          return e.badRequestError(
+            'Erro na análise da IA (Gemini). O arquivo pode ser muito grande ou a API está indisponível.',
+          )
         }
 
         try {
@@ -163,7 +173,7 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
                 },
               ],
             }),
-            timeout: 30,
+            timeout: 60,
           })
           if (extractRes.statusCode === 200) {
             extractedText = extractRes.json.choices[0].message.content
@@ -218,15 +228,14 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
             response_format: { type: 'json_object' },
             temperature: 0.1,
           }),
-          timeout: 30,
+          timeout: 120,
         })
 
         if (chatRes.statusCode !== 200) {
           $app.logger().error('OpenAI AI failed', 'status', chatRes.statusCode, 'raw', chatRes.raw)
-          return e.json(500, {
-            error:
-              'Unable to analyze the document. Please ensure the file contains readable text or check your AI configuration.',
-          })
+          return e.badRequestError(
+            'Erro na análise da IA (OpenAI). O arquivo pode ser muito grande ou a API está indisponível.',
+          )
         }
 
         try {
@@ -284,8 +293,11 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
       return e.json(200, analysisResult)
     } catch (err) {
       $app.logger().error('Erro na rota analisar-contrato', 'error', err.message)
-      return e.json(500, { error: 'Não consegui analisar o contrato. Tente novamente.' })
+      return e.badRequestError(
+        'Não consegui analisar o contrato. Verifique o arquivo e tente novamente.',
+      )
     }
   },
   $apis.requireAuth(),
+  $apis.bodyLimit(20 * 1024 * 1024),
 )

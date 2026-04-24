@@ -61,12 +61,18 @@ export default function AIAnalysis() {
 
   const handleAnalyzeFile = async () => {
     if (!selectedFile && !contractText) return
+
+    if (selectedFile && selectedFile.size > 15 * 1024 * 1024) {
+      toast.error('O arquivo é muito grande. O limite é de 15MB.')
+      return
+    }
+
     setIsAnalyzing(true)
     setErrorMsg(null)
     setReport(null)
 
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 30000)
+    const timeoutId = setTimeout(() => controller.abort(), 120000)
 
     try {
       let base64Data = ''
@@ -87,7 +93,16 @@ export default function AIAnalysis() {
         base64Data = b64.split(',')[1] || b64
       } else if (contractText) {
         tipo = 'txt'
-        base64Data = btoa(unescape(encodeURIComponent(contractText)))
+        let txtToProcess = contractText
+        if (txtToProcess.length > 500000) {
+          txtToProcess = txtToProcess.slice(0, 500000)
+        }
+        const utf8Bytes = new TextEncoder().encode(txtToProcess)
+        let binString = ''
+        for (let i = 0; i < utf8Bytes.byteLength; i++) {
+          binString += String.fromCharCode(utf8Bytes[i])
+        }
+        base64Data = btoa(binString)
       }
 
       const payload = {
@@ -106,20 +121,22 @@ export default function AIAnalysis() {
 
       clearTimeout(timeoutId)
 
-      if (res.error) {
-        const msg =
-          'Unable to analyze the document. Please ensure the file contains readable text or check your AI configuration.'
-        setErrorMsg(msg)
-        toast.error(msg)
-      } else {
-        setReport(res)
-        toast.success('Análise concluída com sucesso!')
-      }
+      setReport(res)
+      toast.success('Análise concluída com sucesso!')
     } catch (error: any) {
       clearTimeout(timeoutId)
       console.error(error)
-      const msg =
-        'Unable to analyze the document. Please ensure the file contains readable text or check your AI configuration.'
+      let msg = 'Não foi possível analisar o documento. Verifique se há texto legível.'
+
+      if (error.name === 'AbortError') {
+        msg =
+          'A análise expirou após 2 minutos. O contrato pode ser muito longo ou o servidor está sobrecarregado.'
+      } else if (error.response?.message) {
+        msg = error.response.message
+      } else if (error.message) {
+        msg = error.message
+      }
+
       setErrorMsg(msg)
       toast.error(msg)
     } finally {
@@ -152,8 +169,13 @@ export default function AIAnalysis() {
         </div>
       </div>
 
-      {!report && !isAnalyzing && !errorMsg && (
-        <Card className="max-w-2xl mx-auto border-0 shadow-lg ring-1 ring-slate-200/50">
+      {!report && !errorMsg && (
+        <Card
+          className={cn(
+            'max-w-2xl mx-auto border-0 shadow-lg ring-1 ring-slate-200/50 transition-opacity',
+            isAnalyzing && 'pointer-events-none opacity-80',
+          )}
+        >
           <div className="p-8">
             <div className="mb-6 space-y-2">
               <label className="text-sm font-semibold text-slate-700">Tipo de Contrato</label>
@@ -261,40 +283,37 @@ export default function AIAnalysis() {
             )}
 
             {(selectedFile || contractText) && (
-              <div className="mt-8 flex justify-center animate-in slide-in-from-bottom-4 duration-300">
+              <div className="mt-8 flex flex-col items-center justify-center animate-in slide-in-from-bottom-4 duration-300 gap-4">
                 <Button
                   size="lg"
+                  disabled={isAnalyzing}
                   className="bg-purple-600 hover:bg-purple-700 text-white px-8 h-14 text-lg w-full sm:w-auto shadow-md hover:shadow-lg transition-all"
                   onClick={handleAnalyzeFile}
                 >
-                  Analisar com IA Jurídica
+                  {isAnalyzing ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Analisando...
+                    </>
+                  ) : (
+                    'Analisar com IA Jurídica'
+                  )}
                 </Button>
+
+                {isAnalyzing && (
+                  <div className="text-center animate-in fade-in duration-300">
+                    <p className="text-purple-600 font-medium animate-pulse">
+                      Aguarde, cruzando com base de dados...
+                    </p>
+                    <p className="text-slate-500 text-sm mt-1">
+                      Isso pode levar até 2 minutos dependendo do tamanho do contrato.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>
         </Card>
-      )}
-
-      {isAnalyzing && (
-        <div className="max-w-2xl mx-auto space-y-8 text-center py-16 animate-in fade-in zoom-in-95 duration-500">
-          <div className="relative w-24 h-24 mx-auto">
-            <div className="absolute inset-0 border-4 border-purple-100 rounded-full"></div>
-            <div className="absolute inset-0 border-4 border-purple-600 rounded-full border-t-transparent animate-spin"></div>
-            <Bot className="absolute inset-0 m-auto w-8 h-8 text-purple-600 animate-pulse" />
-          </div>
-          <h3 className="text-2xl font-bold text-purple-800 animate-pulse tracking-tight">
-            Analisando contrato... Aguarde
-          </h3>
-          <div className="max-w-md mx-auto space-y-4 pt-4">
-            <Skeleton className="h-4 w-full bg-purple-100/50 rounded-full" />
-            <Skeleton className="h-4 w-5/6 mx-auto bg-purple-100/50 rounded-full" />
-            <Skeleton className="h-4 w-4/6 mx-auto bg-purple-100/50 rounded-full" />
-          </div>
-          <p className="text-slate-500 text-sm mt-8 max-w-sm mx-auto">
-            Nossa IA está cruzando o texto com a legislação e jurisprudência... Pode levar até 30
-            segundos.
-          </p>
-        </div>
       )}
 
       {errorMsg && (
