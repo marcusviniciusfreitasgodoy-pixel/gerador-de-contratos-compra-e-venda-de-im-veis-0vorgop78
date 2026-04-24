@@ -1,126 +1,80 @@
 import { useState } from 'react'
-import { useNavigate, Navigate } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { useAuth } from '@/hooks/use-auth'
+import { Navigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
-import { useToast } from '@/hooks/use-toast'
-import { LayoutDashboard } from 'lucide-react'
-import { extractFieldErrors } from '@/lib/pocketbase/errors'
-
-const loginSchema = z.object({
-  email: z.string().email('E-mail inválido'),
-  password: z.string().min(1, 'A senha é obrigatória'),
-})
-
-type LoginFormValues = z.infer<typeof loginSchema>
+import { FileText, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 export default function Login() {
-  const { signIn, user, loading } = useAuth()
-  const navigate = useNavigate()
-  const { toast } = useToast()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
-  const form = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: { email: '', password: '' },
-  })
+  const { user, signIn, loading } = useAuth()
+  const [email, setEmail] = useState('marcusviniciusfreitasgodoy@gmail.com')
+  const [password, setPassword] = useState('Skip@Pass')
+  const [isLoading, setIsLoading] = useState(false)
 
   if (loading) return null
   if (user) return <Navigate to="/" replace />
 
-  const onSubmit = async (data: LoginFormValues) => {
-    setIsSubmitting(true)
-    const { error } = await signIn(data.email, data.password)
-
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    const { error } = await signIn(email, password)
+    setIsLoading(false)
     if (error) {
-      const fieldErrors = extractFieldErrors(error)
-      if (Object.keys(fieldErrors).length > 0) {
-        Object.entries(fieldErrors).forEach(([field, msg]) => {
-          if (field === 'email' || field === 'password') {
-            form.setError(field as any, { message: msg })
-          } else {
-            toast({ variant: 'destructive', title: 'Erro de validação', description: msg })
-          }
-        })
-      } else {
-        toast({
-          variant: 'destructive',
-          title: 'Erro ao fazer login',
-          description: 'E-mail ou senha incorretos.',
-        })
-      }
-    } else {
-      navigate('/')
+      toast.error('Falha ao fazer login. Verifique suas credenciais.')
     }
-    setIsSubmitting(false)
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/40 p-4">
-      <Card className="w-full max-w-md shadow-lg animate-fade-in-up">
-        <CardHeader className="space-y-3 text-center">
-          <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-primary/10">
-            <LayoutDashboard className="size-6 text-primary" />
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 animate-in fade-in">
+      <Card className="w-full max-w-md shadow-lg border-0">
+        <CardHeader className="text-center pb-8 pt-8">
+          <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6">
+            <FileText className="text-blue-600 h-8 w-8" />
           </div>
-          <CardTitle className="text-2xl font-bold">Bem-vindo de volta</CardTitle>
-          <CardDescription>Entre com suas credenciais para acessar a plataforma</CardDescription>
+          <CardTitle className="text-3xl text-slate-800">Gerador de Contratos</CardTitle>
+          <CardDescription className="text-base mt-2">
+            Faça login para acessar o sistema
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>E-mail</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="seu@email.com"
-                        type="email"
-                        disabled={isSubmitting}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-700">E-mail</label>
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="bg-white h-12"
               />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Senha</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="••••••••"
-                        type="password"
-                        disabled={isSubmitting}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-700">Senha</label>
+              <Input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="bg-white h-12"
               />
-              <Button type="submit" className="w-full mt-2" disabled={isSubmitting}>
-                {isSubmitting ? 'Entrando...' : 'Entrar'}
-              </Button>
-            </form>
-          </Form>
+            </div>
+            <Button
+              type="submit"
+              size="lg"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-base h-12"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Entrando...
+                </>
+              ) : (
+                'Entrar'
+              )}
+            </Button>
+          </form>
         </CardContent>
       </Card>
     </div>

@@ -1,45 +1,42 @@
-import { Outlet, Navigate } from 'react-router-dom'
+import { Outlet, Navigate, Link } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
-import { LogOut, LayoutDashboard } from 'lucide-react'
+import { LogOut, FileText } from 'lucide-react'
 
 export default function Layout() {
   const { user, signOut, loading } = useAuth()
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-background">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    )
-  }
-
-  if (!user) {
-    return <Navigate to="/login" replace />
-  }
+  if (loading) return null
+  if (!user) return <Navigate to="/login" replace />
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-background">
-      <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-background/95 px-4 md:px-6 backdrop-blur">
-        <div className="flex items-center gap-2">
-          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <LayoutDashboard className="size-5" />
+    <div className="min-h-screen bg-slate-100">
+      <header className="bg-white border-b sticky top-0 z-10 shadow-sm">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+          <Link
+            to="/"
+            className="flex items-center gap-2 text-blue-600 font-bold text-xl transition-transform hover:scale-105"
+          >
+            <FileText className="h-6 w-6" />
+            <span>Skip Contracts</span>
+          </Link>
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-medium text-slate-600 hidden sm:inline-block bg-slate-100 px-3 py-1 rounded-full">
+              {user.email}
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={signOut}
+              className="text-slate-600 hover:text-red-600 hover:bg-red-50"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Sair
+            </Button>
           </div>
-          <span className="font-semibold text-lg">My App</span>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <span className="text-sm font-medium text-muted-foreground hidden sm:inline-block">
-            {user.name || user.email}
-          </span>
-          <Button variant="outline" size="sm" onClick={signOut}>
-            <LogOut className="mr-2 size-4" />
-            Sair
-          </Button>
         </div>
       </header>
-
-      <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full">
+      <main>
         <Outlet />
       </main>
     </div>

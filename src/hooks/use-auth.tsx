@@ -1,9 +1,9 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import pb from '@/lib/pocketbase/client'
-import { useRealtime } from '@/hooks/use-realtime'
 
 interface AuthContextType {
   user: any
+  signUp: (email: string, password: string) => Promise<{ error: any }>
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signOut: () => void
   loading: boolean
@@ -31,20 +31,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [])
 
-  useRealtime(
-    'users',
-    (e) => {
-      if (user && e.record.id === user.id) {
-        if (e.action === 'update') {
-          setUser(e.record)
-          pb.authStore.save(pb.authStore.token, e.record)
-        } else if (e.action === 'delete') {
-          signOut()
-        }
-      }
-    },
-    !!user,
-  )
+  const signUp = async (email: string, password: string) => {
+    try {
+      await pb.collection('users').create({ email, password, passwordConfirm: password })
+      await pb.collection('users').authWithPassword(email, password)
+      return { error: null }
+    } catch (error) {
+      return { error }
+    }
+  }
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -57,11 +52,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = () => {
     pb.authStore.clear()
-    setUser(null)
   }
 
   return (
-    <AuthContext.Provider value={{ user, signIn, signOut, loading }}>
+    <AuthContext.Provider value={{ user, signUp, signIn, signOut, loading }}>
       {children}
     </AuthContext.Provider>
   )

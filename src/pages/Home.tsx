@@ -1,53 +1,43 @@
-import { useAuth } from '@/hooks/use-auth'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { LayoutDashboard, User } from 'lucide-react'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import pb from '@/lib/pocketbase/client'
+import { useState } from 'react'
+import { ContractTypeSelector } from '@/components/ContractTypeSelector'
+import { ContractForm } from '@/components/ContractForm'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export default function Home() {
-  const { user } = useAuth()
+  const [contractType, setContractType] = useState<'A_VISTA' | 'FINANCIADO' | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleSelect = (type: 'A_VISTA' | 'FINANCIADO') => {
+    setIsLoading(true)
+    setTimeout(() => {
+      setContractType(type)
+      setIsLoading(false)
+    }, 600)
+  }
 
   return (
-    <div className="space-y-6 animate-fade-in-up">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">Bem-vindo à sua nova aplicação!</p>
+    <div className="container mx-auto py-12 px-4 max-w-5xl">
+      <div className="text-center mb-12">
+        <h1 className="text-4xl md:text-5xl font-extrabold mb-4 text-slate-900 tracking-tight">
+          Gerador de Contratos
+        </h1>
+        <p className="text-slate-500 text-lg md:text-xl max-w-2xl mx-auto">
+          Preencha os dados estruturados e gere minutas profissionais e validadas em poucos
+          segundos.
+        </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Status do Sistema
-            </CardTitle>
-            <LayoutDashboard className="size-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-emerald-500">Online</div>
-            <p className="text-xs text-muted-foreground mt-1">Conectado ao Skip Cloud</p>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Seu Perfil</CardTitle>
-            <User className="size-4 text-primary" />
-          </CardHeader>
-          <CardContent className="flex items-center gap-4">
-            <Avatar className="size-12 border">
-              <AvatarImage
-                src={user?.avatar ? pb.files.getURL(user, user.avatar) : ''}
-                alt={user?.name}
-              />
-              <AvatarFallback>{user?.name?.substring(0, 2).toUpperCase() || 'U'}</AvatarFallback>
-            </Avatar>
-            <div className="space-y-1">
-              <p className="text-sm font-medium leading-none">{user?.name || 'Usuário'}</p>
-              <p className="text-sm text-muted-foreground">{user?.email}</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {isLoading ? (
+        <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in">
+          <Skeleton className="h-[90px] w-full rounded-xl bg-slate-200" />
+          <Skeleton className="h-[450px] w-full rounded-xl bg-slate-200" />
+          <Skeleton className="h-[450px] w-full rounded-xl bg-slate-200" />
+        </div>
+      ) : !contractType ? (
+        <ContractTypeSelector onSelect={handleSelect} />
+      ) : (
+        <ContractForm type={contractType} onBack={() => setContractType(null)} />
+      )}
     </div>
   )
 }

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-24T15:37:54.069Z",
+  "generatedAt": "2026-04-24T15:46:34.470Z",
   "collections": [
     {
       "name": "users",
@@ -43,6 +43,77 @@
         "CREATE UNIQUE INDEX `idx_tokenKey__pb_users_auth_` ON `users` (`tokenKey`)",
         "CREATE UNIQUE INDEX `idx_email__pb_users_auth_` ON `users` (`email`) WHERE `email` != ''"
       ]
+    },
+    {
+      "name": "contracts",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != '' && user = @request.auth.id",
+        "view": "@request.auth.id != '' && user = @request.auth.id",
+        "create": "@request.auth.id != ''",
+        "update": "@request.auth.id != '' && user = @request.auth.id",
+        "delete": "@request.auth.id != '' && user = @request.auth.id"
+      },
+      "fields": [
+        {
+          "name": "user",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "type",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "seller_data",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "buyer_data",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "property_data",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "financial_data",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "financing_details",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": []
     }
   ]
 }
