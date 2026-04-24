@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-24T16:27:21.301Z",
+  "generatedAt": "2026-04-24T16:34:44.661Z",
   "collections": [
     {
       "name": "users",
@@ -313,6 +313,12 @@
         {
           "name": "data_pagamento_saldo",
           "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "minuta_texto",
+          "type": "editor",
           "required": false,
           "system": false
         }

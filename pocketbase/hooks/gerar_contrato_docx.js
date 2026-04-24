@@ -30,6 +30,7 @@ routerAdd(
 
     const {
       tipo,
+      minuta_texto,
       nome_vendedor,
       nome_comprador,
       cpf_vendedor,
@@ -73,90 +74,103 @@ routerAdd(
     const hojeYear = hojeDate.getUTCFullYear()
     const hoje = `${hojeDay}/${hojeMonth}/${hojeYear}`
 
-    const pgtoHTML =
-      tipo === 'a_vista'
-        ? `
-      <ul>
-        <li>Sinal: ${formatCurrency(valor_sinal)} (por extenso).</li>
-        <li>Saldo: ${formatCurrency(valor_saldo)} (por extenso), com vencimento em ${formatDate(data_pagamento_saldo)}.</li>
-        <li>Comissão: ${formatCurrency(comissao)} (por extenso).</li>
-      </ul>
-    `
-        : `
-      <ul>
-        <li>Sinal: ${formatCurrency(valor_sinal)} (por extenso).</li>
-        <li>Reforço de Sinal: ${formatCurrency(valor_reforco)} (por extenso).</li>
-        <li>Complemento: ${formatCurrency(valor_complemento)} (por extenso).</li>
-        <li>Valor Financiado: ${formatCurrency(valor_financiado)} (por extenso)${instituicao_financeira ? `, através da instituição financeira ${instituicao_financeira}` : ''}.</li>
-        <li>Comissão: ${formatCurrency(comissao)} (por extenso).</li>
-      </ul>
-    `
+    let bodyContent = ''
+
+    if (minuta_texto) {
+      bodyContent = minuta_texto
+        .split('\n')
+        .map((line) => (line.trim() === '' ? '<br>' : `<p style="margin: 0 0 10px 0;">${line}</p>`))
+        .join('')
+    } else {
+      const pgtoHTML =
+        tipo === 'a_vista'
+          ? `
+        <ul>
+          <li>Sinal: ${formatCurrency(valor_sinal)} (por extenso).</li>
+          <li>Saldo: ${formatCurrency(valor_saldo)} (por extenso), com vencimento em ${formatDate(data_pagamento_saldo)}.</li>
+          <li>Comissão: ${formatCurrency(comissao)} (por extenso).</li>
+        </ul>
+      `
+          : `
+        <ul>
+          <li>Sinal: ${formatCurrency(valor_sinal)} (por extenso).</li>
+          <li>Reforço de Sinal: ${formatCurrency(valor_reforco)} (por extenso).</li>
+          <li>Complemento: ${formatCurrency(valor_complemento)} (por extenso).</li>
+          <li>Valor Financiado: ${formatCurrency(valor_financiado)} (por extenso)${instituicao_financeira ? `, através da instituição financeira ${instituicao_financeira}` : ''}.</li>
+          <li>Comissão: ${formatCurrency(comissao)} (por extenso).</li>
+        </ul>
+      `
+
+      bodyContent = `
+        <h1 style="text-align: center; font-size: 28px;">Godoy Prime Realty</h1>
+        <br>
+        <h2 style="text-align: center; font-size: 24px;">INSTRUMENTO PARTICULAR DE PROMESSA DE COMPRA E VENDA</h2>
+        <br>
+        
+        <h3>Cláusula 1 - Identificação das Partes</h3>
+        <p><strong>VENDEDOR:</strong> ${nome_vendedor || ''}, nacionalidade: ${nacionalidade_vendedor || ''}, estado civil: ${estado_civil_vendedor || ''}, profissão: ${profissao_vendedor || ''}, portador do RG nº ${rg_vendedor || ''} expedido por ${orgao_emissor_vendedor || ''}, inscrito no CPF sob o nº ${cpf_vendedor || ''}, residente e domiciliado em ${endereco_vendedor || ''}. E-mail: ${email_vendedor || ''}, Telefone: ${telefone_vendedor || ''}.</p>
+        <p><strong>COMPRADOR:</strong> ${nome_comprador || ''}, nacionalidade: ${nacionalidade_comprador || ''}, estado civil: ${estado_civil_comprador || ''}, profissão: ${profissao_comprador || ''}, portador do RG nº ${rg_comprador || ''} expedido por ${orgao_emissor_comprador || ''}, inscrito no CPF sob o nº ${cpf_comprador || ''}, residente e domiciliado em ${endereco_comprador || ''}. E-mail: ${email_comprador || ''}, Telefone: ${telefone_comprador || ''}.</p>
+        <br>
+
+        <h3>Cláusula 2 - Objeto</h3>
+        <p>O objeto do presente contrato é o imóvel situado em ${endereco_imovel || ''}, Matrícula nº ${matricula_imovel || ''}, registrado no RGI de ${rgi_imovel || ''}, Inscrição Municipal nº ${inscricao_municipal || ''}, possuindo área total de ${area_total || ''} m² e ${vagas_garagem || ''} vaga(s) de garagem.</p>
+        <br>
+
+        <h3>Cláusula 3 - Preço e Condições de Pagamento</h3>
+        <p>O preço certo e ajustado para a presente compra e venda é de ${formatCurrency(valor_total)} (por extenso), que será pago da seguinte forma:</p>
+        ${pgtoHTML}
+        <br>
+
+        <h3>Cláusula 4 - Documentação</h3>
+        <p>As partes obrigam-se a apresentar as seguintes certidões e documentos: Ônus Reais, Quitação Fiscal, Quitação Condominial e Negativas Pessoais.</p>
+        <br>
+
+        <h3>Cláusula 5 - Obrigações</h3>
+        <p>O VENDEDOR obriga-se a transferir o domínio, garantir a habitabilidade e quitar impostos até a data da posse. O COMPRADOR obriga-se ao pagamento do preço, custos de registro e impostos futuros.</p>
+        <br>
+
+        <h3>Cláusula 6 - Posse</h3>
+        <p>A posse do imóvel será transferida com a entrega das chaves, sujeita à penalidade de R$ 300,00 por dia em caso de atraso.</p>
+        <br>
+
+        <h3>Cláusula 7 - Penalidades</h3>
+        <p>Em caso de rescisão por culpa do COMPRADOR, perderá este o sinal pago. Sendo a culpa do VENDEDOR, devolverá o sinal em dobro. Em caso de atraso, haverá multa e juros.</p>
+        <br>
+
+        <h3>Cláusula 8 - Legislação</h3>
+        <p>Este contrato é regido pelo Código Civil Brasileiro aplicável à espécie.</p>
+        <br>
+
+        <h3>Cláusula 9 - Foro</h3>
+        <p>Fica eleito o Foro da Comarca do Rio de Janeiro para dirimir quaisquer dúvidas oriundas deste contrato.</p>
+        <br><br>
+
+        <p>Rio de Janeiro, ${hoje}</p>
+        <p>Foro: Comarca do Rio de Janeiro</p>
+        <br><br>
+        
+        <p>_________________________________________________</p>
+        <p>VENDEDOR: ${nome_vendedor || ''}</p>
+        <br><br>
+        
+        <p>_________________________________________________</p>
+        <p>COMPRADOR: ${nome_comprador || ''}</p>
+        <br><br>
+        
+        <p>_________________________________________________</p>
+        <p>TESTEMUNHA 1 (Nome e CPF):</p>
+        <br><br>
+        
+        <p>_________________________________________________</p>
+        <p>TESTEMUNHA 2 (Nome e CPF):</p>
+      `
+    }
 
     const html = `
     <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
     <head><meta charset='utf-8'><title>Contrato</title></head>
     <body style="font-family: Arial, sans-serif; line-height: 1.5; max-width: 800px; margin: 0 auto; padding: 20px;">
-      <h1 style="text-align: center; font-size: 28px;">Godoy Prime Realty</h1>
-      <br>
-      <h2 style="text-align: center; font-size: 24px;">INSTRUMENTO PARTICULAR DE PROMESSA DE COMPRA E VENDA</h2>
-      <br>
-      
-      <h3>Cláusula 1 - Identificação das Partes</h3>
-      <p><strong>VENDEDOR:</strong> ${nome_vendedor || ''}, nacionalidade: ${nacionalidade_vendedor || ''}, estado civil: ${estado_civil_vendedor || ''}, profissão: ${profissao_vendedor || ''}, portador do RG nº ${rg_vendedor || ''} expedido por ${orgao_emissor_vendedor || ''}, inscrito no CPF sob o nº ${cpf_vendedor || ''}, residente e domiciliado em ${endereco_vendedor || ''}. E-mail: ${email_vendedor || ''}, Telefone: ${telefone_vendedor || ''}.</p>
-      <p><strong>COMPRADOR:</strong> ${nome_comprador || ''}, nacionalidade: ${nacionalidade_comprador || ''}, estado civil: ${estado_civil_comprador || ''}, profissão: ${profissao_comprador || ''}, portador do RG nº ${rg_comprador || ''} expedido por ${orgao_emissor_comprador || ''}, inscrito no CPF sob o nº ${cpf_comprador || ''}, residente e domiciliado em ${endereco_comprador || ''}. E-mail: ${email_comprador || ''}, Telefone: ${telefone_comprador || ''}.</p>
-      <br>
-
-      <h3>Cláusula 2 - Objeto</h3>
-      <p>O objeto do presente contrato é o imóvel situado em ${endereco_imovel || ''}, Matrícula nº ${matricula_imovel || ''}, registrado no RGI de ${rgi_imovel || ''}, Inscrição Municipal nº ${inscricao_municipal || ''}, possuindo área total de ${area_total || ''} m² e ${vagas_garagem || ''} vaga(s) de garagem.</p>
-      <br>
-
-      <h3>Cláusula 3 - Preço e Condições de Pagamento</h3>
-      <p>O preço certo e ajustado para a presente compra e venda é de ${formatCurrency(valor_total)} (por extenso), que será pago da seguinte forma:</p>
-      ${pgtoHTML}
-      <br>
-
-      <h3>Cláusula 4 - Documentação</h3>
-      <p>As partes obrigam-se a apresentar as seguintes certidões e documentos: Ônus Reais, Quitação Fiscal, Quitação Condominial e Negativas Pessoais.</p>
-      <br>
-
-      <h3>Cláusula 5 - Obrigações</h3>
-      <p>O VENDEDOR obriga-se a transferir o domínio, garantir a habitabilidade e quitar impostos até a data da posse. O COMPRADOR obriga-se ao pagamento do preço, custos de registro e impostos futuros.</p>
-      <br>
-
-      <h3>Cláusula 6 - Posse</h3>
-      <p>A posse do imóvel será transferida com a entrega das chaves, sujeita à penalidade de R$ 300,00 por dia em caso de atraso.</p>
-      <br>
-
-      <h3>Cláusula 7 - Penalidades</h3>
-      <p>Em caso de rescisão por culpa do COMPRADOR, perderá este o sinal pago. Sendo a culpa do VENDEDOR, devolverá o sinal em dobro. Em caso de atraso, haverá multa e juros.</p>
-      <br>
-
-      <h3>Cláusula 8 - Legislação</h3>
-      <p>Este contrato é regido pelo Código Civil Brasileiro aplicável à espécie.</p>
-      <br>
-
-      <h3>Cláusula 9 - Foro</h3>
-      <p>Fica eleito o Foro da Comarca do Rio de Janeiro para dirimir quaisquer dúvidas oriundas deste contrato.</p>
-      <br><br>
-
-      <p>Rio de Janeiro, ${hoje}</p>
-      <p>Foro: Comarca do Rio de Janeiro</p>
-      <br><br>
-      
-      <p>_________________________________________________</p>
-      <p>VENDEDOR: ${nome_vendedor || ''}</p>
-      <br><br>
-      
-      <p>_________________________________________________</p>
-      <p>COMPRADOR: ${nome_comprador || ''}</p>
-      <br><br>
-      
-      <p>_________________________________________________</p>
-      <p>TESTEMUNHA 1 (Nome e CPF):</p>
-      <br><br>
-      
-      <p>_________________________________________________</p>
-      <p>TESTEMUNHA 2 (Nome e CPF):</p>
+      ${bodyContent}
     </body>
     </html>
   `

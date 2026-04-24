@@ -3,12 +3,14 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Form } from '@/components/ui/form'
 import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
 import { contractSchema, type ContractFormValues } from '@/lib/schemas'
 import { PersonBlock, PropertyBlock, FinancialBlock, FinancingBlock } from './ContractBlocks'
-import { ArrowLeft, Loader2, CheckCircle2, Wand2 } from 'lucide-react'
+import { ArrowLeft, Loader2, CheckCircle2, Wand2, FileText, Edit3 } from 'lucide-react'
 import { createContract, generateContractDocx } from '@/services/contracts'
 import { addDays } from 'date-fns'
 import { toast } from 'sonner'
+import { generateDraftText } from '@/lib/draft-template'
 
 export function ContractForm({
   type,
@@ -19,6 +21,8 @@ export function ContractForm({
 }) {
   const [isGenerating, setIsGenerating] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [isPreviewMode, setIsPreviewMode] = useState(false)
+  const [draftText, setDraftText] = useState('')
 
   const form = useForm<ContractFormValues>({
     resolver: zodResolver(contractSchema),
@@ -29,10 +33,16 @@ export function ContractForm({
     mode: 'onChange',
   })
 
-  const onSubmit = async (data: ContractFormValues) => {
+  const onSubmit = (data: ContractFormValues) => {
+    setDraftText(generateDraftText(data))
+    setIsPreviewMode(true)
+  }
+
+  const handleGenerateFinal = async () => {
     setIsGenerating(true)
     try {
-      const savedContract = await createContract(data)
+      const data = form.getValues()
+      const savedContract = await createContract(data, draftText)
 
       try {
         const docxResponse = await generateContractDocx(savedContract)
@@ -74,7 +84,7 @@ export function ContractForm({
         toast.error('Erro ao gerar contrato. Tente novamente.', {
           action: {
             label: 'Tentar Novamente',
-            onClick: () => onSubmit(data),
+            onClick: handleGenerateFinal,
           },
         })
       }
@@ -152,6 +162,73 @@ export function ContractForm({
         }
       })
     }
+  }
+
+  if (isPreviewMode && !isSuccess) {
+    return (
+      <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 bg-white border border-slate-200 rounded-xl shadow-sm gap-4">
+          <div className="flex items-center gap-5">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="h-12 w-12 rounded-full bg-white"
+              onClick={() => setIsPreviewMode(false)}
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                <Edit3 className="w-5 h-5 text-blue-600" />
+                Visualizar Minuta
+              </h2>
+              <p className="text-slate-600">
+                Edite o texto do contrato antes de gerar o documento final.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+          <div className="bg-slate-50 border-b border-slate-200 px-4 py-3 text-sm text-slate-500 font-medium">
+            Editor de Texto (As alterações serão salvas na versão final)
+          </div>
+          <Textarea
+            value={draftText}
+            onChange={(e) => setDraftText(e.target.value)}
+            className="min-h-[60vh] w-full p-6 text-[15px] font-sans leading-relaxed border-0 focus-visible:ring-0 rounded-none resize-y"
+            placeholder="O texto do contrato aparecerá aqui..."
+          />
+        </div>
+
+        <div className="flex justify-end gap-4 pt-4 pb-12">
+          <Button
+            variant="outline"
+            onClick={() => setIsPreviewMode(false)}
+            disabled={isGenerating}
+            className="h-14 px-8 text-lg"
+          >
+            Voltar
+          </Button>
+          <Button
+            onClick={handleGenerateFinal}
+            disabled={isGenerating}
+            className="bg-blue-600 hover:bg-blue-700 h-14 px-8 text-lg shadow-lg shadow-blue-200"
+          >
+            {isGenerating ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" /> Gerando...
+              </>
+            ) : (
+              <>
+                <FileText className="w-5 h-5 mr-2" /> Gerar Versão Final
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   if (isSuccess) {
@@ -232,17 +309,11 @@ export function ContractForm({
         <div className="flex justify-end pt-4 pb-12">
           <Button
             type="submit"
-            disabled={!isValid || isGenerating}
+            disabled={!isValid}
             size="lg"
             className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-lg h-14 px-10 shadow-lg shadow-blue-200"
           >
-            {isGenerating ? (
-              <>
-                <Loader2 className="mr-3 h-6 w-6 animate-spin" /> Gerando minuta...
-              </>
-            ) : (
-              'Gerar Contrato'
-            )}
+            Visualizar Minuta
           </Button>
         </div>
       </form>

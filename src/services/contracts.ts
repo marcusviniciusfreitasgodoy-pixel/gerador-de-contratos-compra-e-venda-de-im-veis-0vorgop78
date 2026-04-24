@@ -19,9 +19,10 @@ export const generateContractDocx = async (data: any) => {
   })
 }
 
-export const createContract = async (data: ContractFormValues) => {
+export const createContract = async (data: ContractFormValues, minutaTexto?: string) => {
   const payload = {
     ...data,
+    minuta_texto: minutaTexto,
     user: pb.authStore.record?.id,
     area_total: Number(data.area_total) || 0,
     vagas_garagem: Number(data.vagas_garagem) || 0,
