@@ -6,15 +6,23 @@ routerAdd(
     if (!body) return e.badRequestError('Dados do contrato não fornecidos.')
 
     const formatCurrency = (val) => {
-      if (val == null) return 'R$ 0,00'
-      return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val)
+      if (val == null || val === '') return 'R$ 0,00'
+      const num = Number(val)
+      if (isNaN(num)) return 'R$ 0,00'
+      const parts = num.toFixed(2).split('.')
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+      return 'R$ ' + parts.join(',')
     }
 
     const formatDate = (dateStr) => {
       if (!dateStr) return '[data]'
       try {
         const d = new Date(dateStr)
-        return new Intl.DateTimeFormat('pt-BR').format(d)
+        if (isNaN(d.getTime())) return '[data]'
+        const day = String(d.getUTCDate()).padStart(2, '0')
+        const month = String(d.getUTCMonth() + 1).padStart(2, '0')
+        const year = d.getUTCFullYear()
+        return `${day}/${month}/${year}`
       } catch {
         return '[data]'
       }
@@ -56,13 +64,14 @@ routerAdd(
       valor_complemento,
       valor_financiado,
       instituicao_financeira,
-      taxa_juros,
-      prazo_meses,
-      data_liberacao_credito,
       data_pagamento_saldo,
     } = body
 
-    const hoje = new Intl.DateTimeFormat('pt-BR').format(new Date())
+    const hojeDate = new Date()
+    const hojeDay = String(hojeDate.getUTCDate()).padStart(2, '0')
+    const hojeMonth = String(hojeDate.getUTCMonth() + 1).padStart(2, '0')
+    const hojeYear = hojeDate.getUTCFullYear()
+    const hoje = `${hojeDay}/${hojeMonth}/${hojeYear}`
 
     const pgtoHTML =
       tipo === 'a_vista'
@@ -78,7 +87,7 @@ routerAdd(
         <li>Sinal: ${formatCurrency(valor_sinal)} (por extenso).</li>
         <li>Reforço de Sinal: ${formatCurrency(valor_reforco)} (por extenso).</li>
         <li>Complemento: ${formatCurrency(valor_complemento)} (por extenso).</li>
-        <li>Valor Financiado: ${formatCurrency(valor_financiado)} (por extenso), através da instituição financeira ${instituicao_financeira || ''}, com taxa de juros de ${taxa_juros || ''}% ao ano e prazo de ${prazo_meses || ''} meses.</li>
+        <li>Valor Financiado: ${formatCurrency(valor_financiado)} (por extenso)${instituicao_financeira ? `, através da instituição financeira ${instituicao_financeira}` : ''}.</li>
         <li>Comissão: ${formatCurrency(comissao)} (por extenso).</li>
       </ul>
     `
