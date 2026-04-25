@@ -23,13 +23,26 @@ routerAdd(
         arquivo = arquivo.replace(/\s{2,}/g, ' ').trim()
       }
 
-      const anthropicKey =
-        e.auth?.getString('anthropic_api_key') || $secrets.get('ANTHROPIC_API_KEY')
-      const openaiKey = e.auth?.getString('openai_api_key') || $secrets.get('OPENAI_API_KEY')
+      let anthropicKey = $secrets.get('ANTHROPIC_API_KEY')
+      let openaiKey = $secrets.get('OPENAI_API_KEY')
+
+      if (!anthropicKey) {
+        anthropicKey = e.auth?.getString('anthropic_api_key')
+      }
+      if (!openaiKey) {
+        openaiKey = e.auth?.getString('openai_api_key')
+      }
+
+      if (anthropicKey) {
+        anthropicKey = anthropicKey.trim().replace(/[\x00-\x1F\x7F-\x9F]/g, '')
+      }
+      if (openaiKey) {
+        openaiKey = openaiKey.trim().replace(/[\x00-\x1F\x7F-\x9F]/g, '')
+      }
 
       if (!anthropicKey) {
         return e.badRequestError(
-          'Configure sua chave de IA da Anthropic no painel de integração para habilitar esta função.',
+          'Configure sua chave de IA da Anthropic no painel de integração ou nos segredos do sistema para habilitar esta função.',
         )
       }
 
@@ -178,8 +191,12 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
         if (extractRes.statusCode === 200) {
           extractedText = extractRes.json.content[0].text
         } else {
+          let imgErrType = 'unknown_error'
+          if (extractRes.json && extractRes.json.error) {
+            imgErrType = extractRes.json.error.type || imgErrType
+          }
           throw new Error(
-            'Falha na extração da imagem com Anthropic: ' +
+            `Falha na extração da imagem com Anthropic: [${imgErrType}] ` +
               (extractRes.json?.error?.message || 'Erro desconhecido'),
           )
         }
@@ -277,15 +294,20 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
         $app.logger().error('Anthropic AI failed', 'status', chatRes.statusCode, 'raw', chatRes.raw)
 
         let errMsg = 'Falha na comunicação com o serviço de IA.'
-        if (chatRes.json && chatRes.json.error && chatRes.json.error.message) {
-          errMsg = chatRes.json.error.message
+        let errType = 'unknown_error'
+
+        if (chatRes.json && chatRes.json.error) {
+          errType = chatRes.json.error.type || errType
+          errMsg = chatRes.json.error.message || errMsg
         } else if (chatRes.statusCode === 429) {
+          errType = 'insufficient_credits'
           errMsg = 'Limite de uso excedido da Anthropic.'
         } else if (chatRes.statusCode === 401 || chatRes.statusCode === 403) {
+          errType = 'invalid_api_key'
           errMsg = 'Chave de API inválida ou sem permissões.'
         }
 
-        return e.badRequestError(errMsg)
+        return e.badRequestError(`[${errType}] ${errMsg}`)
       }
 
       try {

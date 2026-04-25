@@ -31,21 +31,28 @@ export function IntegrationPanel() {
     }
   }, [user])
 
+  const [activeSource, setActiveSource] = useState<string | null>(null)
+
   const handleTestConnection = async () => {
-    if (!apiKey) {
-      toast.error('Informe a chave da API para testar.')
-      return
-    }
     setIsTesting(true)
     setStatus('idle')
+    setActiveSource(null)
     try {
-      await pb.send('/backend/v1/testar_conexao_ia', {
+      const res = await pb.send('/backend/v1/testar_conexao_ia', {
         method: 'POST',
         body: JSON.stringify({ apiKey: apiKey.trim() }),
       })
       setStatus('success')
       setErrorMessage('')
-      toast.success('Conexão estabelecida com sucesso!')
+      setActiveSource(res.source)
+
+      const sourceLabel =
+        res.source === 'Secret'
+          ? 'Segredos do Sistema'
+          : res.source === 'Database'
+            ? 'Banco de Dados'
+            : 'Chave Fornecida'
+      toast.success(`Conexão estabelecida com sucesso! (Fonte: ${sourceLabel})`)
     } catch (err: any) {
       setStatus('error')
       const msg = err.response?.message || err.message || 'Erro ao validar a chave de API.'
@@ -141,8 +148,20 @@ export function IntegrationPanel() {
           <div className="flex items-center justify-between pt-2">
             <div className="flex items-center gap-2">
               {status === 'success' && (
-                <span className="flex items-center text-sm text-green-600 font-medium">
-                  <CheckCircle2 className="w-4 h-4 mr-1" /> Conexão estabelecida com sucesso
+                <span className="flex flex-col text-sm text-green-600 font-medium">
+                  <span className="flex items-center">
+                    <CheckCircle2 className="w-4 h-4 mr-1" /> Conexão estabelecida com sucesso
+                  </span>
+                  {activeSource && (
+                    <span className="text-xs text-green-700 ml-5 font-normal">
+                      Fonte utilizada:{' '}
+                      {activeSource === 'Secret'
+                        ? 'Segredos do Sistema'
+                        : activeSource === 'Database'
+                          ? 'Banco de Dados'
+                          : 'Chave Fornecida'}
+                    </span>
+                  )}
                 </span>
               )}
               {status === 'error' && (
@@ -160,7 +179,7 @@ export function IntegrationPanel() {
               type="button"
               variant="outline"
               onClick={handleTestConnection}
-              disabled={isTesting || !apiKey}
+              disabled={isTesting}
             >
               {isTesting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               {isTesting ? 'Testando...' : 'Testar Conexão'}
@@ -174,7 +193,7 @@ export function IntegrationPanel() {
           </Button>
           <Button
             onClick={handleSave}
-            disabled={isSaving || !apiKey.trim() || status !== 'success'}
+            disabled={isSaving || status !== 'success'}
             className="bg-purple-600 hover:bg-purple-700 text-white"
           >
             {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
