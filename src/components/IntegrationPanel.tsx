@@ -126,7 +126,7 @@ export function IntegrationPanel() {
                 type={showKey ? 'text' : 'password'}
                 placeholder="sk-ant-..."
                 value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
+                onChange={(e) => setApiKey(e.target.value.trim())}
                 className="pr-10"
               />
               <button
@@ -147,9 +147,9 @@ export function IntegrationPanel() {
                 </span>
               )}
               {status === 'error' && (
-                <span className="flex flex-col text-sm text-red-600 font-medium max-w-[200px]">
+                <span className="flex flex-col text-sm text-red-600 font-medium max-w-[300px]">
                   <span className="flex items-center">
-                    <XCircle className="w-4 h-4 mr-1 shrink-0" /> Falha na conexão
+                    <XCircle className="w-4 h-4 mr-1 shrink-0" /> Erro na Validação
                   </span>
                   {errorMessage && (
                     <span className="text-xs font-normal mt-1 leading-tight">{errorMessage}</span>

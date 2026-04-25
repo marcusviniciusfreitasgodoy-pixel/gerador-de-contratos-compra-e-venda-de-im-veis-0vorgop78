@@ -27,8 +27,12 @@ routerAdd(
 
     if (res.statusCode !== 200) {
       let errorMsg = 'Erro ao validar a chave de API.'
-      if (res.json && res.json.error && res.json.error.message) {
-        errorMsg = res.json.error.message
+      if (res.json && res.json.error) {
+        if (res.json.error.message) {
+          errorMsg = res.json.error.message
+        } else if (typeof res.json.error === 'string') {
+          errorMsg = res.json.error
+        }
       } else if (res.statusCode === 401) {
         errorMsg = 'Chave de API inválida ou não autorizada.'
       } else if (res.statusCode === 403) {
@@ -39,6 +43,9 @@ routerAdd(
         errorMsg = 'O serviço da Anthropic está indisponível no momento.'
       }
 
+      $app
+        .logger()
+        .error('Falha na validação da API Anthropic', 'status', res.statusCode, 'raw', res.raw)
       return e.badRequestError(errorMsg)
     }
 
