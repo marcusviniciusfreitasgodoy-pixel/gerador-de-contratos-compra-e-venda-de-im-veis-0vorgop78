@@ -20,6 +20,9 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { useState } from 'react'
+import { Loader2 } from 'lucide-react'
+import { generateAnalysisPDF } from '@/lib/pdf-generator'
 
 export interface AnalysisReport {
   conformidade: {
@@ -50,8 +53,35 @@ export interface AnalysisReport {
   reportId?: string
 }
 
-export function AnalysisReportView({ report }: { report: AnalysisReport }) {
+export function AnalysisReportView({
+  report,
+  contract,
+}: {
+  report: AnalysisReport
+  contract?: any
+}) {
+  const [isGenerating, setIsGenerating] = useState(false)
   const generalStatus = report.conformidade?.status?.toUpperCase() || 'DESCONHECIDO'
+
+  const handleDownloadPDF = async () => {
+    try {
+      setIsGenerating(true)
+      await new Promise((resolve) => setTimeout(resolve, 50)) // Give UI time to show spinner
+      await generateAnalysisPDF(report, contract)
+      toast.success('PDF gerado com sucesso!')
+    } catch (error) {
+      console.error('PDF Generation Error:', error)
+      toast.error('Erro ao gerar PDF', {
+        description: 'Não foi possível criar o documento.',
+        action: {
+          label: 'Tentar novamente',
+          onClick: () => handleDownloadPDF(),
+        },
+      })
+    } finally {
+      setIsGenerating(false)
+    }
+  }
 
   const getRiskColor = (level: string) => {
     switch (level?.toUpperCase()) {
@@ -80,9 +110,26 @@ export function AnalysisReportView({ report }: { report: AnalysisReport }) {
             Relatório de Compliance Jurídico
           </h2>
         </div>
-        <Badge className={cn('text-sm px-4 py-1.5 shadow-sm', getRiskColor(generalStatus))}>
-          Status: {generalStatus}
-        </Badge>
+        <div className="flex flex-wrap items-center gap-3">
+          <Badge className={cn('text-sm px-4 py-1.5 shadow-sm', getRiskColor(generalStatus))}>
+            Status: {generalStatus}
+          </Badge>
+          <Button
+            onClick={handleDownloadPDF}
+            disabled={isGenerating}
+            className="bg-slate-800 hover:bg-slate-900 text-white shadow-sm"
+          >
+            {isGenerating ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Gerando PDF...
+              </>
+            ) : (
+              <>
+                <Download className="w-4 h-4 mr-2" /> Baixar PDF
+              </>
+            )}
+          </Button>
+        </div>
       </div>
 
       <Accordion
@@ -397,12 +444,19 @@ export function AnalysisReportView({ report }: { report: AnalysisReport }) {
       <div className="flex justify-end pt-6 border-t border-slate-100 mt-8 print:hidden">
         <Button
           size="lg"
-          onClick={() => {
-            setTimeout(() => window.print(), 100)
-          }}
-          className="bg-slate-800 hover:bg-slate-900 w-full sm:w-auto"
+          onClick={handleDownloadPDF}
+          disabled={isGenerating}
+          className="bg-slate-800 hover:bg-slate-900 w-full sm:w-auto shadow-sm"
         >
-          <Download className="w-5 h-5 mr-2" /> Baixar relatório em PDF
+          {isGenerating ? (
+            <>
+              <Loader2 className="w-5 h-5 mr-2 animate-spin" /> Gerando PDF...
+            </>
+          ) : (
+            <>
+              <Download className="w-5 h-5 mr-2" /> Baixar relatório em PDF
+            </>
+          )}
         </Button>
       </div>
     </div>

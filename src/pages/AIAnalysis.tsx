@@ -29,6 +29,7 @@ export default function AIAnalysis() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [contractText, setContractText] = useState<string | null>(null)
   const [contractType, setContractType] = useState<string>('a_vista')
+  const [contractDetails, setContractDetails] = useState<any>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [hasAiKey, setHasAiKey] = useState<boolean | null>(null)
@@ -50,6 +51,7 @@ export default function AIAnalysis() {
       pb.collection('contracts')
         .getOne(contractIdParam)
         .then((contract) => {
+          setContractDetails(contract)
           if (contract.minuta_texto) {
             setContractText(contract.minuta_texto)
             const typeMap: Record<string, string> = {
@@ -376,7 +378,9 @@ export default function AIAnalysis() {
         </Card>
       )}
 
-      {report && !isAnalyzing && !errorMsg && <AnalysisReportView report={report} />}
+      {report && !isAnalyzing && !errorMsg && (
+        <AnalysisReportView report={report} contract={contractDetails} />
+      )}
 
       <AnalysisHistoryTable contractId={contractIdParam} />
     </div>
