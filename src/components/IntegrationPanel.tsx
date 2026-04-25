@@ -38,7 +38,7 @@ export function IntegrationPanel() {
     setIsTesting(true)
     setStatus('idle')
     try {
-      await pb.send('/backend/v1/testar-conexao-ia', {
+      await pb.send('/backend/v1/testar_conexao_ia', {
         method: 'POST',
         body: JSON.stringify({ apiKey }),
       })
@@ -83,7 +83,7 @@ export function IntegrationPanel() {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Server className="w-5 h-5 text-purple-600" />
-            Painel de Integração IA
+            Configurações de Integração
           </DialogTitle>
           <DialogDescription>
             Configure sua chave da API do Gemini para habilitar a análise jurídica avançada de

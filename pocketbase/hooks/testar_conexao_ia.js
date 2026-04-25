@@ -1,36 +1,37 @@
 routerAdd(
   'POST',
-  '/backend/v1/testar-conexao-ia',
+  '/backend/v1/testar_conexao_ia',
   (e) => {
     const body = e.requestInfo().body || {}
-    const key = body.apiKey || e.auth?.getString('gemini_api_key') || $secrets.get('GEMINI_API_KEY')
+    const apiKey = (body.apiKey || '').trim()
 
-    if (!key) {
-      return e.badRequestError('Nenhuma chave configurada.')
+    if (!apiKey) {
+      return e.badRequestError('Chave de API ausente.')
     }
 
     const res = $http.send({
-      url: `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=${key}`,
+      url:
+        'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' +
+        apiKey,
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
-        contents: [{ role: 'user', parts: [{ text: 'Respond with "OK" if you can read this.' }] }],
+        contents: [
+          {
+            parts: [{ text: 'teste de conexão' }],
+          },
+        ],
       }),
       timeout: 15,
     })
 
-    if (res.statusCode === 200) {
-      return e.json(200, {
-        success: true,
-        message: 'Conexão bem-sucedida! O modelo Gemini está pronto.',
-      })
-    } else if (res.statusCode === 429) {
-      return e.badRequestError('Limite de uso excedido.')
-    } else {
-      return e.badRequestError(
-        'Chave de API inválida. Por favor, revise suas configurações de integração no painel de servidor.',
-      )
+    if (res.statusCode !== 200) {
+      return e.badRequestError('Chave de API inválida ou sem permissão.')
     }
+
+    return e.json(200, { success: true })
   },
   $apis.requireAuth(),
 )
