@@ -18,7 +18,7 @@ export default function Layout() {
             className="flex items-center gap-2 text-blue-600 font-bold text-xl transition-transform hover:scale-105"
           >
             <FileText className="h-6 w-6" />
-            <span>Skip Contracts</span>
+            <span>Gerador de Contratos GPR</span>
           </Link>
           <div className="flex items-center gap-4">
             <Link
