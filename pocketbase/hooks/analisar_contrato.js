@@ -14,13 +14,19 @@ routerAdd(
         arquivo = arquivo.split('base64,')[1]
       }
 
+      // Payload Sanitization for TXT
+      if (tipo === 'txt') {
+        // Remove ASCII control characters except tab, newline, and carriage return
+        arquivo = arquivo.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+      }
+
       const geminiKey = $secrets.get('GEMINI_API_KEY')
       const openaiKey = $secrets.get('OPENAI_API_KEY')
 
       if (!geminiKey && !openaiKey) {
-        return e.badRequestError(
-          'Nenhuma chave de IA configurada (GEMINI_API_KEY ou OPENAI_API_KEY). Configure no painel de administração.',
-        )
+        return e.json(400, {
+          message: 'Configure sua chave de IA no painel de integração para habilitar esta função.',
+        })
       }
 
       let contextText = ''
@@ -115,8 +121,9 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
           parts.push({ inline_data: { mime_type: mimeType, data: arquivo } })
         }
 
+        // Changed to gemini-1.5-pro to resolve model not found/supported issues for v1beta
         const chatRes = $http.send({
-          url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
+          url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${geminiKey}`,
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -137,15 +144,25 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
 
         if (chatRes.statusCode !== 200) {
           $app.logger().error('Gemini AI failed', 'status', chatRes.statusCode, 'raw', chatRes.raw)
-          let errorDetail = 'O serviço de IA está temporariamente indisponível.'
-          try {
-            if (chatRes.json && chatRes.json.error) {
-              errorDetail = chatRes.json.error.message || chatRes.json.error.status
-            }
-          } catch (err) {}
-          return e.badRequestError(
-            `Falha na IA (Gemini): ${errorDetail}. Verifique sua chave de API ou tente novamente.`,
-          )
+
+          let msg =
+            'O serviço de IA está temporariamente indisponível. Tente novamente em instantes.'
+          let status = 503
+
+          if (chatRes.statusCode === 429) {
+            msg = 'Limite de tokens excedido para este contrato. Tente fragmentar o texto.'
+            status = 429
+          } else if (
+            chatRes.statusCode === 400 ||
+            chatRes.statusCode === 401 ||
+            chatRes.statusCode === 403 ||
+            chatRes.statusCode === 404
+          ) {
+            msg = 'Chave de API inválida. Por favor, revise suas configurações de integração.'
+            status = 400
+          }
+
+          return e.json(status, { message: msg })
         }
 
         try {
@@ -250,15 +267,25 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
 
         if (chatRes.statusCode !== 200) {
           $app.logger().error('OpenAI AI failed', 'status', chatRes.statusCode, 'raw', chatRes.raw)
-          let errorDetail = 'O serviço de IA está temporariamente indisponível.'
-          try {
-            if (chatRes.json && chatRes.json.error) {
-              errorDetail = chatRes.json.error.message || chatRes.json.error.type
-            }
-          } catch (err) {}
-          return e.badRequestError(
-            `Falha na IA (OpenAI): ${errorDetail}. Verifique sua chave de API ou tente novamente.`,
-          )
+
+          let msg =
+            'O serviço de IA está temporariamente indisponível. Tente novamente em instantes.'
+          let status = 503
+
+          if (chatRes.statusCode === 429) {
+            msg = 'Limite de tokens excedido para este contrato. Tente fragmentar o texto.'
+            status = 429
+          } else if (
+            chatRes.statusCode === 400 ||
+            chatRes.statusCode === 401 ||
+            chatRes.statusCode === 403 ||
+            chatRes.statusCode === 404
+          ) {
+            msg = 'Chave de API inválida. Por favor, revise suas configurações de integração.'
+            status = 400
+          }
+
+          return e.json(status, { message: msg })
         }
 
         try {

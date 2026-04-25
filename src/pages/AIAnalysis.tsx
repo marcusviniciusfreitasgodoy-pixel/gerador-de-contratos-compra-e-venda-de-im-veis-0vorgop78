@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import {
   Select,
   SelectContent,
@@ -29,8 +30,15 @@ export default function AIAnalysis() {
   const [contractType, setContractType] = useState<string>('a_vista')
   const [isDragging, setIsDragging] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [hasAiKey, setHasAiKey] = useState<boolean | null>(null)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    pb.send('/backend/v1/ai-status', { method: 'GET' })
+      .then((res) => setHasAiKey(res.hasKey))
+      .catch(() => setHasAiKey(false))
+  }, [])
 
   useEffect(() => {
     if (contractIdParam) {
@@ -279,21 +287,39 @@ export default function AIAnalysis() {
 
             {(selectedFile || contractText) && (
               <div className="mt-8 flex flex-col items-center justify-center animate-in slide-in-from-bottom-4 duration-300 gap-4">
-                <Button
-                  size="lg"
-                  disabled={isAnalyzing}
-                  className="bg-purple-600 hover:bg-purple-700 text-white px-8 h-14 text-lg w-full sm:w-auto shadow-md hover:shadow-lg transition-all"
-                  onClick={handleAnalyzeFile}
-                >
-                  {isAnalyzing ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Processando análise...
-                    </>
-                  ) : (
-                    'Analisar com IA Jurídica'
+                <Tooltip open={hasAiKey === false ? undefined : false}>
+                  <TooltipTrigger asChild>
+                    <div className="w-full sm:w-auto">
+                      <Button
+                        size="lg"
+                        disabled={isAnalyzing || hasAiKey === false}
+                        className="bg-purple-600 hover:bg-purple-700 text-white px-8 h-14 text-lg w-full shadow-md hover:shadow-lg transition-all disabled:pointer-events-none"
+                        onClick={handleAnalyzeFile}
+                      >
+                        {isAnalyzing ? (
+                          <>
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                            Processando Análise...
+                          </>
+                        ) : (
+                          'Analisar com IA Jurídica'
+                        )}
+                      </Button>
+                    </div>
+                  </TooltipTrigger>
+                  {hasAiKey === false && (
+                    <TooltipContent
+                      side="top"
+                      className="bg-amber-100 text-amber-900 border-amber-200"
+                    >
+                      <p className="font-medium">Aviso</p>
+                      <p>
+                        Configure sua chave de IA no painel de integração para habilitar esta
+                        função.
+                      </p>
+                    </TooltipContent>
                   )}
-                </Button>
+                </Tooltip>
 
                 {isAnalyzing && (
                   <div className="text-center animate-in fade-in duration-300 mt-6">
@@ -301,7 +327,7 @@ export default function AIAnalysis() {
                       <div className="w-12 h-12 rounded-full border-4 border-purple-200 border-t-purple-600 animate-spin"></div>
                     </div>
                     <p className="text-purple-600 font-medium animate-pulse text-lg">
-                      Processando análise... Por favor, aguarde.
+                      Processando Análise... Por favor, aguarde.
                     </p>
                     <p className="text-slate-500 text-sm mt-2">
                       A IA está analisando as cláusulas em relação à base legal (pode levar até 2
