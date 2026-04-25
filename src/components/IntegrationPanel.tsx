@@ -43,7 +43,7 @@ export function IntegrationPanel() {
         body: JSON.stringify({ apiKey }),
       })
       setStatus('success')
-      toast.success('Conexão estabelecida com sucesso')
+      toast.success('Conexão estabelecida com sucesso!')
     } catch (err: any) {
       setStatus('error')
       const msg = err.response?.message || err.message || 'Erro ao validar a chave de API.'
@@ -166,7 +166,7 @@ export function IntegrationPanel() {
           </Button>
           <Button
             onClick={handleSave}
-            disabled={isSaving}
+            disabled={isSaving || !apiKey.trim()}
             className="bg-purple-600 hover:bg-purple-700 text-white"
           >
             {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}

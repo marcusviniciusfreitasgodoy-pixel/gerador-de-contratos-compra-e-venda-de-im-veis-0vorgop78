@@ -126,7 +126,7 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
             'content-type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'claude-3-7-sonnet-20250219',
+            model: 'claude-3-5-sonnet-20241022',
             max_tokens: 8192,
             messages: [
               {
@@ -193,8 +193,8 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
       }
 
       const aiBody = {
-        model: 'claude-3-7-sonnet-20250219',
-        max_tokens: adaptiveThought ? 16384 : 8192,
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: adaptiveThought ? 8192 : 4096,
         system: systemPrompt,
         messages: [
           {
@@ -205,10 +205,11 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
       }
 
       if (adaptiveThought) {
-        aiBody.thinking = { type: 'enabled', budget_tokens: 12000 }
-      } else {
-        aiBody.temperature = 1.0
+        aiBody.system =
+          aiBody.system +
+          '\n\nINSTRUÇÃO ADICIONAL: Modo de Pensamento Adaptativo Ativado. Realize uma auditoria profunda, raciocinando meticulosamente sobre cada cláusula e buscando potenciais riscos ocultos ou omissões sutis com o máximo rigor possível.'
       }
+      aiBody.temperature = 1.0
 
       const chatRes = $http.send({
         url: 'https://api.anthropic.com/v1/messages',

@@ -195,7 +195,7 @@ export default function AIAnalysis() {
         </h1>
         <div className="flex items-center justify-center gap-2 mb-2">
           <span className="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-semibold text-purple-800">
-            <Sparkles className="w-3 h-3 mr-1" /> Powered by Sonnet 4.6
+            <Sparkles className="w-3 h-3 mr-1" /> Powered by Sonnet 3.5
           </span>
         </div>
         <p className="text-slate-600 text-lg max-w-2xl mx-auto">
@@ -335,7 +335,7 @@ export default function AIAnalysis() {
                       Pensamento Adaptativo
                     </label>
                     <p className="text-xs text-slate-500">
-                      Raciocina para tarefas mais complexas usando o modelo Sonnet 4.6. Pode
+                      Raciocina para tarefas mais complexas usando o modelo Sonnet 3.5. Pode
                       aumentar o tempo de análise.
                     </p>
                   </div>
