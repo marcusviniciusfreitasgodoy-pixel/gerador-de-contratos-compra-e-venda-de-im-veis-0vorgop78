@@ -26,33 +26,35 @@ routerAdd(
       return e.badRequestError('Chave de API ausente. Configure nos segredos ou no banco de dados.')
     }
 
-    let reqBody = {
-      model: 'claude-3-5-sonnet-20240620',
-      max_tokens: 5,
-      messages: [{ role: 'user', content: 'Say "ok"' }],
-    }
-
+    // Tenta primeiro listar os modelos (zero-cost e não depende de um modelo específico)
     let res = $http.send({
-      url: 'https://api.anthropic.com/v1/messages',
-      method: 'POST',
+      url: 'https://api.anthropic.com/v1/models',
+      method: 'GET',
       headers: {
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
       },
-      body: JSON.stringify(reqBody),
       timeout: 15,
     })
 
     let usedFallback = false
+    let isModelsList = true
 
+    // Se o endpoint de models falhar (ex: erro 404 de rota não encontrada na API antiga), faz fallback para a mensagem
     if (
-      res.statusCode !== 200 &&
-      res.json &&
-      res.json.error &&
-      res.json.error.type === 'not_found_error'
+      res.statusCode === 404 ||
+      (res.statusCode !== 200 &&
+        res.json &&
+        res.json.error &&
+        res.json.error.type === 'not_found_error')
     ) {
-      reqBody.model = 'claude-3-haiku-20240307'
+      isModelsList = false
+      let reqBody = {
+        model: 'claude-3-5-sonnet-20240620',
+        max_tokens: 5,
+        messages: [{ role: 'user', content: 'Say "ok"' }],
+      }
+
       res = $http.send({
         url: 'https://api.anthropic.com/v1/messages',
         method: 'POST',
@@ -64,7 +66,63 @@ routerAdd(
         body: JSON.stringify(reqBody),
         timeout: 15,
       })
-      usedFallback = true
+
+      if (
+        res.statusCode !== 200 &&
+        res.json &&
+        res.json.error &&
+        res.json.error.type === 'not_found_error'
+      ) {
+        reqBody.model = 'claude-3-5-sonnet-latest'
+        res = $http.send({
+          url: 'https://api.anthropic.com/v1/messages',
+          method: 'POST',
+          headers: {
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify(reqBody),
+          timeout: 15,
+        })
+        usedFallback = true
+      }
+
+      if (
+        res.statusCode !== 200 &&
+        res.json &&
+        res.json.error &&
+        res.json.error.type === 'not_found_error'
+      ) {
+        reqBody.model = 'claude-3-haiku-20240307'
+        res = $http.send({
+          url: 'https://api.anthropic.com/v1/messages',
+          method: 'POST',
+          headers: {
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify(reqBody),
+          timeout: 15,
+        })
+        usedFallback = true
+      }
+
+      // Se ainda der not_found_error depois de todas as tentativas, a chave é válida mas os modelos estão restritos
+      if (
+        res.statusCode !== 200 &&
+        res.json &&
+        res.json.error &&
+        res.json.error.type === 'not_found_error'
+      ) {
+        return e.json(200, {
+          success: true,
+          source,
+          fallback: true,
+          note: 'Chave válida, mas acesso aos modelos testados está restrito.',
+        })
+      }
     }
 
     if (res.statusCode !== 200) {
@@ -74,15 +132,18 @@ routerAdd(
       if (res.json && res.json.error) {
         errorType = res.json.error.type || errorType
         errorMsg = res.json.error.message || errorMsg
-      } else if (res.statusCode === 401) {
+      }
+
+      if (errorType === 'invalid_api_key' || res.statusCode === 401) {
         errorType = 'invalid_api_key'
         errorMsg = 'Chave de API inválida ou não autorizada.'
-      } else if (res.statusCode === 403 || res.statusCode === 404) {
-        errorType = 'permission_error'
-        errorMsg = 'Erro de permissão ou modelo não encontrado. Verifique o status da sua conta.'
-      } else if (res.statusCode === 429) {
+      } else if (errorType === 'insufficient_credits' || res.statusCode === 429) {
         errorType = 'insufficient_credits'
-        errorMsg = 'Sem saldo ou limite de requisições excedido.'
+        errorMsg =
+          'Sem saldo ou limite de requisições excedido. Verifique o seu saldo (Credits) no Anthropic Console.'
+      } else if (errorType === 'permission_error' || res.statusCode === 403) {
+        errorType = 'permission_error'
+        errorMsg = 'Erro de permissão. Sua chave não tem acesso a este recurso.'
       } else if (res.statusCode >= 500) {
         errorType = 'server_error'
         errorMsg = 'O serviço da Anthropic está indisponível no momento.'
@@ -95,7 +156,7 @@ routerAdd(
       return e.badRequestError(`[${errorType}] ${errorMsg}`)
     }
 
-    return e.json(200, { success: true, source, fallback: usedFallback })
+    return e.json(200, { success: true, source, fallback: usedFallback, isModelsList })
   },
   $apis.requireAuth(),
 )

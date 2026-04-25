@@ -34,13 +34,18 @@ export function IntegrationPanel() {
   const [activeSource, setActiveSource] = useState<string | null>(null)
 
   const handleTestConnection = async () => {
+    const cleanedKey = apiKey.trim().replace(/[\x00-\x1F\x7F-\x9F\s]/g, '')
+    if (cleanedKey !== apiKey) {
+      setApiKey(cleanedKey)
+    }
+
     setIsTesting(true)
     setStatus('idle')
     setActiveSource(null)
     try {
       const res = await pb.send('/backend/v1/testar_conexao_ia', {
         method: 'POST',
-        body: JSON.stringify({ apiKey: apiKey.trim() }),
+        body: JSON.stringify({ apiKey: cleanedKey }),
       })
       setStatus('success')
       setErrorMessage('')
@@ -65,9 +70,14 @@ export function IntegrationPanel() {
 
   const handleSave = async () => {
     if (!user) return
+    const cleanedKey = apiKey.trim().replace(/[\x00-\x1F\x7F-\x9F\s]/g, '')
+    if (cleanedKey !== apiKey) {
+      setApiKey(cleanedKey)
+    }
+
     setIsSaving(true)
     try {
-      await pb.collection('users').update(user.id, { anthropic_api_key: apiKey.trim() })
+      await pb.collection('users').update(user.id, { anthropic_api_key: cleanedKey })
       toast.success('Configurações salvas com sucesso!')
       setIsOpen(false)
     } catch (err) {
@@ -174,20 +184,14 @@ export function IntegrationPanel() {
                       {errorMessage}
                     </span>
                   )}
-                  {(errorMessage.includes('permission_error') ||
-                    errorMessage.includes('not_found_error') ||
-                    errorMessage.includes('invalid_api_key') ||
-                    errorMessage.includes('insufficient_credits') ||
-                    errorMessage.includes('credit')) && (
-                    <a
-                      href="https://console.anthropic.com/settings/billing"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-blue-600 hover:text-blue-800 hover:underline mt-2 inline-flex items-center gap-1 w-fit"
-                    >
-                      Verificar Status da Conta <ExternalLink className="w-3 h-3" />
-                    </a>
-                  )}
+                  <a
+                    href="https://console.anthropic.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-blue-600 hover:text-blue-800 hover:underline mt-2 inline-flex items-center gap-1 w-fit"
+                  >
+                    Verificar Status da Conta <ExternalLink className="w-3 h-3" />
+                  </a>
                 </div>
               )}
             </div>

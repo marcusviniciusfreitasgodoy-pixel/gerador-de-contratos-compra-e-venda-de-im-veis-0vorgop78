@@ -176,6 +176,26 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
           extractRes.json.error &&
           extractRes.json.error.type === 'not_found_error'
         ) {
+          imgBody.model = 'claude-3-5-sonnet-latest'
+          extractRes = $http.send({
+            url: 'https://api.anthropic.com/v1/messages',
+            method: 'POST',
+            headers: {
+              'x-api-key': anthropicKey,
+              'anthropic-version': '2023-06-01',
+              'content-type': 'application/json',
+            },
+            body: JSON.stringify(imgBody),
+            timeout: 60,
+          })
+        }
+
+        if (
+          extractRes.statusCode !== 200 &&
+          extractRes.json &&
+          extractRes.json.error &&
+          extractRes.json.error.type === 'not_found_error'
+        ) {
           imgBody.model = 'claude-3-haiku-20240307'
           extractRes = $http.send({
             url: 'https://api.anthropic.com/v1/messages',
@@ -275,6 +295,26 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
         chatRes.json.error &&
         chatRes.json.error.type === 'not_found_error'
       ) {
+        aiBody.model = 'claude-3-5-sonnet-latest'
+        chatRes = $http.send({
+          url: 'https://api.anthropic.com/v1/messages',
+          method: 'POST',
+          headers: {
+            'x-api-key': anthropicKey,
+            'anthropic-version': '2023-06-01',
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify(aiBody),
+          timeout: 180,
+        })
+      }
+
+      if (
+        chatRes.statusCode !== 200 &&
+        chatRes.json &&
+        chatRes.json.error &&
+        chatRes.json.error.type === 'not_found_error'
+      ) {
         aiBody.model = 'claude-3-haiku-20240307'
         chatRes = $http.send({
           url: 'https://api.anthropic.com/v1/messages',
@@ -298,16 +338,19 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
         if (chatRes.json && chatRes.json.error) {
           errType = chatRes.json.error.type || errType
           errMsg = chatRes.json.error.message || errMsg
-        } else if (chatRes.statusCode === 429) {
+        } else if (chatRes.statusCode === 429 || errType === 'insufficient_credits') {
           errType = 'insufficient_credits'
-          errMsg = 'Limite de uso excedido da Anthropic.'
-        } else if (
-          chatRes.statusCode === 401 ||
-          chatRes.statusCode === 403 ||
-          chatRes.statusCode === 404
-        ) {
+          errMsg =
+            'Sem saldo ou limite de requisições excedido. Verifique o seu saldo (Credits) no Anthropic Console.'
+        } else if (chatRes.statusCode === 401 || errType === 'invalid_api_key') {
           errType = 'invalid_api_key'
-          errMsg = 'Chave de API inválida, sem permissões ou modelo indisponível.'
+          errMsg = 'Chave de API inválida ou não autorizada.'
+        } else if (chatRes.statusCode === 403 || errType === 'permission_error') {
+          errType = 'permission_error'
+          errMsg = 'Erro de permissão. Sua chave não tem acesso a este recurso.'
+        } else if (chatRes.statusCode === 404 || errType === 'not_found_error') {
+          errType = 'not_found_error'
+          errMsg = 'Modelo não encontrado ou indisponível para esta chave.'
         }
 
         return e.badRequestError(`[${errType}] ${errMsg}`)
