@@ -15,6 +15,7 @@ import { Link, useSearchParams, Navigate } from 'react-router-dom'
 import pb from '@/lib/pocketbase/client'
 import { useAuth } from '@/hooks/use-auth'
 import { AnalysisReportView, type AnalysisReport } from '@/components/AnalysisReportView'
+import { AnalysisHistoryTable } from '@/components/AnalysisHistoryTable'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 
@@ -35,10 +36,14 @@ export default function AIAnalysis() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
+    if (user?.gemini_api_key) {
+      setHasAiKey(true)
+      return
+    }
     pb.send('/backend/v1/ai-status', { method: 'GET' })
       .then((res) => setHasAiKey(res.hasKey))
       .catch(() => setHasAiKey(false))
-  }, [])
+  }, [user])
 
   useEffect(() => {
     if (contractIdParam) {
@@ -138,6 +143,8 @@ export default function AIAnalysis() {
       } else if (error.response?.message) {
         msg = error.response.message
       } else if (error.message) {
+        msg = error.message
+      } else {
         msg = 'Falha na conexão com o servidor. Verifique sua internet e tente novamente.'
       }
       setErrorMsg(msg)
@@ -366,6 +373,8 @@ export default function AIAnalysis() {
       )}
 
       {report && !isAnalyzing && !errorMsg && <AnalysisReportView report={report} />}
+
+      {contractIdParam && <AnalysisHistoryTable contractId={contractIdParam} />}
     </div>
   )
 }

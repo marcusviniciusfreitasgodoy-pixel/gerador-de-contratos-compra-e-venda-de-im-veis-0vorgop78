@@ -18,19 +18,19 @@ routerAdd(
       if (tipo === 'txt') {
         // Remove ASCII control characters except tab, newline, and carriage return
         arquivo = arquivo.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
-        // Strip non-alphanumeric decorative characters (like ═, ─, etc.)
-        arquivo = arquivo.replace(/[═─━│┃┄┅┆┇┈┉╌╍╎╏]/g, '')
+        // Strip non-alphanumeric decorative characters (like ═, ─, ║, etc.)
+        arquivo = arquivo.replace(/[═─━│┃┄┅┆┇┈┉╌╍╎╏║╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀]/g, ' ')
         // Normalize whitespace
-        arquivo = arquivo.replace(/\s{2,}/g, ' ')
+        arquivo = arquivo.replace(/\s{2,}/g, ' ').trim()
       }
 
-      const geminiKey = $secrets.get('GEMINI_API_KEY')
+      const geminiKey = e.auth?.getString('gemini_api_key') || $secrets.get('GEMINI_API_KEY')
       const openaiKey = $secrets.get('OPENAI_API_KEY')
 
       if (!geminiKey && !openaiKey) {
-        return e.json(400, {
-          message: 'Configure sua chave de IA no painel de integração para habilitar esta função.',
-        })
+        return e.badRequestError(
+          'Configure sua chave de IA no painel de integração para habilitar esta função.',
+        )
       }
 
       let contextText = ''
@@ -149,24 +149,22 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
         if (chatRes.statusCode !== 200) {
           $app.logger().error('Gemini AI failed', 'status', chatRes.statusCode, 'raw', chatRes.raw)
 
-          let msg =
-            'O serviço de IA está temporariamente indisponível. Tente novamente em instantes.'
-          let status = 503
-
           if (chatRes.statusCode === 429) {
-            msg = 'Limite de tokens excedido para este contrato. Tente fragmentar o texto.'
-            status = 429
+            return e.badRequestError('Limite de tokens excedido ou cota atingida.')
           } else if (
             chatRes.statusCode === 400 ||
             chatRes.statusCode === 401 ||
             chatRes.statusCode === 403 ||
             chatRes.statusCode === 404
           ) {
-            msg = 'Chave de API inválida. Por favor, revise suas configurações de integração.'
-            status = 400
+            return e.badRequestError(
+              'Chave de API inválida. Por favor, revise suas configurações de integração no painel de servidor.',
+            )
           }
 
-          return e.json(status, { message: msg })
+          return e.internalServerError(
+            'O serviço de IA está temporariamente indisponível. Tente novamente em instantes.',
+          )
         }
 
         try {
@@ -272,24 +270,22 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
         if (chatRes.statusCode !== 200) {
           $app.logger().error('OpenAI AI failed', 'status', chatRes.statusCode, 'raw', chatRes.raw)
 
-          let msg =
-            'O serviço de IA está temporariamente indisponível. Tente novamente em instantes.'
-          let status = 503
-
           if (chatRes.statusCode === 429) {
-            msg = 'Limite de tokens excedido para este contrato. Tente fragmentar o texto.'
-            status = 429
+            return e.badRequestError('Limite de tokens excedido ou cota atingida.')
           } else if (
             chatRes.statusCode === 400 ||
             chatRes.statusCode === 401 ||
             chatRes.statusCode === 403 ||
             chatRes.statusCode === 404
           ) {
-            msg = 'Chave de API inválida. Por favor, revise suas configurações de integração.'
-            status = 400
+            return e.badRequestError(
+              'Chave de API inválida. Por favor, revise suas configurações de integração no painel de servidor.',
+            )
           }
 
-          return e.json(status, { message: msg })
+          return e.internalServerError(
+            'O serviço de IA está temporariamente indisponível. Tente novamente em instantes.',
+          )
         }
 
         try {

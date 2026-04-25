@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-25T13:22:59.901Z",
+  "generatedAt": "2026-04-25T13:33:01.451Z",
   "collections": [
     {
       "name": "users",
@@ -83,6 +83,12 @@
         {
           "name": "comissao_padrao_percentual",
           "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "gemini_api_key",
+          "type": "text",
           "required": false,
           "system": false
         }
