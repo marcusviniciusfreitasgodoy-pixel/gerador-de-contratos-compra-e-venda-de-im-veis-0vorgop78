@@ -45,8 +45,7 @@ export function IntegrationPanel() {
       })
       setStatus('success')
       setErrorMessage('')
-      toast.success('Conexão estabelecida e chave salva com sucesso!')
-      setTimeout(() => setIsOpen(false), 1500)
+      toast.success('Conexão estabelecida com sucesso!')
     } catch (err: any) {
       setStatus('error')
       const msg = err.response?.message || err.message || 'Erro ao validar a chave de API.'
@@ -164,7 +163,7 @@ export function IntegrationPanel() {
               disabled={isTesting || !apiKey}
             >
               {isTesting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Testar Conexão
+              {isTesting ? 'Testando...' : 'Testar Conexão'}
             </Button>
           </div>
         </div>
@@ -175,7 +174,7 @@ export function IntegrationPanel() {
           </Button>
           <Button
             onClick={handleSave}
-            disabled={isSaving || !apiKey.trim()}
+            disabled={isSaving || !apiKey.trim() || status !== 'success'}
             className="bg-purple-600 hover:bg-purple-700 text-white"
           >
             {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}

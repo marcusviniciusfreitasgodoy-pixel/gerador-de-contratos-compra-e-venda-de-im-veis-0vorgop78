@@ -9,7 +9,7 @@ routerAdd(
       return e.badRequestError('Chave de API ausente.')
     }
 
-    const res = $http.send({
+    let res = $http.send({
       url: 'https://api.anthropic.com/v1/messages',
       method: 'POST',
       headers: {
@@ -18,12 +18,37 @@ routerAdd(
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
+        model: 'claude-3-5-sonnet-latest',
         max_tokens: 10,
         messages: [{ role: 'user', content: 'Hello' }],
       }),
       timeout: 15,
     })
+
+    if (res.statusCode === 400 || res.statusCode === 404) {
+      if (
+        res.json &&
+        res.json.error &&
+        res.json.error.message &&
+        res.json.error.message.toLowerCase().includes('model')
+      ) {
+        res = $http.send({
+          url: 'https://api.anthropic.com/v1/messages',
+          method: 'POST',
+          headers: {
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'claude-3-sonnet-20240229',
+            max_tokens: 10,
+            messages: [{ role: 'user', content: 'Hello' }],
+          }),
+          timeout: 15,
+        })
+      }
+    }
 
     if (res.statusCode !== 200) {
       let errorMsg = 'Erro ao validar a chave de API.'
@@ -47,16 +72,6 @@ routerAdd(
         .logger()
         .error('Falha na validação da API Anthropic', 'status', res.statusCode, 'raw', res.raw)
       return e.badRequestError(errorMsg)
-    }
-
-    if (e.auth) {
-      try {
-        const userRecord = $app.findRecordById('users', e.auth.id)
-        userRecord.set('anthropic_api_key', apiKey)
-        $app.save(userRecord)
-      } catch (err) {
-        $app.logger().error('Erro ao salvar API key', 'error', err.message)
-      }
     }
 
     return e.json(200, { success: true })

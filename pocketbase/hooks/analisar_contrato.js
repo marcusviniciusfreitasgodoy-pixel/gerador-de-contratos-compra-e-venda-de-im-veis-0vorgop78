@@ -117,7 +117,31 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
       let extractedText = ''
 
       if (tipo === 'imagem' || tipo === 'image') {
-        const extractRes = $http.send({
+        const imgBody = {
+          model: 'claude-3-5-sonnet-latest',
+          max_tokens: 8192,
+          messages: [
+            {
+              role: 'user',
+              content: [
+                {
+                  type: 'image',
+                  source: {
+                    type: 'base64',
+                    media_type: 'image/jpeg',
+                    data: arquivo,
+                  },
+                },
+                {
+                  type: 'text',
+                  text: 'Extraia o texto legível desta imagem. Retorne apenas o texto.',
+                },
+              ],
+            },
+          ],
+        }
+
+        let extractRes = $http.send({
           url: 'https://api.anthropic.com/v1/messages',
           method: 'POST',
           headers: {
@@ -125,35 +149,39 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
             'anthropic-version': '2023-06-01',
             'content-type': 'application/json',
           },
-          body: JSON.stringify({
-            model: 'claude-3-5-sonnet-20241022',
-            max_tokens: 8192,
-            messages: [
-              {
-                role: 'user',
-                content: [
-                  {
-                    type: 'image',
-                    source: {
-                      type: 'base64',
-                      media_type: 'image/jpeg',
-                      data: arquivo,
-                    },
-                  },
-                  {
-                    type: 'text',
-                    text: 'Extraia o texto legível desta imagem. Retorne apenas o texto.',
-                  },
-                ],
-              },
-            ],
-          }),
+          body: JSON.stringify(imgBody),
           timeout: 60,
         })
+
+        if (extractRes.statusCode === 400 || extractRes.statusCode === 404) {
+          if (
+            extractRes.json &&
+            extractRes.json.error &&
+            extractRes.json.error.message &&
+            extractRes.json.error.message.toLowerCase().includes('model')
+          ) {
+            imgBody.model = 'claude-3-sonnet-20240229'
+            extractRes = $http.send({
+              url: 'https://api.anthropic.com/v1/messages',
+              method: 'POST',
+              headers: {
+                'x-api-key': anthropicKey,
+                'anthropic-version': '2023-06-01',
+                'content-type': 'application/json',
+              },
+              body: JSON.stringify(imgBody),
+              timeout: 60,
+            })
+          }
+        }
+
         if (extractRes.statusCode === 200) {
           extractedText = extractRes.json.content[0].text
         } else {
-          throw new Error('Falha na extração da imagem com Anthropic.')
+          throw new Error(
+            'Falha na extração da imagem com Anthropic: ' +
+              (extractRes.json?.error?.message || 'Erro desconhecido'),
+          )
         }
       } else if (tipo === 'txt') {
         extractedText = arquivo
@@ -193,7 +221,7 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
       }
 
       const aiBody = {
-        model: 'claude-3-5-sonnet-20241022',
+        model: 'claude-3-5-sonnet-latest',
         max_tokens: adaptiveThought ? 8192 : 4096,
         system: systemPrompt,
         messages: [
@@ -211,7 +239,7 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
       }
       aiBody.temperature = 1.0
 
-      const chatRes = $http.send({
+      let chatRes = $http.send({
         url: 'https://api.anthropic.com/v1/messages',
         method: 'POST',
         headers: {
@@ -222,6 +250,28 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
         body: JSON.stringify(aiBody),
         timeout: 180,
       })
+
+      if (chatRes.statusCode === 400 || chatRes.statusCode === 404) {
+        if (
+          chatRes.json &&
+          chatRes.json.error &&
+          chatRes.json.error.message &&
+          chatRes.json.error.message.toLowerCase().includes('model')
+        ) {
+          aiBody.model = 'claude-3-sonnet-20240229'
+          chatRes = $http.send({
+            url: 'https://api.anthropic.com/v1/messages',
+            method: 'POST',
+            headers: {
+              'x-api-key': anthropicKey,
+              'anthropic-version': '2023-06-01',
+              'content-type': 'application/json',
+            },
+            body: JSON.stringify(aiBody),
+            timeout: 180,
+          })
+        }
+      }
 
       if (chatRes.statusCode !== 200) {
         $app.logger().error('Anthropic AI failed', 'status', chatRes.statusCode, 'raw', chatRes.raw)
