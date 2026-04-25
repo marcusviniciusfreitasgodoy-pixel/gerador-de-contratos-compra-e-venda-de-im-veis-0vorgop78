@@ -97,12 +97,7 @@ export default function AIAnalysis() {
         if (txtToProcess.length > 500000) {
           txtToProcess = txtToProcess.slice(0, 500000)
         }
-        const utf8Bytes = new TextEncoder().encode(txtToProcess)
-        let binString = ''
-        for (let i = 0; i < utf8Bytes.byteLength; i++) {
-          binString += String.fromCharCode(utf8Bytes[i])
-        }
-        base64Data = btoa(binString)
+        base64Data = txtToProcess
       }
 
       const payload = {
@@ -293,7 +288,7 @@ export default function AIAnalysis() {
                   {isAnalyzing ? (
                     <>
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Analyzing Contract...
+                      Analisando Documento...
                     </>
                   ) : (
                     'Analisar com IA Jurídica'
@@ -306,7 +301,7 @@ export default function AIAnalysis() {
                       <div className="w-12 h-12 rounded-full border-4 border-purple-200 border-t-purple-600 animate-spin"></div>
                     </div>
                     <p className="text-purple-600 font-medium animate-pulse text-lg">
-                      Analyzing Contract... Please wait.
+                      Analisando contrato... Por favor, aguarde.
                     </p>
                     <p className="text-slate-500 text-sm mt-2">
                       A IA está analisando as cláusulas em relação à base legal (pode levar até 2

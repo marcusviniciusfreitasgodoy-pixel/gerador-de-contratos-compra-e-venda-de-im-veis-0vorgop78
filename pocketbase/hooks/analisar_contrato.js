@@ -107,6 +107,14 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
           mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
         if (tipo === 'txt') mimeType = 'text/plain'
 
+        const parts = [{ text: `Por favor, analise este contrato do tipo ${tipoContrato}.` }]
+
+        if (tipo === 'txt') {
+          parts.push({ text: arquivo })
+        } else {
+          parts.push({ inline_data: { mime_type: mimeType, data: arquivo } })
+        }
+
         const chatRes = $http.send({
           url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${geminiKey}`,
           method: 'POST',
@@ -116,10 +124,7 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
             contents: [
               {
                 role: 'user',
-                parts: [
-                  { text: `Por favor, analise este contrato do tipo ${tipoContrato}.` },
-                  { inline_data: { mime_type: mimeType, data: arquivo } },
-                ],
+                parts: parts,
               },
             ],
             generationConfig: {
@@ -132,9 +137,13 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
 
         if (chatRes.statusCode !== 200) {
           $app.logger().error('Gemini AI failed', 'status', chatRes.statusCode, 'raw', chatRes.raw)
-          return e.badRequestError(
-            'Erro na análise da IA (Gemini). O arquivo pode ser muito grande ou a API está indisponível.',
-          )
+          let errorDetail = 'O arquivo pode ser muito grande ou a API está indisponível.'
+          try {
+            if (chatRes.json && chatRes.json.error && chatRes.json.error.message) {
+              errorDetail = chatRes.json.error.message
+            }
+          } catch (_) {}
+          return e.badRequestError(`Erro na análise da IA (Gemini): ${errorDetail}`)
         }
 
         try {
@@ -180,6 +189,8 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
           } else {
             throw new Error('Falha na extração da imagem com OpenAI.')
           }
+        } else if (tipo === 'txt') {
+          extractedText = arquivo
         } else {
           try {
             const atobFn =
@@ -233,9 +244,13 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
 
         if (chatRes.statusCode !== 200) {
           $app.logger().error('OpenAI AI failed', 'status', chatRes.statusCode, 'raw', chatRes.raw)
-          return e.badRequestError(
-            'Erro na análise da IA (OpenAI). O arquivo pode ser muito grande ou a API está indisponível.',
-          )
+          let errorDetail = 'O arquivo pode ser muito grande ou a API está indisponível.'
+          try {
+            if (chatRes.json && chatRes.json.error && chatRes.json.error.message) {
+              errorDetail = chatRes.json.error.message
+            }
+          } catch (_) {}
+          return e.badRequestError(`Erro na análise da IA (OpenAI): ${errorDetail}`)
         }
 
         try {

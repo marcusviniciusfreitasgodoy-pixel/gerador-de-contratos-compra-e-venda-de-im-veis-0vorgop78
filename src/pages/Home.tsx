@@ -4,7 +4,7 @@ import { ContractForm } from '@/components/ContractForm'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { FileText, Bot, Calendar } from 'lucide-react'
+import { FileText, Bot, Calendar, Plus } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import pb from '@/lib/pocketbase/client'
 import { useRealtime } from '@/hooks/use-realtime'
@@ -17,6 +17,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false)
   const [contracts, setContracts] = useState<any[]>([])
   const [fetching, setFetching] = useState(true)
+  const [isCreating, setIsCreating] = useState(false)
 
   const loadContracts = async () => {
     try {
@@ -64,37 +65,55 @@ export default function Home() {
           type={contractType}
           onBack={() => {
             setContractType(null)
+            setIsCreating(true)
           }}
         />
       </div>
     )
   }
 
+  if (isCreating) {
+    return (
+      <div className="container mx-auto py-12 px-4 max-w-5xl animate-in fade-in">
+        <div className="mb-8">
+          <Button variant="ghost" onClick={() => setIsCreating(false)} className="mb-4">
+            &larr; Voltar para Meus Contratos
+          </Button>
+          <div className="text-center mb-10">
+            <h1 className="text-4xl md:text-5xl font-extrabold mb-4 text-slate-900 tracking-tight">
+              Selecione o Modelo
+            </h1>
+            <p className="text-slate-500 text-lg md:text-xl max-w-2xl mx-auto">
+              Escolha o tipo de contrato que deseja gerar (padrão Godoy Prime Realty).
+            </p>
+          </div>
+          <ContractTypeSelector onSelect={handleSelect} />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="container mx-auto py-12 px-4 max-w-5xl animate-in fade-in">
-      <div className="mb-16">
-        <div className="text-center mb-10">
-          <h1 className="text-4xl md:text-5xl font-extrabold mb-4 text-slate-900 tracking-tight">
-            Gerador de Contratos
-          </h1>
-          <p className="text-slate-500 text-lg md:text-xl max-w-2xl mx-auto">
-            Selecione o modelo desejado para iniciar a criação do seu documento de forma rápida e
-            segura.
-          </p>
-        </div>
-        <ContractTypeSelector onSelect={handleSelect} />
-      </div>
-
-      <div className="mt-16 pt-10 border-t border-slate-200">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+      <div className="mb-10">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div>
-            <h2 className="text-3xl font-bold text-slate-800">Meus Contratos</h2>
-            <p className="text-slate-600 mt-1 text-lg">
+            <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-2">Meus Contratos</h1>
+            <p className="text-slate-600 text-lg">
               Histórico de contratos gerados e análises jurídicas.
             </p>
           </div>
+          <Button
+            onClick={() => setIsCreating(true)}
+            size="lg"
+            className="bg-purple-600 hover:bg-purple-700 text-white shadow-md w-full md:w-auto"
+          >
+            <Plus className="w-5 h-5 mr-2" /> Gerar Novo Contrato
+          </Button>
         </div>
+      </div>
 
+      <div className="pt-6 border-t border-slate-200">
         {fetching ? (
           <div className="space-y-4">
             <Skeleton className="h-24 w-full rounded-xl" />
