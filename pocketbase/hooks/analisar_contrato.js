@@ -16,21 +16,19 @@ routerAdd(
 
       // Payload Sanitization for TXT
       if (tipo === 'txt') {
-        // Remove ASCII control characters except tab, newline, and carriage return
         arquivo = arquivo.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
-        // Strip non-alphanumeric decorative characters (like ═, ─, ║, etc.)
         arquivo = arquivo.replace(/[═─━│┃┄┅┆┇┈┉╌╍╎╏║╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀]/g, ' ')
-        // Remove multiple consecutive equal signs often used as separators
         arquivo = arquivo.replace(/={2,}/g, ' ')
-        // Normalize whitespace
         arquivo = arquivo.replace(/\s{2,}/g, ' ').trim()
       }
 
+      const anthropicKey =
+        e.auth?.getString('anthropic_api_key') || $secrets.get('ANTHROPIC_API_KEY')
       const openaiKey = e.auth?.getString('openai_api_key') || $secrets.get('OPENAI_API_KEY')
 
-      if (!openaiKey) {
+      if (!anthropicKey) {
         return e.badRequestError(
-          'Configure sua chave de IA no painel de integração para habilitar esta função.',
+          'Configure sua chave de IA da Anthropic no painel de integração para habilitar esta função.',
         )
       }
 
@@ -82,27 +80,25 @@ ${contextText}
 
 Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código):
 {
-  "conformidade": {
-    "status": "conforme" | "risco" | "critico",
-    "clausulasEncontradas": ["string"],
-    "clausulasFaltando": ["string"]
-  },
+  "conformidade": "conforme|risco|critico",
+  "clausulas_encontradas": ["string"],
+  "clausulas_faltando": ["string"],
   "riscos": [
     {
       "titulo": "string",
       "descricao": "string",
-      "severidade": "ALTO" | "MEDIO" | "BAIXO",
+      "severidade": "ALTO|MEDIO|BAIXO",
       "embasamento": "string"
     }
   ],
   "omissoes": [
     {
       "clausula": "string",
-      "importancia": "CRITICA" | "IMPORTANTE" | "RECOMENDADA",
+      "importancia": "CRITICA|IMPORTANTE|RECOMENDADA",
       "redacaoPadrao": "string"
     }
   ],
-  "clausulasAbusivas": [
+  "clausulas_abusivas": [
     {
       "texto": "string",
       "motivo": "string",
@@ -112,7 +108,8 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
   "recomendacoes": {
     "imediatas": ["string"],
     "recomendadas": ["string"]
-  }
+  },
+  "relatorio_completo": "string"
 }`
 
       let analysisResult = null
@@ -120,20 +117,32 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
 
       if (tipo === 'imagem' || tipo === 'image') {
         const extractRes = $http.send({
-          url: 'https://api.openai.com/v1/chat/completions',
+          url: 'https://api.anthropic.com/v1/messages',
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + openaiKey },
+          headers: {
+            'x-api-key': anthropicKey,
+            'anthropic-version': '2023-06-01',
+            'content-type': 'application/json',
+          },
           body: JSON.stringify({
-            model: 'gpt-4o',
+            model: 'claude-3-5-sonnet-20241022',
+            max_tokens: 4096,
             messages: [
               {
                 role: 'user',
                 content: [
                   {
+                    type: 'image',
+                    source: {
+                      type: 'base64',
+                      media_type: 'image/jpeg',
+                      data: arquivo,
+                    },
+                  },
+                  {
                     type: 'text',
                     text: 'Extraia o texto legível desta imagem. Retorne apenas o texto.',
                   },
-                  { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${arquivo}` } },
                 ],
               },
             ],
@@ -141,9 +150,9 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
           timeout: 60,
         })
         if (extractRes.statusCode === 200) {
-          extractedText = extractRes.json.choices[0].message.content
+          extractedText = extractRes.json.content[0].text
         } else {
-          throw new Error('Falha na extração da imagem com OpenAI.')
+          throw new Error('Falha na extração da imagem com Anthropic.')
         }
       } else if (tipo === 'txt') {
         extractedText = arquivo
@@ -183,26 +192,30 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
       }
 
       const chatRes = $http.send({
-        url: 'https://api.openai.com/v1/chat/completions',
+        url: 'https://api.anthropic.com/v1/messages',
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + openaiKey },
+        headers: {
+          'x-api-key': anthropicKey,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json',
+        },
         body: JSON.stringify({
-          model: 'gpt-4o',
+          model: 'claude-3-5-sonnet-20241022',
+          max_tokens: 4096,
+          temperature: 1.0,
+          system: systemPrompt,
           messages: [
-            { role: 'system', content: systemPrompt },
             {
               role: 'user',
               content: `Analise este contrato (${tipoContrato}):\n\n${extractedText}`,
             },
           ],
-          response_format: { type: 'json_object' },
-          temperature: 0.1,
         }),
         timeout: 120,
       })
 
       if (chatRes.statusCode !== 200) {
-        $app.logger().error('OpenAI AI failed', 'status', chatRes.statusCode, 'raw', chatRes.raw)
+        $app.logger().error('Anthropic AI failed', 'status', chatRes.statusCode, 'raw', chatRes.raw)
 
         if (chatRes.statusCode === 429) {
           return e.badRequestError('Limite de uso excedido.')
@@ -223,7 +236,13 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
       }
 
       try {
-        analysisResult = JSON.parse(chatRes.json.choices[0].message.content)
+        let content = chatRes.json.content[0].text
+        if (content.includes('```json')) {
+          content = content.split('```json')[1].split('```')[0]
+        } else if (content.includes('```')) {
+          content = content.split('```')[1].split('```')[0]
+        }
+        analysisResult = JSON.parse(content.trim())
       } catch (parseErr) {
         $app
           .logger()
@@ -232,7 +251,7 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
             'error',
             parseErr.message,
             'content',
-            chatRes.json.choices[0].message.content,
+            chatRes.json?.content?.[0]?.text,
           )
         return e.json(500, {
           error:
@@ -253,14 +272,22 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
         reportRecord.set('analysis_result', analysisResult)
 
         let summaryText = ''
-        if (analysisResult.conformidade && analysisResult.conformidade.status) {
-          summaryText = `Status geral: ${analysisResult.conformidade.status}. Riscos: ${analysisResult.riscos ? analysisResult.riscos.length : 0}`
+        if (analysisResult.conformidade) {
+          const statusVal =
+            typeof analysisResult.conformidade === 'string'
+              ? analysisResult.conformidade
+              : analysisResult.conformidade.status
+          summaryText = `Status geral: ${statusVal}. Riscos: ${analysisResult.riscos ? analysisResult.riscos.length : 0}`
         }
         reportRecord.set('summary', summaryText)
 
         let risk = 'baixo'
         if (analysisResult.conformidade) {
-          const s = (analysisResult.conformidade.status || '').toLowerCase()
+          const s = (
+            typeof analysisResult.conformidade === 'string'
+              ? analysisResult.conformidade
+              : analysisResult.conformidade.status || ''
+          ).toLowerCase()
           if (s === 'critico' || s === 'crítico') risk = 'critico'
           else if (s === 'risco') risk = 'alto'
           else risk = 'baixo'

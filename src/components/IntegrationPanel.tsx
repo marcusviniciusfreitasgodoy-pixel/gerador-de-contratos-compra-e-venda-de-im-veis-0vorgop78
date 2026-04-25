@@ -25,8 +25,8 @@ export function IntegrationPanel() {
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle')
 
   useEffect(() => {
-    if (user?.openai_api_key) {
-      setApiKey(user.openai_api_key)
+    if (user?.anthropic_api_key) {
+      setApiKey(user.anthropic_api_key)
     }
   }, [user])
 
@@ -57,7 +57,7 @@ export function IntegrationPanel() {
     if (!user) return
     setIsSaving(true)
     try {
-      await pb.collection('users').update(user.id, { openai_api_key: apiKey.trim() })
+      await pb.collection('users').update(user.id, { anthropic_api_key: apiKey.trim() })
       toast.success('Configurações salvas com sucesso!')
       setIsOpen(false)
     } catch (err) {
@@ -86,7 +86,7 @@ export function IntegrationPanel() {
             Configurações de Integração
           </DialogTitle>
           <DialogDescription>
-            Configure sua chave da API da OpenAI para habilitar a análise jurídica avançada de
+            Configure sua chave da API da Anthropic para habilitar a análise jurídica avançada de
             contratos.
           </DialogDescription>
         </DialogHeader>
@@ -98,16 +98,16 @@ export function IntegrationPanel() {
               <li>
                 Acesse o{' '}
                 <a
-                  href="https://platform.openai.com/api-keys"
+                  href="https://console.anthropic.com/settings/keys"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:text-blue-800 font-medium hover:underline inline-flex items-center gap-1"
                 >
-                  OpenAI Dashboard <ExternalLink className="w-3 h-3" />
+                  Anthropic Console <ExternalLink className="w-3 h-3" />
                 </a>
               </li>
               <li>
-                Clique em <strong className="font-semibold">"Create new secret key"</strong>.
+                Clique em <strong className="font-semibold">"Create Key"</strong>.
               </li>
               <li>Copie a chave gerada garantindo que não haja espaços.</li>
               <li>Cole no campo abaixo.</li>
@@ -115,12 +115,12 @@ export function IntegrationPanel() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="apiKey">Chave da API (OpenAI)</Label>
+            <Label htmlFor="apiKey">Chave da API (Anthropic)</Label>
             <div className="relative">
               <Input
                 id="apiKey"
                 type={showKey ? 'text' : 'password'}
-                placeholder="sk-proj-..."
+                placeholder="sk-ant-..."
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value.trim())}
                 className="pr-10"

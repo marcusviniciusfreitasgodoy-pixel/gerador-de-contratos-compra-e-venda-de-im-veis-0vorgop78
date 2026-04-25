@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-25T14:56:43.029Z",
+  "generatedAt": "2026-04-25T15:04:37.143Z",
   "collections": [
     {
       "name": "users",
@@ -94,6 +94,12 @@
         },
         {
           "name": "openai_api_key",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "anthropic_api_key",
           "type": "text",
           "required": false,
           "system": false

@@ -10,11 +10,18 @@ routerAdd(
     }
 
     const res = $http.send({
-      url: 'https://api.openai.com/v1/models',
-      method: 'GET',
+      url: 'https://api.anthropic.com/v1/messages',
+      method: 'POST',
       headers: {
-        Authorization: 'Bearer ' + apiKey,
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
       },
+      body: JSON.stringify({
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 1,
+        messages: [{ role: 'user', content: 'Ping' }],
+      }),
       timeout: 15,
     })
 
