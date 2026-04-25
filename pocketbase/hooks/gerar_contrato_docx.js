@@ -122,10 +122,11 @@ routerAdd(
       `
         : ''
 
+      let clauseNum = 4
       const financiamentoClause =
         valor_financiado && Number(valor_financiado) > 0
           ? `
-        <h3>Cláusula 3.1 - Do Financiamento Bancário</h3>
+        <h3>Cláusula ${clauseNum++}ª - Do Financiamento Bancário</h3>
         <p>Sendo parte do pagamento realizada através de financiamento bancário, estabelece-se que:</p>
         <p>a) O COMPRADOR é o único e exclusivo responsável pela obtenção, aprovação e liberação do crédito junto à instituição financeira;</p>
         <p>b) Em caso de negativa de crédito por restrições no CPF/nome do COMPRADOR ou por insuficiência de renda, este deverá quitar o saldo devedor com recursos próprios no prazo máximo de 30 (trinta) dias, sob pena de rescisão contratual por sua culpa exclusiva, com a retenção do sinal pago;</p>
@@ -135,22 +136,60 @@ routerAdd(
       `
           : ''
 
-      const documentacaoCompleta = `
-        <p>As partes obrigam-se a apresentar as seguintes certidões e documentos:</p>
+      const documentacaoClause = `
+        <h3>Cláusula ${clauseNum++}ª - Da Documentação</h3>
+        <p>As partes obrigam-se a apresentar as seguintes certidões e documentos no prazo de 10 (dez) dias corridos:</p>
         <p><strong>I - VENDEDOR:</strong></p>
         <p>a) Cópia do RG e CPF;</p>
         <p>b) Certidão de Casamento/Nascimento atualizada;</p>
         <p>c) Comprovante de residência atualizado;</p>
         <p>d) Certidão Negativa de Débitos Trabalhistas (CNDT);</p>
-        <p>e) Certidão Negativa de Feitos Ajuizados (Justiça Federal, Justiça Estadual Cível e Criminal, Justiça do Trabalho);</p>
+        <p>e) Certidões de Feitos Ajuizados (Justiça Federal, Justiça Estadual Cível e Criminal, Justiça do Trabalho);</p>
         <p>f) Certidão de Objeto e Pé (caso haja apontamentos nas certidões anteriores);</p>
-        <p>g) Certidão Negativa de Protestos de Títulos da comarca de domicílio do VENDEDOR e da localização do imóvel;</p>
+        <p>g) Certidão de Protestos da comarca de domicílio do VENDEDOR e da localização do imóvel;</p>
         <br>
         <p><strong>II - IMÓVEL:</strong></p>
         <p>a) Certidão de Ônus Reais atualizada (com validade de 30 dias);</p>
-        <p>b) Certidão de Quitação Fiscal e Enfitêutica (IPTU);</p>
-        <p>c) Declaração de Quitação Condominial assinada pelo síndico, com cópia da ata de eleição;</p>
+        <p>b) Certidão de Quitação Fiscal/IPTU;</p>
+        <p>c) Certidão de Quitação Condominial assinada pelo síndico, com cópia da ata de eleição;</p>
         <p>d) Certidão Negativa de Débitos de Taxa de Incêndio (se aplicável).</p>
+        <br>
+      `
+
+      const obrigacoesClause = `
+        <h3>Cláusula ${clauseNum++}ª - Das Obrigações</h3>
+        <p>O VENDEDOR obriga-se a transferir o domínio, garantir a habitabilidade e quitar impostos e taxas que recaiam sobre o imóvel até a data da imissão na posse. O COMPRADOR obriga-se ao pagamento integral do preço ajustado, suportar os custos com a lavratura da escritura pública, registro imobiliário, imposto de transmissão (ITBI) e demais encargos exigíveis para a transferência da propriedade.</p>
+        <br>
+      `
+
+      const posseClause = `
+        <h3>Cláusula ${clauseNum++}ª - Da Posse</h3>
+        <p>A posse direta do imóvel será transferida ao COMPRADOR com a efetiva entrega das chaves, o que ocorrerá no ato da assinatura da escritura pública definitiva e quitação integral do preço. Em caso de atraso na desocupação ou na entrega das chaves por culpa do VENDEDOR, este ficará sujeito ao pagamento de multa diária de R$ 300,00 (trezentos reais).</p>
+        <br>
+      `
+
+      const penalidadesClause = `
+        <h3>Cláusula ${clauseNum++}ª - Das Penalidades</h3>
+        <p>Em caso de arrependimento ou rescisão por culpa exclusiva do COMPRADOR, este perderá em favor do VENDEDOR o valor dado a título de sinal (arras). Caso a culpa seja do VENDEDOR, este deverá devolver o sinal recebido em dobro, acrescido de atualização monetária. Em caso de mora ou atraso no pagamento de qualquer parcela, incidirá multa moratória de 2% (dois por cento) e juros de mora de 1% (um por cento) ao mês, pro rata die.</p>
+        <br>
+      `
+
+      const rescisaoClause = `
+        <h3>Cláusula ${clauseNum++}ª - Da Rescisão</h3>
+        <p>Caso qualquer das partes descumpra o estipulado neste instrumento, a parte inocente poderá notificar a infratora, concedendo prazo de 15 (quinze) dias para sanar a falha, sob pena de rescisão de pleno direito, arcando a parte culpada com as perdas e danos e multas contratuais.</p>
+        <br>
+      `
+
+      const legislacaoClause = `
+        <h3>Cláusula ${clauseNum++}ª - Da Legislação</h3>
+        <p>Este contrato é regido pelo Código Civil Brasileiro e demais legislações aplicáveis à espécie, declarando as partes que compreendem e aceitam seus termos, os quais refletem a real expressão de suas vontades.</p>
+        <br>
+      `
+
+      const foroClause = `
+        <h3>Cláusula ${clauseNum++}ª - Do Foro</h3>
+        <p>Fica eleito o Foro da Comarca do Rio de Janeiro para dirimir quaisquer dúvidas oriundas deste contrato, renunciando a qualquer outro por mais privilegiado que seja.</p>
+        <br>
       `
 
       bodyContent = `
@@ -178,34 +217,13 @@ routerAdd(
         <br>
         
         ${financiamentoClause}
-
-        <h3>Cláusula 4ª - Da Documentação</h3>
-        ${documentacaoCompleta}
-        <br>
-
-        <h3>Cláusula 5ª - Das Obrigações</h3>
-        <p>O VENDEDOR obriga-se a transferir o domínio, garantir a habitabilidade e quitar impostos até a data da posse. O COMPRADOR obriga-se ao pagamento do preço, custos de registro e impostos futuros.</p>
-        <br>
-
-        <h3>Cláusula 6ª - Da Posse</h3>
-        <p>A posse do imóvel será transferida com a entrega das chaves, sujeita à penalidade de R$ 300,00 por dia em caso de atraso na desocupação ou entrega.</p>
-        <br>
-
-        <h3>Cláusula 7ª - Das Penalidades</h3>
-        <p>Em caso de rescisão por culpa do COMPRADOR, perderá este o sinal pago. Sendo a culpa do VENDEDOR, devolverá o sinal em dobro. Em caso de atraso, haverá multa de 2% (dois por cento) e juros de 1% (um por cento) ao mês.</p>
-        <br>
-
-        <h3>Cláusula 8ª - Da Rescisão</h3>
-        <p>Caso qualquer das partes descumpra o estipulado, a parte inocente poderá notificar a infratora para sanar a falha, sob pena de rescisão de pleno direito.</p>
-        <br>
-
-        <h3>Cláusula 9ª - Da Legislação</h3>
-        <p>Este contrato é regido pelo Código Civil Brasileiro aplicável à espécie.</p>
-        <br>
-
-        <h3>Cláusula 10ª - Do Foro</h3>
-        <p>Fica eleito o Foro da Comarca do Rio de Janeiro para dirimir quaisquer dúvidas oriundas deste contrato, renunciando a qualquer outro por mais privilegiado que seja.</p>
-        <br>
+        ${documentacaoClause}
+        ${obrigacoesClause}
+        ${posseClause}
+        ${penalidadesClause}
+        ${rescisaoClause}
+        ${legislacaoClause}
+        ${foroClause}
         <p style="text-align: center;">═══════════════════════════════════════════════════════════════════════════</p>
         <br><br>
 

@@ -72,9 +72,10 @@ routerAdd(
 Analise o contrato fornecido (${tipoContrato}) considerando a legislação (Código Civil, STJ, TJRJ) e os Padrões de Alta Rigorosidade da Godoy Prime Realty.
 
 INSTRUÇÕES CRÍTICAS DE AVALIAÇÃO:
-1. DOCUMENTAÇÃO EXAUSTIVA: Verifique se o contrato exige a lista COMPLETA de certidões do vendedor e imóvel (CNDT, Feitos Ajuizados - Federal/Estadual/Trabalhista, Protestos, Objeto e Pé, Ônus Reais, Quitação Fiscal/IPTU e Condominial). Se a lista for "enxuta" ou incompleta, aponte como OMISSÃO CRÍTICA e eleve o risco.
-2. CLÁUSULA DE FINANCIAMENTO: Se houver indícios de financiamento bancário, DEVE existir cláusula que responsabilize o COMPRADOR pela obtenção do crédito e estipule penalidade/prazo para quitação com recursos próprios em caso de negativa. Atrasos bancários não podem isentar o comprador de mora, exceto por culpa do vendedor. Se faltar, aponte como RISCO ALTO.
-3. NÃO ABREVIES CLÁUSULAS: A integridade legal exige precisão. Evite sugerir a "simplificação" de cláusulas protetivas.
+1. DOCUMENTAÇÃO EXAUSTIVA E PRAZO: Verifique se o contrato exige a lista COMPLETA de certidões e se há prazo para apresentação (ex: 10 dias). As certidões do vendedor e imóvel exigidas são: CNDT, Feitos Ajuizados (Federal, Estadual, Trabalhista), Protestos, Objeto e Pé, Ônus Reais, Quitação Fiscal/IPTU e Quitação Condominial. Se a lista estiver completa e o prazo presente, aponte como "conforme". Se faltar algum item, aponte a omissão.
+2. CLÁUSULA DE FINANCIAMENTO: Se houver indícios de financiamento bancário, DEVE existir cláusula que responsabilize o COMPRADOR pela obtenção do crédito e estipule obrigação de quitar com recursos próprios (ex: prazo de 30 dias) em caso de negativa. Atrasos burocráticos do banco não isentam o comprador, salvo culpa do vendedor. Se esta cláusula existir dessa exata forma, está "conforme".
+3. NÃO ABREVIES CLÁUSULAS: A integridade legal exige precisão. Cláusulas de posse, obrigações, penalidades e rescisão devem ser robustas. Se o contrato apresentar o texto padrão da Godoy Prime Realty, considere-o 100% em conformidade.
+4. IMPORTANTE: Não retorne "crítico" ou "risco" para contratos que sigam rigorosamente as instruções 1 e 2. Se o texto gerado estiver de acordo com o padrão estabelecido, o status deve ser "conforme" sem falsos positivos.
 
 Contexto Jurídico (RAG):
 ${contextText}

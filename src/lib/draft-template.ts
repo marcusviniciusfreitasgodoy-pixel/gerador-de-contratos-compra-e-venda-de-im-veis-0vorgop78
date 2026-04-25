@@ -59,10 +59,11 @@ Os pagamentos devidos ao VENDEDOR deverão ser efetuados na seguinte conta banc�
 Banco: ${data.vendedor_banco}, Agência: ${data.vendedor_agencia}, Conta: ${data.vendedor_conta}, Chave Pix: ${data.vendedor_pix}.`
     : ''
 
+  let clauseNum = 4
   const financiamentoClause =
     data.valor_financiado && parseCurrencySafe(data.valor_financiado) > 0
       ? `
-Cláusula 3.1 - Do Financiamento Bancário
+Cláusula ${clauseNum++}ª - Do Financiamento Bancário
 Sendo parte do pagamento realizada através de financiamento bancário, estabelece-se que:
 a) O COMPRADOR é o único e exclusivo responsável pela obtenção, aprovação e liberação do crédito junto à instituição financeira;
 b) Em caso de negativa de crédito por restrições no CPF/nome do COMPRADOR ou por insuficiência de renda, este deverá quitar o saldo devedor com recursos próprios no prazo máximo de 30 (trinta) dias, sob pena de rescisão contratual por sua culpa exclusiva, com a retenção do sinal pago;
@@ -71,21 +72,40 @@ d) O VENDEDOR obriga-se a fornecer toda a documentação pessoal e do imóvel ex
 `
       : ''
 
-  const documentacaoCompleta = `As partes obrigam-se a apresentar as seguintes certidões e documentos:
+  const documentacaoClause = `Cláusula ${clauseNum++}ª - Da Documentação
+As partes obrigam-se a apresentar as seguintes certidões e documentos no prazo de 10 (dez) dias corridos:
 I - VENDEDOR:
 a) Cópia do RG e CPF;
 b) Certidão de Casamento/Nascimento atualizada;
 c) Comprovante de residência atualizado;
 d) Certidão Negativa de Débitos Trabalhistas (CNDT);
-e) Certidão Negativa de Feitos Ajuizados (Justiça Federal, Justiça Estadual Cível e Criminal, Justiça do Trabalho);
+e) Certidões de Feitos Ajuizados (Justiça Federal, Justiça Estadual Cível e Criminal, Justiça do Trabalho);
 f) Certidão de Objeto e Pé (caso haja apontamentos nas certidões anteriores);
-g) Certidão Negativa de Protestos de Títulos da comarca de domicílio do VENDEDOR e da localização do imóvel;
+g) Certidão de Protestos da comarca de domicílio do VENDEDOR e da localização do imóvel;
 
 II - IMÓVEL:
 a) Certidão de Ônus Reais atualizada (com validade de 30 dias);
-b) Certidão de Quitação Fiscal e Enfitêutica (IPTU);
-c) Declaração de Quitação Condominial assinada pelo síndico, com cópia da ata de eleição;
+b) Certidão de Quitação Fiscal/IPTU;
+c) Certidão de Quitação Condominial assinada pelo síndico, com cópia da ata de eleição;
 d) Certidão Negativa de Débitos de Taxa de Incêndio (se aplicável).`
+
+  const obrigacoesClause = `Cláusula ${clauseNum++}ª - Das Obrigações
+O VENDEDOR obriga-se a transferir o domínio, garantir a habitabilidade e quitar impostos e taxas que recaiam sobre o imóvel até a data da imissão na posse. O COMPRADOR obriga-se ao pagamento integral do preço ajustado, suportar os custos com a lavratura da escritura pública, registro imobiliário, imposto de transmissão (ITBI) e demais encargos exigíveis para a transferência da propriedade.`
+
+  const posseClause = `Cláusula ${clauseNum++}ª - Da Posse
+A posse direta do imóvel será transferida ao COMPRADOR com a efetiva entrega das chaves, o que ocorrerá no ato da assinatura da escritura pública definitiva e quitação integral do preço. Em caso de atraso na desocupação ou na entrega das chaves por culpa do VENDEDOR, este ficará sujeito ao pagamento de multa diária de R$ 300,00 (trezentos reais).`
+
+  const penalidadesClause = `Cláusula ${clauseNum++}ª - Das Penalidades
+Em caso de arrependimento ou rescisão por culpa exclusiva do COMPRADOR, este perderá em favor do VENDEDOR o valor dado a título de sinal (arras). Caso a culpa seja do VENDEDOR, este deverá devolver o sinal recebido em dobro, acrescido de atualização monetária. Em caso de mora ou atraso no pagamento de qualquer parcela, incidirá multa moratória de 2% (dois por cento) e juros de mora de 1% (um por cento) ao mês, pro rata die.`
+
+  const rescisaoClause = `Cláusula ${clauseNum++}ª - Da Rescisão
+Caso qualquer das partes descumpra o estipulado neste instrumento, a parte inocente poderá notificar a infratora, concedendo prazo de 15 (quinze) dias para sanar a falha, sob pena de rescisão de pleno direito, arcando a parte culpada com as perdas e danos e multas contratuais.`
+
+  const legislacaoClause = `Cláusula ${clauseNum++}ª - Da Legislação
+Este contrato é regido pelo Código Civil Brasileiro e demais legislações aplicáveis à espécie, declarando as partes que compreendem e aceitam seus termos, os quais refletem a real expressão de suas vontades.`
+
+  const foroClause = `Cláusula ${clauseNum++}ª - Do Foro
+Fica eleito o Foro da Comarca do Rio de Janeiro para dirimir quaisquer dúvidas oriundas deste contrato, renunciando a qualquer outro por mais privilegiado que seja.`
 
   return `${user?.imobiliaria_nome || 'GODOY PRIME REALTY'}
 ═══════════════════════════════════════════════════════════════════════════
@@ -106,27 +126,19 @@ Cláusula 3ª - Do Preço e Condições de Pagamento
 O preço certo e ajustado para a presente compra e venda é de ${formatCurrency(data.valor_total)} (por extenso), que será pago da seguinte forma:
 ${pgtoText}${sellerBankInfo}${brokerBankInfo}
 ${financiamentoClause}
+${documentacaoClause}
 
-Cláusula 4ª - Da Documentação
-${documentacaoCompleta}
+${obrigacoesClause}
 
-Cláusula 5ª - Das Obrigações
-O VENDEDOR obriga-se a transferir o domínio, garantir a habitabilidade e quitar impostos até a data da posse. O COMPRADOR obriga-se ao pagamento do preço, custos de registro e impostos futuros.
+${posseClause}
 
-Cláusula 6ª - Da Posse
-A posse do imóvel será transferida com a entrega das chaves, sujeita à penalidade de R$ 300,00 por dia em caso de atraso na desocupação ou entrega.
+${penalidadesClause}
 
-Cláusula 7ª - Das Penalidades
-Em caso de rescisão por culpa do COMPRADOR, perderá este o sinal pago. Sendo a culpa do VENDEDOR, devolverá o sinal em dobro. Em caso de atraso, haverá multa de 2% (dois por cento) e juros de 1% (um por cento) ao mês.
+${rescisaoClause}
 
-Cláusula 8ª - Da Rescisão
-Caso qualquer das partes descumpra o estipulado, a parte inocente poderá notificar a infratora para sanar a falha, sob pena de rescisão de pleno direito.
+${legislacaoClause}
 
-Cláusula 9ª - Da Legislação
-Este contrato é regido pelo Código Civil Brasileiro aplicável à espécie.
-
-Cláusula 10ª - Do Foro
-Fica eleito o Foro da Comarca do Rio de Janeiro para dirimir quaisquer dúvidas oriundas deste contrato, renunciando a qualquer outro por mais privilegiado que seja.
+${foroClause}
 
 ═══════════════════════════════════════════════════════════════════════════
 
