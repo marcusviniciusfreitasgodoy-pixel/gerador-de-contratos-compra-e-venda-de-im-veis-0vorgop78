@@ -27,20 +27,20 @@ routerAdd(
       let openaiKey = $secrets.get('OPENAI_API_KEY')
 
       if (anthropicKey) {
-        anthropicKey = anthropicKey.trim().replace(/[\x00-\x1F\x7F-\x9F]/g, '')
+        anthropicKey = anthropicKey.replace(/[^\x21-\x7E]/g, '')
       } else {
         anthropicKey = e.auth?.getString('anthropic_api_key')
         if (anthropicKey) {
-          anthropicKey = anthropicKey.trim().replace(/[\x00-\x1F\x7F-\x9F]/g, '')
+          anthropicKey = anthropicKey.replace(/[^\x21-\x7E]/g, '')
         }
       }
 
       if (openaiKey) {
-        openaiKey = openaiKey.trim().replace(/[\x00-\x1F\x7F-\x9F]/g, '')
+        openaiKey = openaiKey.replace(/[^\x21-\x7E]/g, '')
       } else {
         openaiKey = e.auth?.getString('openai_api_key')
         if (openaiKey) {
-          openaiKey = openaiKey.trim().replace(/[\x00-\x1F\x7F-\x9F]/g, '')
+          openaiKey = openaiKey.replace(/[^\x21-\x7E]/g, '')
         }
       }
 

@@ -6,18 +6,15 @@ routerAdd(
     let apiKey = body.apiKey || ''
     let source = 'Provided'
 
-    apiKey = apiKey.trim().replace(/[\x00-\x1F\x7F-\x9F]/g, '')
+    apiKey = apiKey.replace(/[^\x21-\x7E]/g, '')
 
     if (!apiKey) {
       const secretKey = $secrets.get('ANTHROPIC_API_KEY')
       if (secretKey) {
-        apiKey = secretKey.trim().replace(/[\x00-\x1F\x7F-\x9F]/g, '')
+        apiKey = secretKey.replace(/[^\x21-\x7E]/g, '')
         source = 'Secret'
       } else if (e.auth && e.auth.getString('anthropic_api_key')) {
-        apiKey = e.auth
-          .getString('anthropic_api_key')
-          .trim()
-          .replace(/[\x00-\x1F\x7F-\x9F]/g, '')
+        apiKey = e.auth.getString('anthropic_api_key').replace(/[^\x21-\x7E]/g, '')
         source = 'Database'
       }
     }

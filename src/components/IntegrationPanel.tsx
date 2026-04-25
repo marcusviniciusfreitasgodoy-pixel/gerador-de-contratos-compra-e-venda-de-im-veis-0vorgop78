@@ -34,7 +34,8 @@ export function IntegrationPanel() {
   const [activeSource, setActiveSource] = useState<string | null>(null)
 
   const handleTestConnection = async () => {
-    const cleanedKey = apiKey.trim().replace(/[\x00-\x1F\x7F-\x9F\s]/g, '')
+    // Sanitização rigorosa: remove qualquer caractere que não seja ASCII visível (inclui espaços e caracteres de controle)
+    const cleanedKey = apiKey.replace(/[^\x21-\x7E]/g, '')
     if (cleanedKey !== apiKey) {
       setApiKey(cleanedKey)
     }
@@ -70,7 +71,8 @@ export function IntegrationPanel() {
 
   const handleSave = async () => {
     if (!user) return
-    const cleanedKey = apiKey.trim().replace(/[\x00-\x1F\x7F-\x9F\s]/g, '')
+    // Sanitização rigorosa: remove qualquer caractere que não seja ASCII visível (inclui espaços e caracteres de controle)
+    const cleanedKey = apiKey.replace(/[^\x21-\x7E]/g, '')
     if (cleanedKey !== apiKey) {
       setApiKey(cleanedKey)
     }
