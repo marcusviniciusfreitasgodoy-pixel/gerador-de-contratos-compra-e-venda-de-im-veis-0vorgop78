@@ -16,10 +16,14 @@ export default function Layout() {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link
             to="/"
-            className="flex items-center gap-2 text-blue-600 font-bold text-xl transition-transform hover:scale-105"
+            className="flex items-center gap-2 text-slate-800 font-bold text-xl transition-transform hover:scale-105"
           >
-            <FileText className="h-6 w-6" />
-            <span>Gerador de Contratos GPR</span>
+            <img
+              src="https://img.usecurling.com/i?q=real%20estate%20logo&color=blue"
+              alt="Godoy Prime Realty"
+              className="h-8 w-8 object-contain"
+            />
+            <span>Godoy Prime Realty</span>
           </Link>
           <div className="flex items-center gap-4">
             <IntegrationPanel />

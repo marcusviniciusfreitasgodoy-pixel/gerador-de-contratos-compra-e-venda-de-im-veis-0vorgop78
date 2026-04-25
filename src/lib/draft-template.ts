@@ -61,14 +61,14 @@ Banco: ${data.vendedor_banco}, Agência: ${data.vendedor_agencia}, Conta: ${data
 
   let clauseNum = 4
   const financiamentoClause =
-    data.valor_financiado && parseCurrencySafe(data.valor_financiado) > 0
+    data.tipo === 'financiado'
       ? `
 Cláusula ${clauseNum++}ª - Do Financiamento Bancário
-Sendo parte do pagamento realizada através de financiamento bancário, estabelece-se que:
-a) O COMPRADOR é o único e exclusivo responsável pela obtenção, aprovação e liberação do crédito junto à instituição financeira;
-b) Em caso de negativa de crédito por restrições no CPF/nome do COMPRADOR ou por insuficiência de renda, este deverá quitar o saldo devedor com recursos próprios no prazo máximo de 30 (trinta) dias, sob pena de rescisão contratual por sua culpa exclusiva, com a retenção do sinal pago;
-c) Eventuais atrasos no repasse dos valores decorrentes de entraves burocráticos no banco não isentam o COMPRADOR das responsabilidades assumidas, salvo se o atraso for comprovadamente causado por pendências na documentação do VENDEDOR ou do imóvel;
-d) O VENDEDOR obriga-se a fornecer toda a documentação pessoal e do imóvel exigida pelo agente financeiro no prazo assinalado pelo banco.
+Sendo parte do pagamento realizada através de financiamento bancário aprovado pela instituição financeira ${data.instituicao_financeira}, estabelece-se que:
+a) O COMPRADOR é o único e exclusivo responsável pela obtenção, aprovação e liberação do crédito no valor de ${formatCurrency(data.valor_financiado)};
+b) Em caso de negativa de crédito, o COMPRADOR deverá quitar o saldo devedor com recursos próprios no prazo máximo de 30 (trinta) dias, sob pena de rescisão contratual com a retenção do sinal pago;
+c) Eventuais atrasos no repasse não isentam o COMPRADOR das responsabilidades assumidas;
+d) O VENDEDOR obriga-se a fornecer toda a documentação pessoal e do imóvel exigida pelo agente financeiro.
 `
       : ''
 

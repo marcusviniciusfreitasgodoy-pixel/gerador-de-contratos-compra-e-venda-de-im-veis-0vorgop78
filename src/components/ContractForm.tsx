@@ -1,22 +1,18 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Form } from '@/components/ui/form'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Card, CardContent } from '@/components/ui/card'
 import { contractSchema, type ContractFormValues } from '@/lib/schemas'
-import { PersonBlock, PropertyBlock } from './ContractBlocks'
-import {
-  ArrowLeft,
-  Loader2,
-  CheckCircle2,
-  Wand2,
-  FileText,
-  Edit3,
-  AlertCircle,
-  Bot,
-} from 'lucide-react'
-import { createContract, generateContractDocx } from '@/services/contracts'
+import { ArrowLeft, Loader2, CheckCircle2, Bot, Save } from 'lucide-react'
+import { createContract } from '@/services/contracts'
+import { FormInput, FormCurrencyInput, FormMaskedInput, FormSelect } from './FormInput'
+import { toast } from 'sonner'
+import { generateDraftText } from '@/lib/draft-template'
+import { useAuth } from '@/hooks/use-auth'
+import { parseCurrency, formatCurrency } from '@/lib/formatters'
 import {
   Dialog,
   DialogContent,
@@ -26,111 +22,100 @@ import {
 } from '@/components/ui/dialog'
 import { AnalysisReportView, type AnalysisReport } from './AnalysisReportView'
 import pb from '@/lib/pocketbase/client'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { addDays } from 'date-fns'
-import { toast } from 'sonner'
-import { generateDraftText } from '@/lib/draft-template'
-import { useAuth } from '@/hooks/use-auth'
-import { useEffect } from 'react'
-import { parseCurrency, formatCurrency } from '@/lib/formatters'
-import { FormInput, FormCurrencyInput } from './FormInput'
 
-function SellerBankBlock() {
+const ESTADO_CIVIL_OPTIONS = [
+  { label: 'Solteiro(a)', value: 'Solteiro' },
+  { label: 'Casado(a)', value: 'Casado' },
+  { label: 'Divorciado(a)', value: 'Divorciado' },
+  { label: 'Viúvo(a)', value: 'Viúvo' },
+]
+
+const BANCO_OPTIONS = [
+  { label: 'Caixa Econômica Federal', value: 'Caixa Econômica Federal' },
+  { label: 'Itaú', value: 'Itaú' },
+  { label: 'Bradesco', value: 'Bradesco' },
+  { label: 'Santander', value: 'Santander' },
+  { label: 'Banco do Brasil', value: 'Banco do Brasil' },
+  { label: 'Outro', value: 'Outro' },
+]
+
+function PersonTab({ prefix }: { prefix: 'vendedor' | 'comprador' }) {
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
-      <h3 className="font-semibold text-lg text-slate-800">Dados Bancários do Vendedor</h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <FormInput name="vendedor_banco" label="Banco" placeholder="Ex: Itaú" />
-        <FormInput name="vendedor_agencia" label="Agência" placeholder="Ex: 0001" />
-        <FormInput name="vendedor_conta" label="Conta" placeholder="Ex: 12345-6" />
-        <FormInput name="vendedor_pix" label="Chave Pix" placeholder="CPF/Email/Celular" />
-      </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in">
+      <FormInput name={`nome_${prefix}`} label="Nome Completo" placeholder="Nome completo" />
+      <FormMaskedInput
+        name={`cpf_${prefix}`}
+        label="CPF"
+        placeholder="000.000.000-00"
+        maskType="cpf"
+      />
+      <FormInput name={`rg_${prefix}`} label="RG" placeholder="Número do RG" />
+      <FormInput name={`orgao_emissor_${prefix}`} label="Órgão Emissor" placeholder="Ex: SSP/SP" />
+      <FormInput
+        name={`nacionalidade_${prefix}`}
+        label="Nacionalidade"
+        placeholder="Ex: Brasileiro(a)"
+      />
+      <FormSelect
+        name={`estado_civil_${prefix}`}
+        label="Estado Civil"
+        options={ESTADO_CIVIL_OPTIONS}
+      />
+      <FormInput name={`profissao_${prefix}`} label="Profissão" placeholder="Sua profissão" />
+      <FormInput
+        name={`endereco_${prefix}`}
+        label="Endereço Completo"
+        placeholder="Rua, número, bairro, cidade"
+      />
+      <FormInput name={`email_${prefix}`} label="Email" placeholder="email@exemplo.com" />
+      <FormMaskedInput
+        name={`telefone_${prefix}`}
+        label="Telefone"
+        placeholder="(00) 00000-0000"
+        maskType="phone"
+      />
     </div>
   )
 }
 
-function FinancialBlock({ type }: { type: 'a_vista' | 'financiado' }) {
+function PropertyTab() {
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
-      <h3 className="font-semibold text-lg text-slate-800">Valores e Pagamento</h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <FormCurrencyInput name="valor_total" label="Valor Total" placeholder="R$ 0,00" />
-        <FormCurrencyInput name="valor_sinal" label="Valor do Sinal" placeholder="R$ 0,00" />
-        <FormCurrencyInput name="valor_reforco" label="Valor do Reforço" placeholder="R$ 0,00" />
-        <FormCurrencyInput
-          name="valor_complemento"
-          label="Complemento (Na escritura)"
-          placeholder="R$ 0,00"
-        />
-        <FormCurrencyInput name="comissao" label="Comissão Imobiliária" placeholder="R$ 0,00" />
-      </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in">
+      <FormInput name="endereco_imovel" label="Endereço Completo do Imóvel" />
+      <FormInput name="matricula_imovel" label="Matrícula" />
+      <FormInput name="rgi_imovel" label="RGI (Registro de Imóveis)" />
+      <FormInput name="inscricao_municipal" label="Inscrição Municipal (IPTU)" />
+      <FormInput name="area_total" label="Área Total (m²)" type="number" />
+      <FormInput name="vagas_garagem" label="Vagas de Garagem" type="number" />
     </div>
   )
 }
 
-function BalanceCheckBlock({ form, type }: { form: any; type: 'a_vista' | 'financiado' }) {
-  const total = parseCurrency(form.watch('valor_total')) || 0
-  const sinal = parseCurrency(form.watch('valor_sinal')) || 0
-  const reforco = parseCurrency(form.watch('valor_reforco')) || 0
-  const complemento = parseCurrency(form.watch('valor_complemento')) || 0
-  const financiado = type === 'financiado' ? parseCurrency(form.watch('valor_financiado')) || 0 : 0
-
-  const saldo = total - (sinal + reforco + complemento + financiado)
-  const isBalanced = saldo === 0 && total > 0
+function ValuesTab({ type }: { type: 'a_vista' | 'financiado' }) {
+  const { watch } = useFormContext()
+  const total = watch('valor_total')
 
   return (
-    <div
-      className={`mt-8 p-5 rounded-xl border transition-colors ${
-        isBalanced ? 'bg-green-50 border-green-200' : 'bg-amber-50 border-amber-200'
-      }`}
-    >
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h4
-            className={`font-semibold text-lg flex items-center gap-2 ${
-              isBalanced ? 'text-green-800' : 'text-amber-800'
-            }`}
-          >
-            Saldo Final
-            {isBalanced ? (
-              <CheckCircle2 className="w-5 h-5 text-green-600" />
-            ) : (
-              <AlertCircle className="w-5 h-5 text-amber-600" />
-            )}
-          </h4>
-          <p className={`text-sm mt-1 ${isBalanced ? 'text-green-700' : 'text-amber-700'}`}>
-            {isBalanced
-              ? 'Os valores de pagamento batem com o valor total.'
-              : saldo > 0
-                ? `Falta alocar ${formatCurrency(saldo)} do valor total.`
-                : `Os pagamentos excedem o valor total em ${formatCurrency(Math.abs(saldo))}.`}
-          </p>
-        </div>
-        <div
-          className={`text-2xl font-bold px-4 py-2 rounded-lg bg-white/60 shadow-sm ${
-            isBalanced ? 'text-green-700' : 'text-amber-700'
-          }`}
-        >
-          {formatCurrency(saldo)}
-        </div>
+    <div className="space-y-6 animate-in fade-in">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FormCurrencyInput name="valor_sinal" label="Sinal" />
+        {type === 'a_vista' && <FormCurrencyInput name="valor_saldo" label="Saldo" />}
+        {type === 'financiado' && (
+          <>
+            <FormCurrencyInput name="valor_reforco" label="Reforço" />
+            <FormCurrencyInput name="valor_complemento" label="Complemento" />
+            <FormCurrencyInput name="valor_financiado" label="Valor Financiado" />
+            <FormSelect name="instituicao_financeira" label="Banco" options={BANCO_OPTIONS} />
+            <FormInput name="taxa_juros" label="Taxa de Juros (%)" type="number" />
+            <FormInput name="prazo_meses" label="Prazo em Meses" type="number" />
+          </>
+        )}
+        <FormCurrencyInput name="comissao" label="Comissão Imobiliária" />
       </div>
-    </div>
-  )
-}
 
-function FinancingBlock({ type }: { type: 'a_vista' | 'financiado' }) {
-  if (type !== 'financiado') return null
-
-  return (
-    <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
-      <h3 className="font-semibold text-lg text-slate-800">Condições de Financiamento</h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FormCurrencyInput name="valor_financiado" label="Valor Financiado" placeholder="R$ 0,00" />
-        <FormInput
-          name="instituicao_financeira"
-          label="Instituição Financeira"
-          placeholder="Banco"
-        />
+      <div className="p-4 bg-slate-50 border rounded-lg flex justify-between items-center mt-6">
+        <span className="font-semibold text-slate-700">Valor Total Calculado:</span>
+        <span className="text-2xl font-bold text-blue-600">{total || 'R$ 0,00'}</span>
       </div>
     </div>
   )
@@ -145,15 +130,15 @@ export function ContractForm({
 }) {
   const [isGenerating, setIsGenerating] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
-  const [generatedContractId, setGeneratedContractId] = useState<string | null>(null)
-  const [isPreviewMode, setIsPreviewMode] = useState(false)
-  const [draftText, setDraftText] = useState('')
+  const [activeTab, setActiveTab] = useState('vendedor')
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [showAnalysisModal, setShowAnalysisModal] = useState(false)
   const [analysisReport, setAnalysisReport] = useState<AnalysisReport | null>(null)
+  const [generatedContractId, setGeneratedContractId] = useState<string | null>(null)
+  const [draftText, setDraftText] = useState('')
   const { user } = useAuth()
 
-  const handleAnalyzeAI = async (fromSuccess = false) => {
+  const handleAnalyzeAI = async () => {
     setIsAnalyzing(true)
     try {
       const encodedText = btoa(unescape(encodeURIComponent(draftText)))
@@ -163,7 +148,7 @@ export function ContractForm({
           arquivo: encodedText,
           tipo: 'txt',
           tipoContrato: type,
-          contractId: fromSuccess ? generatedContractId : null,
+          contractId: generatedContractId,
         }),
       })
 
@@ -174,10 +159,7 @@ export function ContractForm({
         setShowAnalysisModal(true)
       }
     } catch (err: any) {
-      toast.error('Erro ao analisar contrato.', {
-        description:
-          err.response?.data?.error || err.message || 'Verifique sua conexão ou configuração.',
-      })
+      toast.error('Erro ao analisar contrato.')
     } finally {
       setIsAnalyzing(false)
     }
@@ -187,324 +169,69 @@ export function ContractForm({
     resolver: zodResolver(contractSchema),
     defaultValues: {
       tipo: type,
-      status: 'gerado',
+      status: 'pendente',
     } as any,
     mode: 'onChange',
   })
 
-  const valorTotalStr = form.watch('valor_total')
-  const valorSinalStr = form.watch('valor_sinal')
-  const valorReforcoStr = form.watch('valor_reforco')
-  const valorComplementoStr = form.watch('valor_complemento')
-  const valorFinanciadoStr = form.watch('valor_financiado')
+  const {
+    watch,
+    setValue,
+    formState: { isValid, errors },
+  } = form
+
+  const sinal = watch('valor_sinal')
+  const saldo = watch('valor_saldo')
+  const reforco = watch('valor_reforco')
+  const complemento = watch('valor_complemento')
+  const financiado = watch('valor_financiado')
 
   useEffect(() => {
-    if (!user?.comissao_padrao_percentual) return
-    const total = parseCurrency(valorTotalStr)
-    if (total && total > 0) {
-      const comissaoCalc = total * (user.comissao_padrao_percentual / 100)
-      const formatted = formatCurrency((comissaoCalc * 100).toFixed(0))
-      form.setValue('comissao', formatted, { shouldValidate: true })
+    let total = 0
+    total += parseCurrency(sinal) || 0
+    if (type === 'a_vista') {
+      total += parseCurrency(saldo) || 0
+    } else {
+      total += parseCurrency(reforco) || 0
+      total += parseCurrency(complemento) || 0
+      total += parseCurrency(financiado) || 0
     }
-  }, [valorTotalStr, user?.comissao_padrao_percentual, form])
+    setValue('valor_total', formatCurrency(total), { shouldValidate: true })
+  }, [sinal, saldo, reforco, complemento, financiado, type, setValue])
 
-  useEffect(() => {
-    const total = parseCurrency(valorTotalStr) || 0
-    const sinal = parseCurrency(valorSinalStr) || 0
-    const reforco = parseCurrency(valorReforcoStr) || 0
-    const complemento = parseCurrency(valorComplementoStr) || 0
-    const financiado = type === 'financiado' ? parseCurrency(valorFinanciadoStr) || 0 : 0
-
-    const saldo = total - (sinal + reforco + complemento + financiado)
-    form.setValue('valor_saldo', formatCurrency(saldo), { shouldValidate: true })
-  }, [
-    valorTotalStr,
-    valorSinalStr,
-    valorReforcoStr,
-    valorComplementoStr,
-    valorFinanciadoStr,
-    type,
-    form,
-  ])
-
-  const onSubmit = (data: ContractFormValues) => {
-    setDraftText(generateDraftText(data, user))
-    setIsPreviewMode(true)
-  }
-
-  const handleGenerateFinal = async () => {
+  const onSubmit = async (data: ContractFormValues) => {
     setIsGenerating(true)
     try {
-      const data = form.getValues()
-
-      const payloadForDb = {
-        ...data,
-        valor_total: parseCurrency(data.valor_total),
-        valor_sinal: parseCurrency(data.valor_sinal),
-        valor_reforco: parseCurrency(data.valor_reforco),
-        valor_complemento: parseCurrency(data.valor_complemento),
-        valor_saldo: parseCurrency(data.valor_saldo),
-        valor_financiado: parseCurrency(data.valor_financiado),
-        comissao: parseCurrency(data.comissao),
-      }
-
-      const savedContract = await createContract(payloadForDb as any, draftText)
-      setGeneratedContractId(savedContract.id)
-
-      try {
-        const docxResponse = await generateContractDocx({
-          ...savedContract,
-          user_details: user,
-        })
-
-        if (docxResponse.html && docxResponse.filename) {
-          const blob = new Blob([docxResponse.html], { type: 'application/msword' })
-          const url = window.URL.createObjectURL(blob)
-          const link = document.createElement('a')
-          link.href = url
-          link.download = docxResponse.filename
-          document.body.appendChild(link)
-          link.click()
-          link.remove()
-          window.URL.revokeObjectURL(url)
-        } else if (docxResponse.base64 && docxResponse.filename) {
-          const byteCharacters = atob(docxResponse.base64)
-          const byteNumbers = new Array(byteCharacters.length)
-          for (let i = 0; i < byteCharacters.length; i++) {
-            byteNumbers[i] = byteCharacters.charCodeAt(i)
-          }
-          const byteArray = new Uint8Array(byteNumbers)
-          const blob = new Blob([byteArray], {
-            type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-          })
-
-          const url = window.URL.createObjectURL(blob)
-          const link = document.createElement('a')
-          link.href = url
-          link.download = docxResponse.filename
-          document.body.appendChild(link)
-          link.click()
-          link.remove()
-          window.URL.revokeObjectURL(url)
-        }
-
-        toast.success('Contrato gerado com sucesso!')
-        setIsSuccess(true)
-      } catch (err: any) {
-        toast.error('Erro ao gerar contrato. Tente novamente.', {
-          action: {
-            label: 'Tentar Novamente',
-            onClick: handleGenerateFinal,
-          },
-        })
-      }
-    } catch (error) {
-      toast.error('Erro ao salvar contrato no sistema. Tente novamente.')
+      const txt = generateDraftText(data, user)
+      setDraftText(txt)
+      const saved = await createContract(data, txt)
+      setGeneratedContractId(saved.id)
+      toast.success('Contrato gerado com sucesso!')
+      setIsSuccess(true)
+    } catch (err: any) {
+      toast.error('Erro ao gerar contrato.', { description: 'Tente novamente mais tarde.' })
     } finally {
       setIsGenerating(false)
     }
   }
 
-  const handleFillDummyData = () => {
-    const commonData = {
-      nome_vendedor: 'Marcos da Silva Sauro',
-      cpf_vendedor: '123.456.789-00',
-      rg_vendedor: 'MG-12.345.678',
-      orgao_emissor_vendedor: 'SSP/MG',
-      nacionalidade_vendedor: 'Brasileiro',
-      estado_civil_vendedor: 'Casado',
-      profissao_vendedor: 'Engenheiro',
-      endereco_vendedor: 'Rua das Flores, 123, Bairro Jardim, Belo Horizonte/MG',
-      email_vendedor: 'vendedor.teste@exemplo.com',
-      telefone_vendedor: '(31) 98888-7777',
-
-      nome_comprador: 'Ana Beatriz de Souza',
-      cpf_comprador: '987.654.321-11',
-      rg_comprador: '12.345.678-9',
-      orgao_emissor_comprador: 'DETRAN/RJ',
-      nacionalidade_comprador: 'Brasileira',
-      estado_civil_comprador: 'Solteira',
-      profissao_comprador: 'Advogada',
-      endereco_comprador: 'Av. Atlântica, 456, Copacabana, Rio de Janeiro/RJ',
-      email_comprador: 'comprador.teste@exemplo.com',
-      telefone_comprador: '(21) 99999-8888',
-
-      endereco_imovel: 'Rua Alameda dos Anjos, nº 10, Condomínio Solar, Curitiba/PR',
-      matricula_imovel: '123.456-A',
-      rgi_imovel: '2º Ofício de Registro de Imóveis',
-      inscricao_municipal: '01.02.003.0045.001',
-      area_total: '150.5',
-      vagas_garagem: '2',
-
-      vendedor_banco: 'Banco do Brasil',
-      vendedor_agencia: '1234',
-      vendedor_conta: '56789-0',
-      vendedor_pix: '123.456.789-00',
-
-      valor_total: 'R$ 500.000,00',
-      valor_sinal: 'R$ 50.000,00',
-      comissao: 'R$ 25.000,00',
-    }
-
-    if (type === 'a_vista') {
-      const data = {
-        ...commonData,
-        valor_saldo: 'R$ 0,00',
-        valor_reforco: 'R$ 50.000,00',
-        valor_complemento: 'R$ 400.000,00',
-        valor_financiado: '',
-        instituicao_financeira: '',
-      }
-      Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined) {
-          form.setValue(key as any, value as any, { shouldValidate: true, shouldDirty: true })
-        }
-      })
-    } else {
-      const data = {
-        ...commonData,
-        valor_reforco: 'R$ 25.000,00',
-        valor_complemento: 'R$ 25.000,00',
-        valor_financiado: 'R$ 400.000,00',
-        instituicao_financeira: 'Caixa Econômica Federal',
-        valor_saldo: 'R$ 0,00',
-      }
-      Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined) {
-          form.setValue(key as any, value as any, { shouldValidate: true, shouldDirty: true })
-        }
-      })
-    }
-  }
-
-  if (isPreviewMode && !isSuccess) {
-    return (
-      <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 bg-white border border-slate-200 rounded-xl shadow-sm gap-4">
-          <div className="flex items-center gap-5">
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className="h-12 w-12 rounded-full bg-white"
-              onClick={() => setIsPreviewMode(false)}
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                <Edit3 className="w-5 h-5 text-blue-600" />
-                Visualizar Minuta
-              </h2>
-              <p className="text-slate-600">
-                Edite o texto do contrato antes de gerar o documento final.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-          <div className="bg-slate-50 border-b border-slate-200 px-4 py-3 text-sm text-slate-500 font-medium">
-            Editor de Texto (As alterações serão salvas na versão final)
-          </div>
-          <Textarea
-            value={draftText}
-            onChange={(e) => setDraftText(e.target.value)}
-            className="min-h-[60vh] w-full p-6 text-[15px] font-sans leading-relaxed border-0 focus-visible:ring-0 rounded-none resize-y"
-            placeholder="O texto do contrato aparecerá aqui..."
-          />
-        </div>
-
-        <div className="flex flex-col sm:flex-row justify-end gap-4 pt-4 pb-12">
-          <Button
-            variant="outline"
-            onClick={() => setIsPreviewMode(false)}
-            disabled={isGenerating || isAnalyzing}
-            className="h-14 px-8 text-lg"
-          >
-            Voltar
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={() => handleAnalyzeAI(false)}
-            disabled={isGenerating || isAnalyzing}
-            className="bg-purple-100 hover:bg-purple-200 text-purple-700 h-14 px-6 text-lg border border-purple-200 shadow-sm"
-          >
-            {isAnalyzing ? (
-              <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" /> Analisando...
-              </>
-            ) : (
-              <>
-                <Bot className="w-5 h-5 mr-2" /> Analisar com IA Jurídica
-              </>
-            )}
-          </Button>
-          <Button
-            onClick={handleGenerateFinal}
-            disabled={isGenerating || isAnalyzing}
-            className="bg-blue-600 hover:bg-blue-700 h-14 px-8 text-lg shadow-lg shadow-blue-200"
-          >
-            {isGenerating ? (
-              <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" /> Gerando...
-              </>
-            ) : (
-              <>
-                <FileText className="w-5 h-5 mr-2" /> Gerar Versão Final
-              </>
-            )}
-          </Button>
-        </div>
-
-        <Dialog open={showAnalysisModal} onOpenChange={setShowAnalysisModal}>
-          <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto p-0">
-            <div className="p-6 border-b sticky top-0 bg-white z-10">
-              <DialogTitle className="text-2xl flex items-center gap-2">
-                <Bot className="w-7 h-7 text-purple-600" />
-                Relatório de Análise Jurídica
-              </DialogTitle>
-              <DialogDescription className="text-base mt-2">
-                Análise baseada em jurisprudência e legislação aplicável ao contrato elaborado.
-              </DialogDescription>
-            </div>
-            <div className="p-6">
-              {analysisReport && <AnalysisReportView report={analysisReport} />}
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-    )
-  }
-
   if (isSuccess) {
     return (
-      <div className="text-center space-y-6 py-20 animate-in fade-in slide-in-from-bottom-4 bg-white rounded-2xl shadow-sm border border-slate-100">
+      <div className="text-center space-y-6 py-20 animate-in fade-in slide-in-from-bottom-4 bg-white rounded-2xl shadow-sm border border-slate-100 max-w-2xl mx-auto p-8">
         <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
           <CheckCircle2 size={48} />
         </div>
-        <h2 className="text-4xl font-bold text-slate-800">Contrato gerado com sucesso!</h2>
-        <p className="text-slate-600 text-lg max-w-md mx-auto">
-          O contrato foi salvo no sistema de forma segura.
-        </p>
-
-        <div className="flex flex-col sm:flex-row justify-center gap-4 mt-10">
-          <Button
-            variant="outline"
-            size="lg"
-            className="h-14 px-8 text-base bg-white"
-            onClick={() => {
-              setIsSuccess(false)
-              onBack()
-            }}
-          >
+        <h2 className="text-3xl font-bold text-slate-800">Contrato gerado com sucesso!</h2>
+        <p className="text-slate-600 text-lg">O contrato foi salvo no sistema.</p>
+        <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8">
+          <Button variant="outline" size="lg" onClick={onBack}>
             Novo Contrato
           </Button>
           <Button
             size="lg"
-            onClick={() => handleAnalyzeAI(true)}
+            className="bg-purple-600 hover:bg-purple-700"
+            onClick={handleAnalyzeAI}
             disabled={isAnalyzing}
-            className="bg-purple-600 hover:bg-purple-700 text-white h-14 px-8 text-base shadow-md shadow-purple-200"
           >
             {isAnalyzing ? (
               <>
@@ -538,66 +265,77 @@ export function ContractForm({
     )
   }
 
-  const isValid = form.formState.isValid
-
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="max-w-5xl mx-auto animate-in fade-in space-y-8"
-      >
-        <input type="hidden" {...form.register('tipo')} value={type} />
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 bg-white border border-slate-200 rounded-xl shadow-sm gap-4">
-          <div className="flex items-center gap-5">
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className="h-12 w-12 rounded-full bg-white"
-              onClick={onBack}
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div>
-              <p className="text-sm text-slate-500 font-medium tracking-wide uppercase">
-                Tipo Selecionado
-              </p>
-              <p className="font-bold text-slate-800 text-xl">
-                {type === 'a_vista' ? 'À Vista (Sinal + Saldo)' : 'Financiado'}
-              </p>
-            </div>
-          </div>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={handleFillDummyData}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 font-medium bg-slate-100 hover:bg-slate-200 text-slate-800 transition-colors"
-          >
-            <Wand2 className="w-4 h-4 text-blue-600" />
-            Preencher Dados de Teste
-          </Button>
-        </div>
+    <div className="max-w-4xl mx-auto animate-in fade-in">
+      <Button variant="ghost" onClick={onBack} className="mb-6 -ml-4 text-slate-600">
+        <ArrowLeft className="w-4 h-4 mr-2" /> Voltar
+      </Button>
 
-        <div className="space-y-8">
-          <PersonBlock suffix="_vendedor" title="Dados do Vendedor" />
-          <SellerBankBlock />
-          <PersonBlock suffix="_comprador" title="Dados do Comprador" />
-          <PropertyBlock />
-          <FinancialBlock type={type} />
-          <FinancingBlock type={type} />
-          <BalanceCheckBlock form={form} type={type} />
-        </div>
-        <div className="flex justify-end pt-4 pb-12">
-          <Button
-            type="submit"
-            disabled={!isValid}
-            size="lg"
-            className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-lg h-14 px-10 shadow-lg shadow-blue-200"
-          >
-            Visualizar Minuta
-          </Button>
-        </div>
-      </form>
-    </Form>
+      <Card>
+        <CardContent className="p-6">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="grid grid-cols-4 w-full h-auto p-1 mb-6 bg-slate-100 overflow-x-auto justify-start sm:justify-center">
+                  <TabsTrigger value="vendedor" className="py-2.5 text-sm md:text-base">
+                    Vendedor
+                  </TabsTrigger>
+                  <TabsTrigger value="comprador" className="py-2.5 text-sm md:text-base">
+                    Comprador
+                  </TabsTrigger>
+                  <TabsTrigger value="imovel" className="py-2.5 text-sm md:text-base">
+                    Imóvel
+                  </TabsTrigger>
+                  <TabsTrigger value="valores" className="py-2.5 text-sm md:text-base">
+                    Valores
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="vendedor" className="mt-0 outline-none">
+                  <PersonTab prefix="vendedor" />
+                </TabsContent>
+                <TabsContent value="comprador" className="mt-0 outline-none">
+                  <PersonTab prefix="comprador" />
+                </TabsContent>
+                <TabsContent value="imovel" className="mt-0 outline-none">
+                  <PropertyTab />
+                </TabsContent>
+                <TabsContent value="valores" className="mt-0 outline-none">
+                  <ValuesTab type={type} />
+                </TabsContent>
+              </Tabs>
+
+              <div className="flex flex-col sm:flex-row justify-between items-center pt-6 border-t gap-4">
+                {Object.keys(errors).length > 0 ? (
+                  <p className="text-red-500 text-sm font-medium">
+                    Preencha todos os campos obrigatórios nas abas.
+                  </p>
+                ) : (
+                  <div className="text-sm text-slate-500">
+                    Formulário pronto para gerar contrato.
+                  </div>
+                )}
+                <Button
+                  type="submit"
+                  size="lg"
+                  disabled={!isValid || isGenerating}
+                  className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Gerando minuta...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" /> Gerar Contrato
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </div>
   )
 }

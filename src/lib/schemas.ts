@@ -12,33 +12,29 @@ const parseCurrencySafe = (val: string | undefined | null) => {
 export const contractSchema = z
   .object({
     tipo: z.enum(['a_vista', 'financiado']),
-    status: z.string().default('gerado'),
+    status: z.string().default('pendente'),
 
     nome_vendedor: z.string().min(1, 'Obrigatório'),
     cpf_vendedor: z.string().regex(cpfRegex, 'CPF inválido. Use o formato 000.000.000-00'),
-    rg_vendedor: z.string().min(1, 'RG é obrigatório'),
+    rg_vendedor: z.string().min(1, 'Obrigatório'),
     orgao_emissor_vendedor: z.string().min(1, 'Obrigatório'),
     nacionalidade_vendedor: z.string().min(1, 'Obrigatório'),
     estado_civil_vendedor: z.string().min(1, 'Obrigatório'),
     profissao_vendedor: z.string().min(1, 'Obrigatório'),
     endereco_vendedor: z.string().min(1, 'Obrigatório'),
     email_vendedor: z.string().email('Email inválido'),
-    telefone_vendedor: z
-      .string()
-      .regex(phoneRegex, 'Telefone inválido. Use o formato (00) 00000-0000'),
+    telefone_vendedor: z.string().regex(phoneRegex, 'Telefone inválido'),
 
     nome_comprador: z.string().min(1, 'Obrigatório'),
     cpf_comprador: z.string().regex(cpfRegex, 'CPF inválido. Use o formato 000.000.000-00'),
-    rg_comprador: z.string().min(1, 'RG é obrigatório'),
+    rg_comprador: z.string().min(1, 'Obrigatório'),
     orgao_emissor_comprador: z.string().min(1, 'Obrigatório'),
     nacionalidade_comprador: z.string().min(1, 'Obrigatório'),
     estado_civil_comprador: z.string().min(1, 'Obrigatório'),
     profissao_comprador: z.string().min(1, 'Obrigatório'),
     endereco_comprador: z.string().min(1, 'Obrigatório'),
     email_comprador: z.string().email('Email inválido'),
-    telefone_comprador: z
-      .string()
-      .regex(phoneRegex, 'Telefone inválido. Use o formato (00) 00000-0000'),
+    telefone_comprador: z.string().regex(phoneRegex, 'Telefone inválido'),
 
     endereco_imovel: z.string().min(1, 'Obrigatório'),
     matricula_imovel: z.string().min(1, 'Obrigatório'),
@@ -46,15 +42,6 @@ export const contractSchema = z
     inscricao_municipal: z.string().min(1, 'Obrigatório'),
     area_total: z.string().min(1, 'Obrigatório'),
     vagas_garagem: z.string().min(1, 'Obrigatório'),
-
-    valor_total: z
-      .string()
-      .min(1, 'Obrigatório')
-      .refine((v) => parseCurrencySafe(v) > 0, 'Valor deve ser maior que zero'),
-    vendedor_banco: z.string().optional(),
-    vendedor_agencia: z.string().optional(),
-    vendedor_conta: z.string().optional(),
-    vendedor_pix: z.string().optional(),
 
     valor_sinal: z
       .string()
@@ -66,45 +53,18 @@ export const contractSchema = z
       .refine((v) => parseCurrencySafe(v) > 0, 'Valor deve ser maior que zero'),
 
     valor_reforco: z.string().optional(),
-    valor_complemento: z
-      .string()
-      .min(1, 'Obrigatório')
-      .refine((v) => parseCurrencySafe(v) > 0, 'Valor deve ser maior que zero'),
+    valor_complemento: z.string().optional(),
     valor_saldo: z.string().optional(),
     valor_financiado: z.string().optional(),
+    valor_total: z.string().optional(),
 
     instituicao_financeira: z.string().optional(),
-    data_pagamento_saldo: z.string().optional(),
+    taxa_juros: z.string().optional(),
+    prazo_meses: z.string().optional(),
   })
   .superRefine((data, ctx) => {
-    const total = parseCurrencySafe(data.valor_total)
-    const sinal = parseCurrencySafe(data.valor_sinal)
-    const reforco = parseCurrencySafe(data.valor_reforco)
-    const complemento = parseCurrencySafe(data.valor_complemento)
-
-    if (data.valor_reforco && reforco <= 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Valor deve ser maior que zero',
-        path: ['valor_reforco'],
-      })
-    }
-
-    if (data.tipo === 'a_vista') {
-      const saldoCalc = total - (sinal + reforco + complemento)
-
-      if (saldoCalc !== 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'O saldo final deve ser zero. Aloque todo o valor.',
-          path: ['valor_saldo'],
-        })
-      }
-    }
-
     if (data.tipo === 'financiado') {
       const financiado = parseCurrencySafe(data.valor_financiado)
-
       if (!data.valor_financiado || financiado <= 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -112,13 +72,19 @@ export const contractSchema = z
           path: ['valor_financiado'],
         })
       }
-
-      const saldoCalc = total - (sinal + reforco + complemento + financiado)
-
-      if (saldoCalc !== 0) {
+      if (!data.instituicao_financeira) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'O saldo final deve ser zero. Aloque todo o valor.',
+          message: 'Obrigatório',
+          path: ['instituicao_financeira'],
+        })
+      }
+    } else {
+      const saldo = parseCurrencySafe(data.valor_saldo)
+      if (saldo <= 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Obrigatório para contratos à vista',
           path: ['valor_saldo'],
         })
       }
