@@ -26,18 +26,22 @@ routerAdd(
       let anthropicKey = $secrets.get('ANTHROPIC_API_KEY')
       let openaiKey = $secrets.get('OPENAI_API_KEY')
 
-      if (!anthropicKey) {
-        anthropicKey = e.auth?.getString('anthropic_api_key')
-      }
-      if (!openaiKey) {
-        openaiKey = e.auth?.getString('openai_api_key')
-      }
-
       if (anthropicKey) {
         anthropicKey = anthropicKey.trim().replace(/[\x00-\x1F\x7F-\x9F]/g, '')
+      } else {
+        anthropicKey = e.auth?.getString('anthropic_api_key')
+        if (anthropicKey) {
+          anthropicKey = anthropicKey.trim().replace(/[\x00-\x1F\x7F-\x9F]/g, '')
+        }
       }
+
       if (openaiKey) {
         openaiKey = openaiKey.trim().replace(/[\x00-\x1F\x7F-\x9F]/g, '')
+      } else {
+        openaiKey = e.auth?.getString('openai_api_key')
+        if (openaiKey) {
+          openaiKey = openaiKey.trim().replace(/[\x00-\x1F\x7F-\x9F]/g, '')
+        }
       }
 
       if (!anthropicKey) {
@@ -166,28 +170,6 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
           timeout: 60,
         })
 
-        if (extractRes.statusCode === 400 || extractRes.statusCode === 404) {
-          if (
-            extractRes.json &&
-            extractRes.json.error &&
-            extractRes.json.error.message &&
-            extractRes.json.error.message.toLowerCase().includes('model')
-          ) {
-            imgBody.model = 'claude-3-sonnet-20240229'
-            extractRes = $http.send({
-              url: 'https://api.anthropic.com/v1/messages',
-              method: 'POST',
-              headers: {
-                'x-api-key': anthropicKey,
-                'anthropic-version': '2023-06-01',
-                'content-type': 'application/json',
-              },
-              body: JSON.stringify(imgBody),
-              timeout: 60,
-            })
-          }
-        }
-
         if (extractRes.statusCode === 200) {
           extractedText = extractRes.json.content[0].text
         } else {
@@ -267,28 +249,6 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
         body: JSON.stringify(aiBody),
         timeout: 180,
       })
-
-      if (chatRes.statusCode === 400 || chatRes.statusCode === 404) {
-        if (
-          chatRes.json &&
-          chatRes.json.error &&
-          chatRes.json.error.message &&
-          chatRes.json.error.message.toLowerCase().includes('model')
-        ) {
-          aiBody.model = 'claude-3-sonnet-20240229'
-          chatRes = $http.send({
-            url: 'https://api.anthropic.com/v1/messages',
-            method: 'POST',
-            headers: {
-              'x-api-key': anthropicKey,
-              'anthropic-version': '2023-06-01',
-              'content-type': 'application/json',
-            },
-            body: JSON.stringify(aiBody),
-            timeout: 180,
-          })
-        }
-      }
 
       if (chatRes.statusCode !== 200) {
         $app.logger().error('Anthropic AI failed', 'status', chatRes.statusCode, 'raw', chatRes.raw)

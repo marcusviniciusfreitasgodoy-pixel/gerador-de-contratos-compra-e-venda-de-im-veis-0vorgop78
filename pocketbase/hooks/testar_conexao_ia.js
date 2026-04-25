@@ -42,31 +42,6 @@ routerAdd(
       timeout: 15,
     })
 
-    if (res.statusCode === 400 || res.statusCode === 404) {
-      if (
-        res.json &&
-        res.json.error &&
-        res.json.error.message &&
-        res.json.error.message.toLowerCase().includes('model')
-      ) {
-        res = $http.send({
-          url: 'https://api.anthropic.com/v1/messages',
-          method: 'POST',
-          headers: {
-            'x-api-key': apiKey,
-            'anthropic-version': '2023-06-01',
-            'content-type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'claude-3-sonnet-20240229',
-            max_tokens: 10,
-            messages: [{ role: 'user', content: 'Hello' }],
-          }),
-          timeout: 15,
-        })
-      }
-    }
-
     if (res.statusCode !== 200) {
       let errorMsg = 'Erro ao validar a chave de API.'
       let errorType = 'unknown_error'
