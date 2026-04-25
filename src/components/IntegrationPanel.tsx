@@ -172,6 +172,20 @@ export function IntegrationPanel() {
                   {errorMessage && (
                     <span className="text-xs font-normal mt-1 leading-tight">{errorMessage}</span>
                   )}
+                  {(errorMessage.includes('permission_error') ||
+                    errorMessage.includes('not_found_error') ||
+                    errorMessage.includes('invalid_api_key') ||
+                    errorMessage.includes('insufficient_credits') ||
+                    errorMessage.includes('credit')) && (
+                    <a
+                      href="https://console.anthropic.com/settings/billing"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:text-blue-800 hover:underline mt-1.5 inline-flex items-center gap-1 w-fit"
+                    >
+                      Verificar Status da Conta <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
                 </span>
               )}
             </div>
