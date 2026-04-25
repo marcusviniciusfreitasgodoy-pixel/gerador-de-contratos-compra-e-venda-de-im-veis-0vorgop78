@@ -194,13 +194,12 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
           extractedText = extractRes.json.content[0].text
         } else {
           let imgErrType = 'unknown_error'
+          let imgErrMsg = 'Erro desconhecido'
           if (extractRes.json && extractRes.json.error) {
             imgErrType = extractRes.json.error.type || imgErrType
+            imgErrMsg = extractRes.json.error.message || imgErrMsg
           }
-          throw new Error(
-            `Falha na extração da imagem com Anthropic: [${imgErrType}] ` +
-              (extractRes.json?.error?.message || 'Erro desconhecido'),
-          )
+          throw new Error(`[${imgErrType}] ${imgErrMsg}`)
         }
       } else if (tipo === 'txt') {
         extractedText = arquivo
@@ -382,9 +381,10 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
       return e.json(200, analysisResult)
     } catch (err) {
       $app.logger().error('Erro na rota analisar-contrato', 'error', err.message)
-      return e.badRequestError(
-        'Não consegui analisar o contrato. Verifique o arquivo e tente novamente.',
-      )
+      const errorMsg = err.message.startsWith('[')
+        ? err.message
+        : 'Não consegui analisar o contrato. Verifique o arquivo e tente novamente.'
+      return e.badRequestError(errorMsg)
     }
   },
   $apis.requireAuth(),

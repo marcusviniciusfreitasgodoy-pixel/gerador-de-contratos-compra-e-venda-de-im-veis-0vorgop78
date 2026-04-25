@@ -28,8 +28,8 @@ routerAdd(
 
     let reqBody = {
       model: 'claude-3-5-sonnet-20240620',
-      max_tokens: 10,
-      messages: [{ role: 'user', content: 'Hello' }],
+      max_tokens: 5,
+      messages: [{ role: 'user', content: 'Say "ok"' }],
     }
 
     let res = $http.send({

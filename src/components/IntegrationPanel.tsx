@@ -145,10 +145,10 @@ export function IntegrationPanel() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-2">
-            <div className="flex items-center gap-2">
+          <div className="flex items-start justify-between pt-2">
+            <div className="flex items-start gap-2">
               {status === 'success' && (
-                <span className="flex flex-col text-sm text-green-600 font-medium">
+                <div className="flex flex-col text-sm text-green-600 font-medium">
                   <span className="flex items-center">
                     <CheckCircle2 className="w-4 h-4 mr-1" /> Conexão estabelecida com sucesso
                   </span>
@@ -162,15 +162,17 @@ export function IntegrationPanel() {
                           : 'Chave Fornecida'}
                     </span>
                   )}
-                </span>
+                </div>
               )}
               {status === 'error' && (
-                <span className="flex flex-col text-sm text-red-600 font-medium max-w-[300px]">
-                  <span className="flex items-center">
-                    <XCircle className="w-4 h-4 mr-1 shrink-0" /> Erro na Validação
+                <div className="flex flex-col text-sm text-red-600 font-medium max-w-[280px]">
+                  <span className="flex items-center gap-1">
+                    <XCircle className="w-4 h-4 shrink-0" /> Erro na Validação
                   </span>
                   {errorMessage && (
-                    <span className="text-xs font-normal mt-1 leading-tight">{errorMessage}</span>
+                    <span className="text-xs font-normal mt-1 leading-tight text-red-500 break-words">
+                      {errorMessage}
+                    </span>
                   )}
                   {(errorMessage.includes('permission_error') ||
                     errorMessage.includes('not_found_error') ||
@@ -181,23 +183,25 @@ export function IntegrationPanel() {
                       href="https://console.anthropic.com/settings/billing"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-blue-600 hover:text-blue-800 hover:underline mt-1.5 inline-flex items-center gap-1 w-fit"
+                      className="text-xs text-blue-600 hover:text-blue-800 hover:underline mt-2 inline-flex items-center gap-1 w-fit"
                     >
                       Verificar Status da Conta <ExternalLink className="w-3 h-3" />
                     </a>
                   )}
-                </span>
+                </div>
               )}
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleTestConnection}
-              disabled={isTesting}
-            >
-              {isTesting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {isTesting ? 'Testando...' : 'Testar Conexão'}
-            </Button>
+            <div className="pt-0.5">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleTestConnection}
+                disabled={isTesting}
+              >
+                {isTesting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                {isTesting ? 'Testando...' : 'Testar Conexão'}
+              </Button>
+            </div>
           </div>
         </div>
 
