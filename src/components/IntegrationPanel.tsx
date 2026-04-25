@@ -10,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Settings, Eye, EyeOff, Loader2, CheckCircle2, XCircle } from 'lucide-react'
+import { Settings, Eye, EyeOff, Loader2, CheckCircle2, XCircle, ExternalLink } from 'lucide-react'
 import pb from '@/lib/pocketbase/client'
 import { toast } from 'sonner'
 import { useAuth } from '@/hooks/use-auth'
@@ -25,8 +25,8 @@ export function IntegrationPanel() {
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle')
 
   useEffect(() => {
-    if (user?.gemini_api_key) {
-      setApiKey(user.gemini_api_key)
+    if (user?.openai_api_key) {
+      setApiKey(user.openai_api_key)
     }
   }, [user])
 
@@ -57,7 +57,7 @@ export function IntegrationPanel() {
     if (!user) return
     setIsSaving(true)
     try {
-      await pb.collection('users').update(user.id, { gemini_api_key: apiKey.trim() })
+      await pb.collection('users').update(user.id, { openai_api_key: apiKey.trim() })
       toast.success('Configurações salvas com sucesso!')
       setIsOpen(false)
     } catch (err) {
@@ -86,19 +86,41 @@ export function IntegrationPanel() {
             Configurações de Integração
           </DialogTitle>
           <DialogDescription>
-            Configure sua chave da API do Gemini para habilitar a análise jurídica avançada de
+            Configure sua chave da API da OpenAI para habilitar a análise jurídica avançada de
             contratos.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
+          <div className="bg-blue-50 text-blue-800 p-4 rounded-lg text-sm space-y-2">
+            <p className="font-semibold">Como obter sua chave:</p>
+            <ol className="list-decimal list-inside space-y-1 ml-1 text-blue-700/90">
+              <li>
+                Acesse o{' '}
+                <a
+                  href="https://platform.openai.com/api-keys"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 font-medium hover:underline inline-flex items-center gap-1"
+                >
+                  OpenAI Dashboard <ExternalLink className="w-3 h-3" />
+                </a>
+              </li>
+              <li>
+                Clique em <strong className="font-semibold">"Create new secret key"</strong>.
+              </li>
+              <li>Copie a chave gerada garantindo que não haja espaços.</li>
+              <li>Cole no campo abaixo.</li>
+            </ol>
+          </div>
+
           <div className="space-y-2">
-            <Label htmlFor="apiKey">Chave da API (Gemini)</Label>
+            <Label htmlFor="apiKey">Chave da API (OpenAI)</Label>
             <div className="relative">
               <Input
                 id="apiKey"
                 type={showKey ? 'text' : 'password'}
-                placeholder="AIzaSy..."
+                placeholder="sk-proj-..."
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value.trim())}
                 className="pr-10"
@@ -116,12 +138,12 @@ export function IntegrationPanel() {
           <div className="flex items-center justify-between pt-2">
             <div className="flex items-center gap-2">
               {status === 'success' && (
-                <span className="flex items-center text-sm text-green-600">
-                  <CheckCircle2 className="w-4 h-4 mr-1" /> Conectado
+                <span className="flex items-center text-sm text-green-600 font-medium">
+                  <CheckCircle2 className="w-4 h-4 mr-1" /> Conexão bem-sucedida
                 </span>
               )}
               {status === 'error' && (
-                <span className="flex items-center text-sm text-red-600">
+                <span className="flex items-center text-sm text-red-600 font-medium">
                   <XCircle className="w-4 h-4 mr-1" /> Falha na conexão
                 </span>
               )}

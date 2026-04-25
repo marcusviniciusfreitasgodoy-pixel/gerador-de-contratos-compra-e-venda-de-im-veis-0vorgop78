@@ -26,10 +26,9 @@ routerAdd(
         arquivo = arquivo.replace(/\s{2,}/g, ' ').trim()
       }
 
-      const geminiKey = e.auth?.getString('gemini_api_key') || $secrets.get('GEMINI_API_KEY')
-      const openaiKey = $secrets.get('OPENAI_API_KEY')
+      const openaiKey = e.auth?.getString('openai_api_key') || $secrets.get('OPENAI_API_KEY')
 
-      if (!geminiKey && !openaiKey) {
+      if (!openaiKey) {
         return e.badRequestError(
           'Configure sua chave de IA no painel de integração para habilitar esta função.',
         )
@@ -111,202 +110,128 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
 }`
 
       let analysisResult = null
+      let extractedText = ''
 
-      if (geminiKey) {
-        let mimeType = 'application/pdf'
-        if (tipo === 'imagem' || tipo === 'image') mimeType = 'image/jpeg'
-        if (tipo === 'docx')
-          mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-        if (tipo === 'txt') mimeType = 'text/plain'
-
-        const parts = [{ text: `Por favor, analise este contrato do tipo ${tipoContrato}.` }]
-
-        if (tipo === 'txt') {
-          parts.push({ text: arquivo })
-        } else {
-          parts.push({ inline_data: { mime_type: mimeType, data: arquivo } })
-        }
-
-        // Changed to gemini-1.5-pro to resolve model not found/supported issues for v1beta
-        const chatRes = $http.send({
-          url: `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=${geminiKey}`,
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            systemInstruction: { parts: [{ text: systemPrompt }] },
-            contents: [
-              {
-                role: 'user',
-                parts: parts,
-              },
-            ],
-            generationConfig: {
-              temperature: 0.1,
-              responseMimeType: 'application/json',
-            },
-          }),
-          timeout: 120,
-        })
-
-        if (chatRes.statusCode !== 200) {
-          $app.logger().error('Gemini AI failed', 'status', chatRes.statusCode, 'raw', chatRes.raw)
-
-          if (chatRes.statusCode === 429) {
-            return e.badRequestError('Limite de uso excedido.')
-          } else if (
-            chatRes.statusCode === 400 ||
-            chatRes.statusCode === 401 ||
-            chatRes.statusCode === 403 ||
-            chatRes.statusCode === 404
-          ) {
-            return e.badRequestError(
-              'Chave de API inválida. Por favor, revise suas configurações de integração no painel de servidor.',
-            )
-          }
-
-          return e.internalServerError(
-            'Falha na comunicação. O serviço de IA está temporariamente indisponível.',
-          )
-        }
-
-        try {
-          let textRes = chatRes.json.candidates[0].content.parts[0].text
-          textRes = textRes
-            .replace(/```json/g, '')
-            .replace(/```/g, '')
-            .trim()
-          analysisResult = JSON.parse(textRes)
-        } catch (parseErr) {
-          $app.logger().error('Gemini JSON parse failed', 'error', parseErr.message)
-          return e.json(500, {
-            error:
-              'Unable to analyze the document. Please ensure the file contains readable text or check your AI configuration.',
-          })
-        }
-      } else if (openaiKey) {
-        let extractedText = ''
-        if (tipo === 'imagem' || tipo === 'image') {
-          const extractRes = $http.send({
-            url: 'https://api.openai.com/v1/chat/completions',
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + openaiKey },
-            body: JSON.stringify({
-              model: 'gpt-4o',
-              messages: [
-                {
-                  role: 'user',
-                  content: [
-                    {
-                      type: 'text',
-                      text: 'Extraia o texto legível desta imagem. Retorne apenas o texto.',
-                    },
-                    { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${arquivo}` } },
-                  ],
-                },
-              ],
-            }),
-            timeout: 60,
-          })
-          if (extractRes.statusCode === 200) {
-            extractedText = extractRes.json.choices[0].message.content
-          } else {
-            throw new Error('Falha na extração da imagem com OpenAI.')
-          }
-        } else if (tipo === 'txt') {
-          extractedText = arquivo
-        } else {
-          try {
-            const atobFn =
-              typeof atob !== 'undefined'
-                ? atob
-                : (str) => {
-                    const chars =
-                      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/='
-                    let output = ''
-                    str = String(str).replace(/[=]+$/, '')
-                    for (
-                      let bc = 0, bs, buffer, idx = 0;
-                      (buffer = str.charAt(idx++));
-                      ~buffer && ((bs = bc % 4 ? bs * 64 + buffer : buffer), bc++ % 4)
-                        ? (output += String.fromCharCode(255 & (bs >> ((-2 * bc) & 6))))
-                        : 0
-                    ) {
-                      buffer = chars.indexOf(buffer)
-                    }
-                    return output
-                  }
-            const binStr = atobFn(arquivo)
-            try {
-              extractedText = decodeURIComponent(escape(binStr))
-            } catch (err) {
-              extractedText = binStr
-            }
-          } catch (e) {
-            extractedText = arquivo
-          }
-        }
-
-        if (extractedText.length > 200000) {
-          extractedText = extractedText.substring(0, 200000)
-        }
-
-        const chatRes = $http.send({
+      if (tipo === 'imagem' || tipo === 'image') {
+        const extractRes = $http.send({
           url: 'https://api.openai.com/v1/chat/completions',
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + openaiKey },
           body: JSON.stringify({
-            model: 'gpt-4o-mini',
+            model: 'gpt-4o',
             messages: [
-              { role: 'system', content: systemPrompt },
               {
                 role: 'user',
-                content: `Analise este contrato (${tipoContrato}):\n\n${extractedText}`,
+                content: [
+                  {
+                    type: 'text',
+                    text: 'Extraia o texto legível desta imagem. Retorne apenas o texto.',
+                  },
+                  { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${arquivo}` } },
+                ],
               },
             ],
-            response_format: { type: 'json_object' },
-            temperature: 0.1,
           }),
-          timeout: 120,
+          timeout: 60,
         })
-
-        if (chatRes.statusCode !== 200) {
-          $app.logger().error('OpenAI AI failed', 'status', chatRes.statusCode, 'raw', chatRes.raw)
-
-          if (chatRes.statusCode === 429) {
-            return e.badRequestError('Limite de uso excedido.')
-          } else if (
-            chatRes.statusCode === 400 ||
-            chatRes.statusCode === 401 ||
-            chatRes.statusCode === 403 ||
-            chatRes.statusCode === 404
-          ) {
-            return e.badRequestError(
-              'Chave de API inválida. Por favor, revise suas configurações de integração no painel de servidor.',
-            )
+        if (extractRes.statusCode === 200) {
+          extractedText = extractRes.json.choices[0].message.content
+        } else {
+          throw new Error('Falha na extração da imagem com OpenAI.')
+        }
+      } else if (tipo === 'txt') {
+        extractedText = arquivo
+      } else {
+        try {
+          const atobFn =
+            typeof atob !== 'undefined'
+              ? atob
+              : (str) => {
+                  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/='
+                  let output = ''
+                  str = String(str).replace(/[=]+$/, '')
+                  for (
+                    let bc = 0, bs, buffer, idx = 0;
+                    (buffer = str.charAt(idx++));
+                    ~buffer && ((bs = bc % 4 ? bs * 64 + buffer : buffer), bc++ % 4)
+                      ? (output += String.fromCharCode(255 & (bs >> ((-2 * bc) & 6))))
+                      : 0
+                  ) {
+                    buffer = chars.indexOf(buffer)
+                  }
+                  return output
+                }
+          const binStr = atobFn(arquivo)
+          try {
+            extractedText = decodeURIComponent(escape(binStr))
+          } catch (err) {
+            extractedText = binStr
           }
+        } catch (e) {
+          extractedText = arquivo
+        }
+      }
 
-          return e.internalServerError(
-            'Falha na comunicação. O serviço de IA está temporariamente indisponível.',
+      if (extractedText.length > 200000) {
+        extractedText = extractedText.substring(0, 200000)
+      }
+
+      const chatRes = $http.send({
+        url: 'https://api.openai.com/v1/chat/completions',
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + openaiKey },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            {
+              role: 'user',
+              content: `Analise este contrato (${tipoContrato}):\n\n${extractedText}`,
+            },
+          ],
+          response_format: { type: 'json_object' },
+          temperature: 0.1,
+        }),
+        timeout: 120,
+      })
+
+      if (chatRes.statusCode !== 200) {
+        $app.logger().error('OpenAI AI failed', 'status', chatRes.statusCode, 'raw', chatRes.raw)
+
+        if (chatRes.statusCode === 429) {
+          return e.badRequestError('Limite de uso excedido.')
+        } else if (
+          chatRes.statusCode === 400 ||
+          chatRes.statusCode === 401 ||
+          chatRes.statusCode === 403 ||
+          chatRes.statusCode === 404
+        ) {
+          return e.badRequestError(
+            'Chave de API inválida. Por favor, revise suas configurações de integração no painel de servidor.',
           )
         }
 
-        try {
-          analysisResult = JSON.parse(chatRes.json.choices[0].message.content)
-        } catch (parseErr) {
-          $app
-            .logger()
-            .error(
-              'JSON Parse failed',
-              'error',
-              parseErr.message,
-              'content',
-              chatRes.json.choices[0].message.content,
-            )
-          return e.json(500, {
-            error:
-              'Unable to analyze the document. Please ensure the file contains readable text or check your AI configuration.',
-          })
-        }
+        return e.internalServerError(
+          'Falha na comunicação. O serviço de IA está temporariamente indisponível.',
+        )
+      }
+
+      try {
+        analysisResult = JSON.parse(chatRes.json.choices[0].message.content)
+      } catch (parseErr) {
+        $app
+          .logger()
+          .error(
+            'JSON Parse failed',
+            'error',
+            parseErr.message,
+            'content',
+            chatRes.json.choices[0].message.content,
+          )
+        return e.json(500, {
+          error:
+            'Unable to analyze the document. Please ensure the file contains readable text or check your AI configuration.',
+        })
       }
 
       try {
