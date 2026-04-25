@@ -1,175 +1,63 @@
-import { useState, useEffect } from 'react'
-import { ContractTypeSelector } from '@/components/ContractTypeSelector'
+import { useState } from 'react'
 import { ContractForm } from '@/components/ContractForm'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { FileText, Bot, Calendar, Plus } from 'lucide-react'
-import { Link } from 'react-router-dom'
-import pb from '@/lib/pocketbase/client'
-import { useRealtime } from '@/hooks/use-realtime'
-import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
-import { Badge } from '@/components/ui/badge'
+import { CircleDollarSign, Landmark } from 'lucide-react'
 
 export default function Home() {
-  const [contractType, setContractType] = useState<'a_vista' | 'financiado' | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [contracts, setContracts] = useState<any[]>([])
-  const [fetching, setFetching] = useState(true)
-  const [isCreating, setIsCreating] = useState(false)
+  const [type, setType] = useState<'a_vista' | 'financiado' | null>(null)
 
-  const loadContracts = async () => {
-    try {
-      const records = await pb.collection('contracts').getList(1, 50, {
-        sort: '-created',
-      })
-      setContracts(records.items)
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setFetching(false)
-    }
-  }
-
-  useEffect(() => {
-    loadContracts()
-  }, [])
-
-  useRealtime('contracts', () => {
-    loadContracts()
-  })
-
-  const handleSelect = (type: 'a_vista' | 'financiado') => {
-    setIsLoading(true)
-    setTimeout(() => {
-      setContractType(type)
-      setIsLoading(false)
-    }, 600)
-  }
-
-  if (isLoading) {
+  if (type) {
     return (
-      <div className="container mx-auto py-12 px-4 max-w-5xl animate-in fade-in space-y-8">
-        <Skeleton className="h-[90px] w-full rounded-xl bg-slate-200" />
-        <Skeleton className="h-[450px] w-full rounded-xl bg-slate-200" />
-        <Skeleton className="h-[450px] w-full rounded-xl bg-slate-200" />
-      </div>
-    )
-  }
-
-  if (contractType) {
-    return (
-      <div className="container mx-auto py-12 px-4 max-w-5xl animate-in fade-in">
-        <ContractForm
-          type={contractType}
-          onBack={() => {
-            setContractType(null)
-            setIsCreating(true)
-          }}
-        />
-      </div>
-    )
-  }
-
-  if (isCreating) {
-    return (
-      <div className="container mx-auto py-12 px-4 max-w-5xl animate-in fade-in">
-        <div className="mb-8">
-          <Button variant="ghost" onClick={() => setIsCreating(false)} className="mb-4">
-            &larr; Voltar para Meus Contratos
-          </Button>
-          <div className="text-center mb-10">
-            <h1 className="text-4xl md:text-5xl font-extrabold mb-4 text-slate-900 tracking-tight">
-              Selecione o Modelo
-            </h1>
-            <p className="text-slate-500 text-lg md:text-xl max-w-2xl mx-auto">
-              Escolha o tipo de contrato que deseja gerar (padrão Godoy Prime Realty).
-            </p>
-          </div>
-          <ContractTypeSelector onSelect={handleSelect} />
-        </div>
+      <div className="container mx-auto py-8 px-4">
+        <ContractForm type={type} onBack={() => setType(null)} />
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto py-12 px-4 max-w-5xl animate-in fade-in">
-      <div className="mb-10">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+    <div className="container mx-auto py-12 px-4 max-w-4xl animate-in fade-in">
+      <div className="text-center mb-12">
+        <h1 className="text-4xl font-bold text-slate-800">Gerador de Contratos Imobiliários</h1>
+        <p className="text-slate-600 mt-4 text-lg">Crie minutas de compra e venda em segundos</p>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-8">
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md hover:border-blue-300 transition-all text-center flex flex-col justify-between group cursor-pointer">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-2">Meus Contratos</h1>
-            <p className="text-slate-600 text-lg">
-              Histórico de contratos gerados e análises jurídicas.
+            <div className="mx-auto w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <CircleDollarSign className="h-10 w-10" />
+            </div>
+            <h2 className="text-2xl font-bold mb-4 text-slate-800">Compra e Venda À Vista</h2>
+            <p className="text-slate-600 mb-8 text-[15px]">
+              Sinal + Saldo. Pagamento integral antes da escritura.
             </p>
           </div>
           <Button
-            onClick={() => setIsCreating(true)}
-            size="lg"
-            className="bg-purple-600 hover:bg-purple-700 text-white shadow-md w-full md:w-auto"
+            onClick={() => setType('a_vista')}
+            className="w-full h-12 text-lg bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-200"
           >
-            <Plus className="w-5 h-5 mr-2" /> Gerar Novo Contrato
+            Começar
           </Button>
         </div>
-      </div>
-
-      <div className="pt-6 border-t border-slate-200">
-        {fetching ? (
-          <div className="space-y-4">
-            <Skeleton className="h-24 w-full rounded-xl" />
-            <Skeleton className="h-24 w-full rounded-xl" />
-            <Skeleton className="h-24 w-full rounded-xl" />
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md hover:border-emerald-300 transition-all text-center flex flex-col justify-between group cursor-pointer">
+          <div>
+            <div className="mx-auto w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <Landmark className="h-10 w-10" />
+            </div>
+            <h2 className="text-2xl font-bold mb-4 text-slate-800">
+              Compra e Venda com Financiamento
+            </h2>
+            <p className="text-slate-600 mb-8 text-[15px]">
+              Sinal + Reforço + Complemento + Financiado. Com aprovação bancária.
+            </p>
           </div>
-        ) : contracts.length === 0 ? (
-          <div className="text-center py-16 bg-slate-50 rounded-2xl border border-slate-200">
-            <FileText className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <h3 className="text-lg font-medium text-slate-700">Nenhum contrato gerado</h3>
-            <p className="text-slate-500 mt-1">Os contratos que você gerar aparecerão aqui.</p>
-          </div>
-        ) : (
-          <div className="grid gap-4 animate-in fade-in">
-            {contracts.map((contract) => (
-              <Card key={contract.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <Badge className="bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100">
-                        {contract.tipo === 'a_vista'
-                          ? 'À Vista'
-                          : contract.tipo === 'financiado'
-                            ? 'Financiado'
-                            : contract.tipo}
-                      </Badge>
-                      <span className="text-sm text-slate-500 flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
-                        {format(new Date(contract.created), "dd 'de' MMM, yyyy", { locale: ptBR })}
-                      </span>
-                    </div>
-                    <h3 className="font-semibold text-slate-800 text-lg">
-                      {contract.nome_vendedor || 'Vendedor Não Informado'} &rarr;{' '}
-                      {contract.nome_comprador || 'Comprador Não Informado'}
-                    </h3>
-                    <p className="text-slate-600 text-sm mt-1 line-clamp-1">
-                      {contract.endereco_imovel || 'Endereço não informado'}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3 w-full sm:w-auto">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      asChild
-                      className="w-full sm:w-auto text-purple-700 border-purple-200 hover:bg-purple-50"
-                    >
-                      <Link to={`/analysis?contractId=${contract.id}`}>
-                        <Bot className="w-4 h-4 mr-2" /> Analisar com IA
-                      </Link>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+          <Button
+            onClick={() => setType('financiado')}
+            className="w-full h-12 text-lg bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-200"
+          >
+            Começar
+          </Button>
+        </div>
       </div>
     </div>
   )
