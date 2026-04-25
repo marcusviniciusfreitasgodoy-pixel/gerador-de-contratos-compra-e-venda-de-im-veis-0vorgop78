@@ -45,12 +45,13 @@ export function IntegrationPanel() {
       })
       setStatus('success')
       setErrorMessage('')
-      toast.success('Conexão estabelecida com sucesso!')
+      toast.success('Conexão estabelecida e chave salva com sucesso!')
+      setTimeout(() => setIsOpen(false), 1500)
     } catch (err: any) {
       setStatus('error')
       const msg = err.response?.message || err.message || 'Erro ao validar a chave de API.'
       setErrorMessage(msg)
-      toast.error('Erro ao validar a chave de API.', { description: msg })
+      toast.error('Erro na Validação', { description: msg })
     } finally {
       setIsTesting(false)
     }
@@ -125,7 +126,7 @@ export function IntegrationPanel() {
                 type={showKey ? 'text' : 'password'}
                 placeholder="sk-ant-..."
                 value={apiKey}
-                onChange={(e) => setApiKey(e.target.value.trim())}
+                onChange={(e) => setApiKey(e.target.value)}
                 className="pr-10"
               />
               <button

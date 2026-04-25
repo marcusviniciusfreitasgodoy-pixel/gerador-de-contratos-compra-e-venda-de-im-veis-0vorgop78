@@ -226,22 +226,16 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
       if (chatRes.statusCode !== 200) {
         $app.logger().error('Anthropic AI failed', 'status', chatRes.statusCode, 'raw', chatRes.raw)
 
-        if (chatRes.statusCode === 429) {
-          return e.badRequestError('Limite de uso excedido.')
-        } else if (
-          chatRes.statusCode === 400 ||
-          chatRes.statusCode === 401 ||
-          chatRes.statusCode === 403 ||
-          chatRes.statusCode === 404
-        ) {
-          return e.badRequestError(
-            'Chave de API inválida. Por favor, revise suas configurações de integração no painel de servidor.',
-          )
+        let errMsg = 'Falha na comunicação com o serviço de IA.'
+        if (chatRes.json && chatRes.json.error && chatRes.json.error.message) {
+          errMsg = chatRes.json.error.message
+        } else if (chatRes.statusCode === 429) {
+          errMsg = 'Limite de uso excedido da Anthropic.'
+        } else if (chatRes.statusCode === 401 || chatRes.statusCode === 403) {
+          errMsg = 'Chave de API inválida ou sem permissões.'
         }
 
-        return e.internalServerError(
-          'Falha na comunicação. O serviço de IA está temporariamente indisponível.',
-        )
+        return e.badRequestError(errMsg)
       }
 
       try {
