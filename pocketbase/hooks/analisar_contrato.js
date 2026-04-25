@@ -116,7 +116,7 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
         }
 
         const chatRes = $http.send({
-          url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${geminiKey}`,
+          url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${geminiKey}`,
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -137,13 +137,9 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
 
         if (chatRes.statusCode !== 200) {
           $app.logger().error('Gemini AI failed', 'status', chatRes.statusCode, 'raw', chatRes.raw)
-          let errorDetail = 'O arquivo pode ser muito grande ou a API está indisponível.'
-          try {
-            if (chatRes.json && chatRes.json.error && chatRes.json.error.message) {
-              errorDetail = chatRes.json.error.message
-            }
-          } catch (_) {}
-          return e.badRequestError(`Erro na análise da IA (Gemini): ${errorDetail}`)
+          return e.badRequestError(
+            'O serviço de IA está temporariamente indisponível ou a chave de API é inválida. Por favor, verifique suas configurações e tente novamente.',
+          )
         }
 
         try {
@@ -244,13 +240,9 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
 
         if (chatRes.statusCode !== 200) {
           $app.logger().error('OpenAI AI failed', 'status', chatRes.statusCode, 'raw', chatRes.raw)
-          let errorDetail = 'O arquivo pode ser muito grande ou a API está indisponível.'
-          try {
-            if (chatRes.json && chatRes.json.error && chatRes.json.error.message) {
-              errorDetail = chatRes.json.error.message
-            }
-          } catch (_) {}
-          return e.badRequestError(`Erro na análise da IA (OpenAI): ${errorDetail}`)
+          return e.badRequestError(
+            'O serviço de IA (OpenAI) está temporariamente indisponível ou a chave de API é inválida. Por favor, verifique suas configurações e tente novamente.',
+          )
         }
 
         try {

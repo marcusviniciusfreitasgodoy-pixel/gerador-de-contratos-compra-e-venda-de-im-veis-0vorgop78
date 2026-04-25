@@ -121,19 +121,22 @@ export default function AIAnalysis() {
     } catch (error: any) {
       clearTimeout(timeoutId)
       console.error(error)
-      let msg = 'Não foi possível analisar o documento. Verifique se há texto legível.'
+      let msg =
+        'Não foi possível analisar o documento. Verifique se há texto legível e tente novamente.'
 
       if (error.name === 'AbortError') {
         msg =
           'A análise expirou após 2 minutos. O contrato pode ser muito longo ou o servidor está sobrecarregado.'
       } else if (error.response?.message) {
-        msg = error.response.message
+        msg = error.response.message.includes('serviço de IA')
+          ? error.response.message
+          : 'Ocorreu um erro técnico ao processar a análise. Por favor, tente novamente.'
       } else if (error.message) {
-        msg = error.message
+        msg = 'Falha na conexão com o servidor. Verifique sua internet e tente novamente.'
       }
 
       setErrorMsg(msg)
-      toast.error(msg)
+      toast.error('Erro na Análise', { description: msg })
     } finally {
       setIsAnalyzing(false)
     }
@@ -288,7 +291,7 @@ export default function AIAnalysis() {
                   {isAnalyzing ? (
                     <>
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Analisando Documento...
+                      Processando análise...
                     </>
                   ) : (
                     'Analisar com IA Jurídica'
@@ -301,7 +304,7 @@ export default function AIAnalysis() {
                       <div className="w-12 h-12 rounded-full border-4 border-purple-200 border-t-purple-600 animate-spin"></div>
                     </div>
                     <p className="text-purple-600 font-medium animate-pulse text-lg">
-                      Analisando contrato... Por favor, aguarde.
+                      Processando análise... Por favor, aguarde.
                     </p>
                     <p className="text-slate-500 text-sm mt-2">
                       A IA está analisando as cláusulas em relação à base legal (pode levar até 2
