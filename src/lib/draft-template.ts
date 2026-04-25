@@ -59,42 +59,47 @@ Os pagamentos devidos ao VENDEDOR deverão ser efetuados na seguinte conta banc�
 Banco: ${data.vendedor_banco}, Agência: ${data.vendedor_agencia}, Conta: ${data.vendedor_conta}, Chave Pix: ${data.vendedor_pix}.`
     : ''
 
-  return `${user?.imobiliaria_nome || 'Godoy Prime Realty'}
+  return `${user?.imobiliaria_nome || 'GODOY PRIME REALTY'}
+═══════════════════════════════════════════════════════════════════════════
 
 INSTRUMENTO PARTICULAR DE PROMESSA DE COMPRA E VENDA
 
-Cláusula 1 - Identificação das Partes
+Por este instrumento particular, as partes abaixo qualificadas celebram o presente Contrato de Promessa de Compra e Venda, mediante as cláusulas e condições a seguir estabelecidas:
+
+Cláusula 1ª - Das Partes
 VENDEDOR: ${data.nome_vendedor || ''}, nacionalidade: ${data.nacionalidade_vendedor || ''}, estado civil: ${data.estado_civil_vendedor || ''}, profissão: ${data.profissao_vendedor || ''}, portador do RG nº ${data.rg_vendedor || ''} expedido por ${data.orgao_emissor_vendedor || ''}, inscrito no CPF sob o nº ${data.cpf_vendedor || ''}, residente e domiciliado em ${data.endereco_vendedor || ''}. E-mail: ${data.email_vendedor || ''}, Telefone: ${data.telefone_vendedor || ''}.
 
 COMPRADOR: ${data.nome_comprador || ''}, nacionalidade: ${data.nacionalidade_comprador || ''}, estado civil: ${data.estado_civil_comprador || ''}, profissão: ${data.profissao_comprador || ''}, portador do RG nº ${data.rg_comprador || ''} expedido por ${data.orgao_emissor_comprador || ''}, inscrito no CPF sob o nº ${data.cpf_comprador || ''}, residente e domiciliado em ${data.endereco_comprador || ''}. E-mail: ${data.email_comprador || ''}, Telefone: ${data.telefone_comprador || ''}.
 
-Cláusula 2 - Objeto
-O objeto do presente contrato é o imóvel situado em ${data.endereco_imovel || ''}, Matrícula nº ${data.matricula_imovel || ''}, registrado no RGI de ${data.rgi_imovel || ''}, Inscrição Municipal nº ${data.inscricao_municipal || ''}, possuindo área total de ${data.area_total || ''} m² e ${data.vagas_garagem || ''} vaga(s) de garagem.
+Cláusula 2ª - Do Objeto
+O objeto do presente contrato é o imóvel (tipo: padrão), situado em ${data.endereco_imovel || ''}, bairro não informado, CEP não informado, Matrícula nº ${data.matricula_imovel || ''}, registrado no RGI de ${data.rgi_imovel || ''}, Inscrição Municipal nº ${data.inscricao_municipal || ''}, possuindo área total de ${data.area_total || ''} m², área construída não informada e ${data.vagas_garagem || ''} vaga(s) de garagem.
 
-Cláusula 3 - Preço e Condições de Pagamento
+Cláusula 3ª - Do Preço e Condições de Pagamento
 O preço certo e ajustado para a presente compra e venda é de ${formatCurrency(data.valor_total)} (por extenso), que será pago da seguinte forma:
-${pgtoText}
-${sellerBankInfo}
-${brokerBankInfo}
+${pgtoText}${sellerBankInfo}${brokerBankInfo}
 
-Cláusula 4 - Documentação
+Cláusula 4ª - Da Documentação
 As partes obrigam-se a apresentar as seguintes certidões e documentos: Ônus Reais, Quitação Fiscal, Quitação Condominial e Negativas Pessoais.
 
-Cláusula 5 - Obrigações
+Cláusula 5ª - Das Obrigações
 O VENDEDOR obriga-se a transferir o domínio, garantir a habitabilidade e quitar impostos até a data da posse. O COMPRADOR obriga-se ao pagamento do preço, custos de registro e impostos futuros.
 
-Cláusula 6 - Posse
-A posse do imóvel será transferida com a entrega das chaves, sujeita à penalidade de R$ 300,00 por dia em caso de atraso.
+Cláusula 6ª - Da Posse
+A posse do imóvel será transferida com a entrega das chaves, sujeita à penalidade de R$ 300,00 por dia em caso de atraso na desocupação ou entrega.
 
-Cláusula 7 - Penalidades
-Em caso de rescisão por culpa do COMPRADOR, perderá este o sinal pago. Sendo a culpa do VENDEDOR, devolverá o sinal em dobro. Em caso de atraso, haverá multa e juros.
+Cláusula 7ª - Das Penalidades
+Em caso de rescisão por culpa do COMPRADOR, perderá este o sinal pago. Sendo a culpa do VENDEDOR, devolverá o sinal em dobro. Em caso de atraso, haverá multa de 2% (dois por cento) e juros de 1% (um por cento) ao mês.
 
-Cláusula 8 - Legislação
+Cláusula 8ª - Da Rescisão
+Caso qualquer das partes descumpra o estipulado, a parte inocente poderá notificar a infratora para sanar a falha, sob pena de rescisão de pleno direito.
+
+Cláusula 9ª - Da Legislação
 Este contrato é regido pelo Código Civil Brasileiro aplicável à espécie.
 
-Cláusula 9 - Foro
-Fica eleito o Foro da Comarca do Rio de Janeiro para dirimir quaisquer dúvidas oriundas deste contrato.
+Cláusula 10ª - Do Foro
+Fica eleito o Foro da Comarca do Rio de Janeiro para dirimir quaisquer dúvidas oriundas deste contrato, renunciando a qualquer outro por mais privilegiado que seja.
 
+═══════════════════════════════════════════════════════════════════════════
 
 Rio de Janeiro, ${hoje}
 Foro: Comarca do Rio de Janeiro
