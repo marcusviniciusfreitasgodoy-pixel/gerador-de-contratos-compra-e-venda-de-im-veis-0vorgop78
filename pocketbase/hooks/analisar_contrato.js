@@ -20,6 +20,8 @@ routerAdd(
         arquivo = arquivo.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
         // Strip non-alphanumeric decorative characters (like ═, ─, ║, etc.)
         arquivo = arquivo.replace(/[═─━│┃┄┅┆┇┈┉╌╍╎╏║╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀]/g, ' ')
+        // Remove multiple consecutive equal signs often used as separators
+        arquivo = arquivo.replace(/={2,}/g, ' ')
         // Normalize whitespace
         arquivo = arquivo.replace(/\s{2,}/g, ' ').trim()
       }
@@ -150,7 +152,7 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
           $app.logger().error('Gemini AI failed', 'status', chatRes.statusCode, 'raw', chatRes.raw)
 
           if (chatRes.statusCode === 429) {
-            return e.badRequestError('Limite de tokens excedido ou cota atingida.')
+            return e.badRequestError('Limite de uso excedido.')
           } else if (
             chatRes.statusCode === 400 ||
             chatRes.statusCode === 401 ||
@@ -163,7 +165,7 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
           }
 
           return e.internalServerError(
-            'O serviço de IA está temporariamente indisponível. Tente novamente em instantes.',
+            'Falha na comunicação. O serviço de IA está temporariamente indisponível.',
           )
         }
 
@@ -271,7 +273,7 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
           $app.logger().error('OpenAI AI failed', 'status', chatRes.statusCode, 'raw', chatRes.raw)
 
           if (chatRes.statusCode === 429) {
-            return e.badRequestError('Limite de tokens excedido ou cota atingida.')
+            return e.badRequestError('Limite de uso excedido.')
           } else if (
             chatRes.statusCode === 400 ||
             chatRes.statusCode === 401 ||
@@ -284,7 +286,7 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
           }
 
           return e.internalServerError(
-            'O serviço de IA está temporariamente indisponível. Tente novamente em instantes.',
+            'Falha na comunicação. O serviço de IA está temporariamente indisponível.',
           )
         }
 

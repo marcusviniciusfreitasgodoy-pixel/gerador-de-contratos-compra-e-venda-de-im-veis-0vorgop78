@@ -43,7 +43,7 @@ export function IntegrationPanel() {
         body: JSON.stringify({ apiKey }),
       })
       setStatus('success')
-      toast.success('Conexão estabelecida com sucesso!')
+      toast.success('Conexão bem-sucedida! O modelo Gemini está pronto.')
     } catch (err: any) {
       setStatus('error')
       const msg = err.response?.message || err.message || 'Chave de API inválida.'
@@ -57,7 +57,7 @@ export function IntegrationPanel() {
     if (!user) return
     setIsSaving(true)
     try {
-      await pb.collection('users').update(user.id, { gemini_api_key: apiKey })
+      await pb.collection('users').update(user.id, { gemini_api_key: apiKey.trim() })
       toast.success('Configurações salvas com sucesso!')
       setIsOpen(false)
     } catch (err) {

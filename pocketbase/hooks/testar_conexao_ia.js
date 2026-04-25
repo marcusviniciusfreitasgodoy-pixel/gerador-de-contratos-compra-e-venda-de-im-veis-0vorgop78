@@ -20,9 +20,12 @@ routerAdd(
     })
 
     if (res.statusCode === 200) {
-      return e.json(200, { success: true, message: 'Conexão estabelecida com sucesso.' })
+      return e.json(200, {
+        success: true,
+        message: 'Conexão bem-sucedida! O modelo Gemini está pronto.',
+      })
     } else if (res.statusCode === 429) {
-      return e.badRequestError('Limite de tokens excedido ou cota atingida.')
+      return e.badRequestError('Limite de uso excedido.')
     } else {
       return e.badRequestError(
         'Chave de API inválida. Por favor, revise suas configurações de integração no painel de servidor.',
