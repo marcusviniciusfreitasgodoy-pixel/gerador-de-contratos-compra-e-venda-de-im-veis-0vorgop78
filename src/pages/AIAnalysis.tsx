@@ -107,6 +107,10 @@ export default function AIAnalysis() {
       } else if (contractText) {
         tipo = 'txt'
         let txtToProcess = contractText
+
+        // Automated Text Sanitization: Strip decorative characters before sending
+        txtToProcess = txtToProcess.replace(/[═─━│┃┄┅┆┇┈┉╌╍╎╏║╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀]/g, ' ')
+
         if (txtToProcess.length > 500000) {
           txtToProcess = txtToProcess.slice(0, 500000)
         }
@@ -374,7 +378,7 @@ export default function AIAnalysis() {
 
       {report && !isAnalyzing && !errorMsg && <AnalysisReportView report={report} />}
 
-      {contractIdParam && <AnalysisHistoryTable contractId={contractIdParam} />}
+      <AnalysisHistoryTable contractId={contractIdParam} />
     </div>
   )
 }

@@ -10,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Server, Eye, EyeOff, Loader2, CheckCircle2, XCircle } from 'lucide-react'
+import { Settings, Eye, EyeOff, Loader2, CheckCircle2, XCircle } from 'lucide-react'
 import pb from '@/lib/pocketbase/client'
 import { toast } from 'sonner'
 import { useAuth } from '@/hooks/use-auth'
@@ -43,7 +43,7 @@ export function IntegrationPanel() {
         body: JSON.stringify({ apiKey }),
       })
       setStatus('success')
-      toast.success('Conexão bem-sucedida! O modelo Gemini está pronto.')
+      toast.success('Conexão bem-sucedida! Sua chave está pronta para uso.')
     } catch (err: any) {
       setStatus('error')
       const msg = err.response?.message || err.message || 'Chave de API inválida.'
@@ -76,13 +76,13 @@ export function IntegrationPanel() {
           className="text-slate-600 hover:text-purple-600 hover:bg-purple-50 rounded-full"
           title="Painel de Integração"
         >
-          <Server className="w-5 h-5" />
+          <Settings className="w-5 h-5" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Server className="w-5 h-5 text-purple-600" />
+            <Settings className="w-5 h-5 text-purple-600" />
             Configurações de Integração
           </DialogTitle>
           <DialogDescription>

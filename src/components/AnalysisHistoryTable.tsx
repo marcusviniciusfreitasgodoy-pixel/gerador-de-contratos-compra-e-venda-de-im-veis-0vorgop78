@@ -4,19 +4,20 @@ import { useRealtime } from '@/hooks/use-realtime'
 import { Button } from '@/components/ui/button'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { History, Eye, ShieldAlert } from 'lucide-react'
+import { History, Eye, ShieldAlert, FileText } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { AnalysisReportView, type AnalysisReport } from '@/components/AnalysisReportView'
 
-export function AnalysisHistoryTable({ contractId }: { contractId: string }) {
+export function AnalysisHistoryTable({ contractId }: { contractId?: string | null }) {
   const [reports, setReports] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedReport, setSelectedReport] = useState<AnalysisReport | null>(null)
 
   const loadReports = async () => {
     try {
+      const filter = contractId ? `contract = "${contractId}"` : ''
       const records = await pb.collection('analysis_reports').getList(1, 50, {
-        filter: `contract = "${contractId}"`,
+        filter,
         sort: '-created',
       })
       setReports(records.items)
@@ -28,9 +29,7 @@ export function AnalysisHistoryTable({ contractId }: { contractId: string }) {
   }
 
   useEffect(() => {
-    if (contractId) {
-      loadReports()
-    }
+    loadReports()
   }, [contractId])
 
   useRealtime('analysis_reports', () => {
@@ -48,14 +47,14 @@ export function AnalysisHistoryTable({ contractId }: { contractId: string }) {
     <div className="mt-12 space-y-4 animate-in fade-in slide-in-from-bottom-4">
       <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2 mb-6">
         <History className="w-5 h-5 text-purple-600" />
-        Histórico de Análises deste Contrato
+        {contractId ? 'Histórico de Análises deste Contrato' : 'Histórico Recente de Análises'}
       </h3>
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
         <table className="w-full text-sm text-left">
           <thead className="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
             <tr>
               <th className="px-6 py-4">Data da Análise</th>
-              <th className="px-6 py-4">Status</th>
+              <th className="px-6 py-4">Nome do Arquivo</th>
               <th className="px-6 py-4">Nível de Risco</th>
               <th className="px-6 py-4 text-right">Ação</th>
             </tr>
@@ -69,9 +68,15 @@ export function AnalysisHistoryTable({ contractId }: { contractId: string }) {
                   })}
                 </td>
                 <td className="px-6 py-4">
-                  <span className="capitalize text-slate-700 font-medium">
-                    {report.analysis_result?.conformidade?.status || 'Desconhecido'}
-                  </span>
+                  <div className="flex items-center gap-2 text-slate-700 font-medium">
+                    <FileText className="w-4 h-4 text-slate-400" />
+                    <span
+                      className="truncate max-w-[200px]"
+                      title={report.file_name || 'Texto do Editor'}
+                    >
+                      {report.file_name || 'Texto do Editor'}
+                    </span>
+                  </div>
                 </td>
                 <td className="px-6 py-4">
                   <span
