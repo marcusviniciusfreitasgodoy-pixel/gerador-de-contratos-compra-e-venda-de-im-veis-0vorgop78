@@ -23,6 +23,7 @@ export function IntegrationPanel() {
   const [isTesting, setIsTesting] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [errorMessage, setErrorMessage] = useState<string>('')
 
   useEffect(() => {
     if (user?.anthropic_api_key) {
@@ -40,14 +41,16 @@ export function IntegrationPanel() {
     try {
       await pb.send('/backend/v1/testar_conexao_ia', {
         method: 'POST',
-        body: JSON.stringify({ apiKey }),
+        body: JSON.stringify({ apiKey: apiKey.trim() }),
       })
       setStatus('success')
+      setErrorMessage('')
       toast.success('Conexão estabelecida com sucesso!')
     } catch (err: any) {
       setStatus('error')
       const msg = err.response?.message || err.message || 'Erro ao validar a chave de API.'
-      toast.error(msg)
+      setErrorMessage(msg)
+      toast.error('Erro ao validar a chave de API.', { description: msg })
     } finally {
       setIsTesting(false)
     }
@@ -143,8 +146,13 @@ export function IntegrationPanel() {
                 </span>
               )}
               {status === 'error' && (
-                <span className="flex items-center text-sm text-red-600 font-medium">
-                  <XCircle className="w-4 h-4 mr-1" /> Falha na conexão
+                <span className="flex flex-col text-sm text-red-600 font-medium max-w-[200px]">
+                  <span className="flex items-center">
+                    <XCircle className="w-4 h-4 mr-1 shrink-0" /> Falha na conexão
+                  </span>
+                  {errorMessage && (
+                    <span className="text-xs font-normal mt-1 leading-tight">{errorMessage}</span>
+                  )}
                 </span>
               )}
             </div>
