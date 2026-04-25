@@ -8,6 +8,7 @@ routerAdd(
     const tipoContrato = body.tipoContrato || 'outro'
     const contractId = body.contractId || null
     const fileName = body.fileName || ''
+    const adaptiveThought = body.adaptiveThought === true
 
     try {
       if (arquivo.includes('base64,')) {
@@ -125,8 +126,8 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
             'content-type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'claude-3-5-sonnet-20241022',
-            max_tokens: 4096,
+            model: 'claude-3-7-sonnet-20250219',
+            max_tokens: 8192,
             messages: [
               {
                 role: 'user',
@@ -191,6 +192,24 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
         extractedText = extractedText.substring(0, 200000)
       }
 
+      const aiBody = {
+        model: 'claude-3-7-sonnet-20250219',
+        max_tokens: adaptiveThought ? 16384 : 8192,
+        system: systemPrompt,
+        messages: [
+          {
+            role: 'user',
+            content: `Analise este contrato (${tipoContrato}):\n\n${extractedText}`,
+          },
+        ],
+      }
+
+      if (adaptiveThought) {
+        aiBody.thinking = { type: 'enabled', budget_tokens: 12000 }
+      } else {
+        aiBody.temperature = 1.0
+      }
+
       const chatRes = $http.send({
         url: 'https://api.anthropic.com/v1/messages',
         method: 'POST',
@@ -199,19 +218,8 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
           'anthropic-version': '2023-06-01',
           'content-type': 'application/json',
         },
-        body: JSON.stringify({
-          model: 'claude-3-5-sonnet-20241022',
-          max_tokens: 4096,
-          temperature: 1.0,
-          system: systemPrompt,
-          messages: [
-            {
-              role: 'user',
-              content: `Analise este contrato (${tipoContrato}):\n\n${extractedText}`,
-            },
-          ],
-        }),
-        timeout: 120,
+        body: JSON.stringify(aiBody),
+        timeout: 180,
       })
 
       if (chatRes.statusCode !== 200) {

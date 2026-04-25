@@ -9,7 +9,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Loader2, FileText, UploadCloud, AlertCircle, RefreshCcw, Bot, History } from 'lucide-react'
+import { Switch } from '@/components/ui/switch'
+import {
+  Loader2,
+  FileText,
+  UploadCloud,
+  AlertCircle,
+  RefreshCcw,
+  Bot,
+  History,
+  Sparkles,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import { Link, useSearchParams, Navigate } from 'react-router-dom'
 import pb from '@/lib/pocketbase/client'
@@ -33,8 +43,16 @@ export default function AIAnalysis() {
   const [isDragging, setIsDragging] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [hasAiKey, setHasAiKey] = useState<boolean | null>(null)
+  const [adaptiveThought, setAdaptiveThought] = useState(() => {
+    return localStorage.getItem('adaptiveThought') === 'true'
+  })
 
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleToggleAdaptiveThought = (checked: boolean) => {
+    setAdaptiveThought(checked)
+    localStorage.setItem('adaptiveThought', String(checked))
+  }
 
   useEffect(() => {
     if (user?.anthropic_api_key) {
@@ -87,7 +105,8 @@ export default function AIAnalysis() {
     setReport(null)
 
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 120000)
+    const timeout = adaptiveThought ? 180000 : 120000
+    const timeoutId = setTimeout(() => controller.abort(), timeout)
 
     try {
       let base64Data = ''
@@ -125,6 +144,7 @@ export default function AIAnalysis() {
         tipoContrato: contractType,
         fileName,
         contractId: contractIdParam || undefined,
+        adaptiveThought,
       }
 
       const res = await pb.send('/backend/v1/analisar-contrato', {
@@ -144,8 +164,9 @@ export default function AIAnalysis() {
         'Não foi possível analisar o documento. Verifique se há texto legível e tente novamente.'
 
       if (error.name === 'AbortError') {
-        msg =
-          'A análise expirou após 2 minutos. O contrato pode ser muito longo ou o servidor está sobrecarregado.'
+        msg = adaptiveThought
+          ? 'A análise expirou após 3 minutos. O pensamento adaptativo exige mais tempo.'
+          : 'A análise expirou após 2 minutos. O contrato pode ser muito longo ou o servidor está sobrecarregado.'
       } else if (error.response?.message) {
         msg = error.response.message
       } else if (error.message) {
@@ -172,6 +193,11 @@ export default function AIAnalysis() {
         <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-3 tracking-tight">
           Análise Jurídica com IA
         </h1>
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <span className="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-semibold text-purple-800">
+            <Sparkles className="w-3 h-3 mr-1" /> Powered by Sonnet 4.6
+          </span>
+        </div>
         <p className="text-slate-600 text-lg max-w-2xl mx-auto">
           Faça upload do seu contrato imobiliário e receba um relatório completo de riscos, omissões
           e conformidade legal.
@@ -299,7 +325,28 @@ export default function AIAnalysis() {
             )}
 
             {(selectedFile || contractText) && (
-              <div className="mt-8 flex flex-col items-center justify-center animate-in slide-in-from-bottom-4 duration-300 gap-4">
+              <div className="mt-8 flex flex-col items-center justify-center animate-in slide-in-from-bottom-4 duration-300 gap-6">
+                <div className="w-full sm:w-auto bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-start gap-4 max-w-md w-full">
+                  <div className="flex-1">
+                    <label
+                      htmlFor="adaptive-thought"
+                      className="text-sm font-semibold text-slate-800 cursor-pointer block mb-1"
+                    >
+                      Pensamento Adaptativo
+                    </label>
+                    <p className="text-xs text-slate-500">
+                      Raciocina para tarefas mais complexas usando o modelo Sonnet 4.6. Pode
+                      aumentar o tempo de análise.
+                    </p>
+                  </div>
+                  <Switch
+                    id="adaptive-thought"
+                    checked={adaptiveThought}
+                    onCheckedChange={handleToggleAdaptiveThought}
+                    className="mt-1"
+                  />
+                </div>
+
                 <Tooltip open={hasAiKey === false ? undefined : false}>
                   <TooltipTrigger asChild>
                     <div className="w-full sm:w-auto">
@@ -343,8 +390,10 @@ export default function AIAnalysis() {
                       Processando Análise... Por favor, aguarde.
                     </p>
                     <p className="text-slate-500 text-sm mt-2">
-                      A IA está analisando as cláusulas em relação à base legal (pode levar até 2
-                      minutos).
+                      A IA está analisando as cláusulas em relação à base legal
+                      {adaptiveThought
+                        ? ' usando pensamento adaptativo profundo (pode levar até 3 minutos).'
+                        : ' (pode levar até 2 minutos).'}
                     </p>
                   </div>
                 )}
