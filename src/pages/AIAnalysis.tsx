@@ -128,13 +128,10 @@ export default function AIAnalysis() {
         msg =
           'A análise expirou após 2 minutos. O contrato pode ser muito longo ou o servidor está sobrecarregado.'
       } else if (error.response?.message) {
-        msg = error.response.message.includes('serviço de IA')
-          ? error.response.message
-          : 'Ocorreu um erro técnico ao processar a análise. Por favor, tente novamente.'
+        msg = error.response.message
       } else if (error.message) {
         msg = 'Falha na conexão com o servidor. Verifique sua internet e tente novamente.'
       }
-
       setErrorMsg(msg)
       toast.error('Erro na Análise', { description: msg })
     } finally {

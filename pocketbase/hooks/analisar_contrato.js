@@ -116,7 +116,7 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
         }
 
         const chatRes = $http.send({
-          url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${geminiKey}`,
+          url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -137,8 +137,14 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
 
         if (chatRes.statusCode !== 200) {
           $app.logger().error('Gemini AI failed', 'status', chatRes.statusCode, 'raw', chatRes.raw)
+          let errorDetail = 'O serviço de IA está temporariamente indisponível.'
+          try {
+            if (chatRes.json && chatRes.json.error) {
+              errorDetail = chatRes.json.error.message || chatRes.json.error.status
+            }
+          } catch (err) {}
           return e.badRequestError(
-            'O serviço de IA está temporariamente indisponível ou a chave de API é inválida. Por favor, verifique suas configurações e tente novamente.',
+            `Falha na IA (Gemini): ${errorDetail}. Verifique sua chave de API ou tente novamente.`,
           )
         }
 
@@ -219,12 +225,16 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
           }
         }
 
+        if (extractedText.length > 200000) {
+          extractedText = extractedText.substring(0, 200000)
+        }
+
         const chatRes = $http.send({
           url: 'https://api.openai.com/v1/chat/completions',
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + openaiKey },
           body: JSON.stringify({
-            model: 'gpt-4o',
+            model: 'gpt-4o-mini',
             messages: [
               { role: 'system', content: systemPrompt },
               {
@@ -240,8 +250,14 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
 
         if (chatRes.statusCode !== 200) {
           $app.logger().error('OpenAI AI failed', 'status', chatRes.statusCode, 'raw', chatRes.raw)
+          let errorDetail = 'O serviço de IA está temporariamente indisponível.'
+          try {
+            if (chatRes.json && chatRes.json.error) {
+              errorDetail = chatRes.json.error.message || chatRes.json.error.type
+            }
+          } catch (err) {}
           return e.badRequestError(
-            'O serviço de IA (OpenAI) está temporariamente indisponível ou a chave de API é inválida. Por favor, verifique suas configurações e tente novamente.',
+            `Falha na IA (OpenAI): ${errorDetail}. Verifique sua chave de API ou tente novamente.`,
           )
         }
 
