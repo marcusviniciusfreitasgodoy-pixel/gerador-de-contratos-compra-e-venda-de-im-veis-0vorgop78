@@ -18,6 +18,10 @@ routerAdd(
       if (tipo === 'txt') {
         // Remove ASCII control characters except tab, newline, and carriage return
         arquivo = arquivo.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+        // Strip non-alphanumeric decorative characters (like ═, ─, etc.)
+        arquivo = arquivo.replace(/[═─━│┃┄┅┆┇┈┉╌╍╎╏]/g, '')
+        // Normalize whitespace
+        arquivo = arquivo.replace(/\s{2,}/g, ' ')
       }
 
       const geminiKey = $secrets.get('GEMINI_API_KEY')
@@ -123,7 +127,7 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
 
         // Changed to gemini-1.5-pro to resolve model not found/supported issues for v1beta
         const chatRes = $http.send({
-          url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${geminiKey}`,
+          url: `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=${geminiKey}`,
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
