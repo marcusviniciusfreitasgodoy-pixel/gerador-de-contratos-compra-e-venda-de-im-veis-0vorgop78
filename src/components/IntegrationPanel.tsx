@@ -43,10 +43,10 @@ export function IntegrationPanel() {
         body: JSON.stringify({ apiKey }),
       })
       setStatus('success')
-      toast.success('Conexão bem-sucedida! Sua chave está pronta para uso.')
+      toast.success('Conexão estabelecida com sucesso')
     } catch (err: any) {
       setStatus('error')
-      const msg = err.response?.message || err.message || 'Chave de API inválida.'
+      const msg = err.response?.message || err.message || 'Erro ao validar a chave de API.'
       toast.error(msg)
     } finally {
       setIsTesting(false)
@@ -139,7 +139,7 @@ export function IntegrationPanel() {
             <div className="flex items-center gap-2">
               {status === 'success' && (
                 <span className="flex items-center text-sm text-green-600 font-medium">
-                  <CheckCircle2 className="w-4 h-4 mr-1" /> Conexão bem-sucedida
+                  <CheckCircle2 className="w-4 h-4 mr-1" /> Conexão estabelecida com sucesso
                 </span>
               )}
               {status === 'error' && (

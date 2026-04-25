@@ -37,7 +37,7 @@ export default function AIAnalysis() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    if (user?.gemini_api_key) {
+    if (user?.anthropic_api_key) {
       setHasAiKey(true)
       return
     }

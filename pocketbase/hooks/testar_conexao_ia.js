@@ -26,12 +26,6 @@ routerAdd(
     })
 
     if (res.statusCode !== 200) {
-      if (res.statusCode === 401) {
-        return e.badRequestError('Chave Inválida.')
-      }
-      if (res.statusCode === 429) {
-        return e.badRequestError('Limite de cota excedido.')
-      }
       return e.badRequestError('Erro ao validar a chave de API.')
     }
 
