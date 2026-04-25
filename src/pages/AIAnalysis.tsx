@@ -293,7 +293,7 @@ export default function AIAnalysis() {
                   {isAnalyzing ? (
                     <>
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Analisando...
+                      Analyzing Contract...
                     </>
                   ) : (
                     'Analisar com IA Jurídica'
@@ -301,12 +301,16 @@ export default function AIAnalysis() {
                 </Button>
 
                 {isAnalyzing && (
-                  <div className="text-center animate-in fade-in duration-300">
-                    <p className="text-purple-600 font-medium animate-pulse">
-                      Aguarde, cruzando com base de dados...
+                  <div className="text-center animate-in fade-in duration-300 mt-6">
+                    <div className="flex justify-center mb-4">
+                      <div className="w-12 h-12 rounded-full border-4 border-purple-200 border-t-purple-600 animate-spin"></div>
+                    </div>
+                    <p className="text-purple-600 font-medium animate-pulse text-lg">
+                      Analyzing Contract... Please wait.
                     </p>
-                    <p className="text-slate-500 text-sm mt-1">
-                      Isso pode levar até 2 minutos dependendo do tamanho do contrato.
+                    <p className="text-slate-500 text-sm mt-2">
+                      A IA está analisando as cláusulas em relação à base legal (pode levar até 2
+                      minutos).
                     </p>
                   </div>
                 )}

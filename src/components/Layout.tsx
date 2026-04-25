@@ -22,7 +22,7 @@ export default function Layout() {
           </Link>
           <div className="flex items-center gap-4">
             <Link
-              to="/ai-analysis"
+              to="/analysis"
               className="flex items-center gap-2 text-sm font-medium text-purple-600 hover:text-purple-700 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-full transition-colors border border-purple-100"
             >
               <Bot className="w-4 h-4" />

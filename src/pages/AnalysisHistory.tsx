@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/compone
 import { useAuth } from '@/hooks/use-auth'
 import { AnalysisReportView } from '@/components/AnalysisReportView'
 import { cn } from '@/lib/utils'
+import { useRealtime } from '@/hooks/use-realtime'
 
 export default function AnalysisHistory() {
   const { user, loading: authLoading } = useAuth()
@@ -20,6 +21,10 @@ export default function AnalysisHistory() {
   useEffect(() => {
     loadReports()
   }, [])
+
+  useRealtime('analysis_reports', () => {
+    loadReports()
+  })
 
   const loadReports = async () => {
     try {
