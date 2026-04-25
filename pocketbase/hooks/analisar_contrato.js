@@ -69,7 +69,12 @@ routerAdd(
       }
 
       const systemPrompt = `Você é um Assistente Jurídico de IA especializado em Direito Imobiliário Brasileiro.
-Analise o contrato fornecido (${tipoContrato}) considerando a legislação (Código Civil, STJ, TJRJ).
+Analise o contrato fornecido (${tipoContrato}) considerando a legislação (Código Civil, STJ, TJRJ) e os Padrões de Alta Rigorosidade da Godoy Prime Realty.
+
+INSTRUÇÕES CRÍTICAS DE AVALIAÇÃO:
+1. DOCUMENTAÇÃO EXAUSTIVA: Verifique se o contrato exige a lista COMPLETA de certidões do vendedor e imóvel (CNDT, Feitos Ajuizados - Federal/Estadual/Trabalhista, Protestos, Objeto e Pé, Ônus Reais, Quitação Fiscal/IPTU e Condominial). Se a lista for "enxuta" ou incompleta, aponte como OMISSÃO CRÍTICA e eleve o risco.
+2. CLÁUSULA DE FINANCIAMENTO: Se houver indícios de financiamento bancário, DEVE existir cláusula que responsabilize o COMPRADOR pela obtenção do crédito e estipule penalidade/prazo para quitação com recursos próprios em caso de negativa. Atrasos bancários não podem isentar o comprador de mora, exceto por culpa do vendedor. Se faltar, aponte como RISCO ALTO.
+3. NÃO ABREVIES CLÁUSULAS: A integridade legal exige precisão. Evite sugerir a "simplificação" de cláusulas protetivas.
 
 Contexto Jurídico (RAG):
 ${contextText}

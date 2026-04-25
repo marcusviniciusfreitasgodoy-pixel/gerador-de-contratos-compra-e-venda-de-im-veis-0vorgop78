@@ -122,6 +122,37 @@ routerAdd(
       `
         : ''
 
+      const financiamentoClause =
+        valor_financiado && Number(valor_financiado) > 0
+          ? `
+        <h3>Cláusula 3.1 - Do Financiamento Bancário</h3>
+        <p>Sendo parte do pagamento realizada através de financiamento bancário, estabelece-se que:</p>
+        <p>a) O COMPRADOR é o único e exclusivo responsável pela obtenção, aprovação e liberação do crédito junto à instituição financeira;</p>
+        <p>b) Em caso de negativa de crédito por restrições no CPF/nome do COMPRADOR ou por insuficiência de renda, este deverá quitar o saldo devedor com recursos próprios no prazo máximo de 30 (trinta) dias, sob pena de rescisão contratual por sua culpa exclusiva, com a retenção do sinal pago;</p>
+        <p>c) Eventuais atrasos no repasse dos valores decorrentes de entraves burocráticos no banco não isentam o COMPRADOR das responsabilidades assumidas, salvo se o atraso for comprovadamente causado por pendências na documentação do VENDEDOR ou do imóvel;</p>
+        <p>d) O VENDEDOR obriga-se a fornecer toda a documentação pessoal e do imóvel exigida pelo agente financeiro no prazo assinalado pelo banco.</p>
+        <br>
+      `
+          : ''
+
+      const documentacaoCompleta = `
+        <p>As partes obrigam-se a apresentar as seguintes certidões e documentos:</p>
+        <p><strong>I - VENDEDOR:</strong></p>
+        <p>a) Cópia do RG e CPF;</p>
+        <p>b) Certidão de Casamento/Nascimento atualizada;</p>
+        <p>c) Comprovante de residência atualizado;</p>
+        <p>d) Certidão Negativa de Débitos Trabalhistas (CNDT);</p>
+        <p>e) Certidão Negativa de Feitos Ajuizados (Justiça Federal, Justiça Estadual Cível e Criminal, Justiça do Trabalho);</p>
+        <p>f) Certidão de Objeto e Pé (caso haja apontamentos nas certidões anteriores);</p>
+        <p>g) Certidão Negativa de Protestos de Títulos da comarca de domicílio do VENDEDOR e da localização do imóvel;</p>
+        <br>
+        <p><strong>II - IMÓVEL:</strong></p>
+        <p>a) Certidão de Ônus Reais atualizada (com validade de 30 dias);</p>
+        <p>b) Certidão de Quitação Fiscal e Enfitêutica (IPTU);</p>
+        <p>c) Declaração de Quitação Condominial assinada pelo síndico, com cópia da ata de eleição;</p>
+        <p>d) Certidão Negativa de Débitos de Taxa de Incêndio (se aplicável).</p>
+      `
+
       bodyContent = `
         <h1 style="text-align: center; font-size: 28px;">${user?.imobiliaria_nome || 'GODOY PRIME REALTY'}</h1>
         <p style="text-align: center;">═══════════════════════════════════════════════════════════════════════════</p>
@@ -145,9 +176,11 @@ routerAdd(
         ${sellerBankInfo}
         ${brokerBankInfo}
         <br>
+        
+        ${financiamentoClause}
 
         <h3>Cláusula 4ª - Da Documentação</h3>
-        <p>As partes obrigam-se a apresentar as seguintes certidões e documentos: Ônus Reais, Quitação Fiscal, Quitação Condominial e Negativas Pessoais.</p>
+        ${documentacaoCompleta}
         <br>
 
         <h3>Cláusula 5ª - Das Obrigações</h3>

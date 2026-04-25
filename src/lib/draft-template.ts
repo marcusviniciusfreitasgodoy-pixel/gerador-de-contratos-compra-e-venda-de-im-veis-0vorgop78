@@ -59,6 +59,34 @@ Os pagamentos devidos ao VENDEDOR deverão ser efetuados na seguinte conta banc�
 Banco: ${data.vendedor_banco}, Agência: ${data.vendedor_agencia}, Conta: ${data.vendedor_conta}, Chave Pix: ${data.vendedor_pix}.`
     : ''
 
+  const financiamentoClause =
+    data.valor_financiado && parseCurrencySafe(data.valor_financiado) > 0
+      ? `
+Cláusula 3.1 - Do Financiamento Bancário
+Sendo parte do pagamento realizada através de financiamento bancário, estabelece-se que:
+a) O COMPRADOR é o único e exclusivo responsável pela obtenção, aprovação e liberação do crédito junto à instituição financeira;
+b) Em caso de negativa de crédito por restrições no CPF/nome do COMPRADOR ou por insuficiência de renda, este deverá quitar o saldo devedor com recursos próprios no prazo máximo de 30 (trinta) dias, sob pena de rescisão contratual por sua culpa exclusiva, com a retenção do sinal pago;
+c) Eventuais atrasos no repasse dos valores decorrentes de entraves burocráticos no banco não isentam o COMPRADOR das responsabilidades assumidas, salvo se o atraso for comprovadamente causado por pendências na documentação do VENDEDOR ou do imóvel;
+d) O VENDEDOR obriga-se a fornecer toda a documentação pessoal e do imóvel exigida pelo agente financeiro no prazo assinalado pelo banco.
+`
+      : ''
+
+  const documentacaoCompleta = `As partes obrigam-se a apresentar as seguintes certidões e documentos:
+I - VENDEDOR:
+a) Cópia do RG e CPF;
+b) Certidão de Casamento/Nascimento atualizada;
+c) Comprovante de residência atualizado;
+d) Certidão Negativa de Débitos Trabalhistas (CNDT);
+e) Certidão Negativa de Feitos Ajuizados (Justiça Federal, Justiça Estadual Cível e Criminal, Justiça do Trabalho);
+f) Certidão de Objeto e Pé (caso haja apontamentos nas certidões anteriores);
+g) Certidão Negativa de Protestos de Títulos da comarca de domicílio do VENDEDOR e da localização do imóvel;
+
+II - IMÓVEL:
+a) Certidão de Ônus Reais atualizada (com validade de 30 dias);
+b) Certidão de Quitação Fiscal e Enfitêutica (IPTU);
+c) Declaração de Quitação Condominial assinada pelo síndico, com cópia da ata de eleição;
+d) Certidão Negativa de Débitos de Taxa de Incêndio (se aplicável).`
+
   return `${user?.imobiliaria_nome || 'GODOY PRIME REALTY'}
 ═══════════════════════════════════════════════════════════════════════════
 
@@ -77,9 +105,10 @@ O objeto do presente contrato é o imóvel (tipo: padrão), situado em ${data.en
 Cláusula 3ª - Do Preço e Condições de Pagamento
 O preço certo e ajustado para a presente compra e venda é de ${formatCurrency(data.valor_total)} (por extenso), que será pago da seguinte forma:
 ${pgtoText}${sellerBankInfo}${brokerBankInfo}
+${financiamentoClause}
 
 Cláusula 4ª - Da Documentação
-As partes obrigam-se a apresentar as seguintes certidões e documentos: Ônus Reais, Quitação Fiscal, Quitação Condominial e Negativas Pessoais.
+${documentacaoCompleta}
 
 Cláusula 5ª - Das Obrigações
 O VENDEDOR obriga-se a transferir o domínio, garantir a habitabilidade e quitar impostos até a data da posse. O COMPRADOR obriga-se ao pagamento do preço, custos de registro e impostos futuros.
