@@ -9,8 +9,16 @@ routerAdd(
     apiKey = apiKey.replace(/[^\x21-\x7E]/g, '')
 
     if (!apiKey) {
-      if (e.auth && e.auth.getString('anthropic_api_key')) {
-        apiKey = e.auth.getString('anthropic_api_key').replace(/[^\x21-\x7E]/g, '')
+      let userKey = ''
+      if (e.auth?.id) {
+        try {
+          const userRecord = $app.findRecordById('users', e.auth.id)
+          userKey = userRecord.getString('anthropic_api_key')
+        } catch (_) {}
+      }
+
+      if (userKey) {
+        apiKey = userKey.replace(/[^\x21-\x7E]/g, '')
         source = 'Database'
       } else {
         const secretKey = $secrets.get('ANTHROPIC_API_KEY')
@@ -32,6 +40,7 @@ routerAdd(
       headers: {
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
+        'cache-control': 'no-cache',
       },
       timeout: 15,
     })
@@ -61,6 +70,7 @@ routerAdd(
           'x-api-key': apiKey,
           'anthropic-version': '2023-06-01',
           'content-type': 'application/json',
+          'cache-control': 'no-cache',
         },
         body: JSON.stringify(reqBody),
         timeout: 15,

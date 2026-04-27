@@ -23,7 +23,14 @@ routerAdd(
         arquivo = arquivo.replace(/\s{2,}/g, ' ').trim()
       }
 
-      let anthropicKey = e.auth?.getString('anthropic_api_key')
+      let anthropicKey = ''
+      if (e.auth?.id) {
+        try {
+          const userRecord = $app.findRecordById('users', e.auth.id)
+          anthropicKey = userRecord.getString('anthropic_api_key')
+        } catch (_) {}
+      }
+
       if (anthropicKey) {
         anthropicKey = anthropicKey.replace(/[^\x21-\x7E]/g, '')
       } else {
@@ -56,7 +63,11 @@ routerAdd(
           const embedRes = $http.send({
             url: 'https://api.openai.com/v1/embeddings',
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + openaiKey },
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: 'Bearer ' + openaiKey,
+              'Cache-Control': 'no-cache',
+            },
             body: JSON.stringify({ model: 'text-embedding-3-small', input: embedText }),
             timeout: 15,
           })
@@ -164,6 +175,7 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
             'x-api-key': anthropicKey,
             'anthropic-version': '2023-06-01',
             'content-type': 'application/json',
+            'cache-control': 'no-cache',
           },
           body: JSON.stringify(imgBody),
           timeout: 60,
@@ -243,6 +255,7 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
           'x-api-key': anthropicKey,
           'anthropic-version': '2023-06-01',
           'content-type': 'application/json',
+          'cache-control': 'no-cache',
         },
         body: JSON.stringify(aiBody),
         timeout: 180,
