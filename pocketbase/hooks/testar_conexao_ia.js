@@ -3,6 +3,7 @@ routerAdd(
   '/backend/v1/testar_conexao_ia',
   (e) => {
     const body = e.requestInfo().body || {}
+    const provider = body.provider || 'anthropic' // anthropic, openai, gemini
     let apiKey = body.apiKey || ''
     let source = 'Provided'
 
@@ -13,7 +14,9 @@ routerAdd(
       if (e.auth?.id) {
         try {
           const userRecord = $app.findRecordById('users', e.auth.id)
-          userKey = userRecord.getString('anthropic_api_key')
+          if (provider === 'openai') userKey = userRecord.getString('openai_api_key')
+          else if (provider === 'gemini') userKey = userRecord.getString('gemini_api_key')
+          else userKey = userRecord.getString('anthropic_api_key')
         } catch (_) {}
       }
 
@@ -21,7 +24,11 @@ routerAdd(
         apiKey = userKey.replace(/[^\x21-\x7E]/g, '')
         source = 'Database'
       } else {
-        const secretKey = $secrets.get('ANTHROPIC_API_KEY')
+        let secretName = 'ANTHROPIC_API_KEY'
+        if (provider === 'openai') secretName = 'OPEN_AI_API_KEY'
+        else if (provider === 'gemini') secretName = 'GEMINI_API_KEY'
+
+        const secretKey = $secrets.get(secretName)
         if (secretKey) {
           apiKey = secretKey.replace(/[^\x21-\x7E]/g, '')
           source = 'Secret'
@@ -30,9 +37,49 @@ routerAdd(
     }
 
     if (!apiKey) {
-      return e.badRequestError('Chave de API ausente. Configure nos segredos ou no banco de dados.')
+      return e.badRequestError(
+        `Chave de API ausente para ${provider}. Configure nos segredos ou no banco de dados.`,
+      )
     }
 
+    if (provider === 'openai') {
+      const res = $http.send({
+        url: 'https://api.openai.com/v1/models',
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+        },
+        timeout: 15,
+      })
+
+      if (res.statusCode !== 200) {
+        let errorMsg = 'Erro ao validar a chave de API da OpenAI.'
+        if (res.json && res.json.error) {
+          errorMsg = res.json.error.message || errorMsg
+        }
+        return e.badRequestError(errorMsg)
+      }
+      return e.json(200, { success: true, source })
+    }
+
+    if (provider === 'gemini') {
+      const res = $http.send({
+        url: `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`,
+        method: 'GET',
+        timeout: 15,
+      })
+
+      if (res.statusCode !== 200) {
+        let errorMsg = 'Erro ao validar a chave de API do Gemini.'
+        if (res.json && res.json.error) {
+          errorMsg = res.json.error.message || errorMsg
+        }
+        return e.badRequestError(errorMsg)
+      }
+      return e.json(200, { success: true, source })
+    }
+
+    // Default: Anthropic
     // Tenta primeiro listar os modelos (zero-cost e não depende de um modelo específico)
     let res = $http.send({
       url: 'https://api.anthropic.com/v1/models',
