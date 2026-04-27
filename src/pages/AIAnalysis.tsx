@@ -46,6 +46,9 @@ export default function AIAnalysis() {
   const [adaptiveThought, setAdaptiveThought] = useState(() => {
     return localStorage.getItem('adaptiveThought') === 'true'
   })
+  const [usedModelLabel, setUsedModelLabel] = useState<string>('Claude 3')
+  const [rawErrorDetails, setRawErrorDetails] = useState<any>(null)
+  const [showRawError, setShowRawError] = useState(false)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -102,7 +105,10 @@ export default function AIAnalysis() {
 
     setIsAnalyzing(true)
     setErrorMsg(null)
+    setRawErrorDetails(null)
+    setShowRawError(false)
     setReport(null)
+    setUsedModelLabel('Claude 3')
 
     const controller = new AbortController()
     const timeout = adaptiveThought ? 180000 : 120000
@@ -156,6 +162,11 @@ export default function AIAnalysis() {
       clearTimeout(timeoutId)
 
       setReport(res)
+      if (res.usedModel) {
+        setUsedModelLabel(res.usedModel === 'claude-3-haiku-20241022' ? 'Haiku 3.5' : 'Sonnet 3.5')
+      } else {
+        setUsedModelLabel('Sonnet 3.5')
+      }
       toast.success('Análise concluída com sucesso!')
     } catch (error: any) {
       clearTimeout(timeoutId)
@@ -212,6 +223,13 @@ export default function AIAnalysis() {
         }
       }
 
+      setRawErrorDetails({
+        status: error.status,
+        message: error.message,
+        data: error.response?.data || error.data,
+        originalStack: error.originalStack || error.stack || new Error().stack,
+      })
+
       setErrorMsg(msg)
       toast.error('Erro na Análise', { description: msg })
     } finally {
@@ -232,8 +250,8 @@ export default function AIAnalysis() {
           Análise Jurídica com IA
         </h1>
         <div className="flex items-center justify-center gap-2 mb-2">
-          <span className="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-semibold text-purple-800">
-            <Sparkles className="w-3 h-3 mr-1" /> Powered by Sonnet 4.6
+          <span className="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-semibold text-purple-800 transition-all duration-300">
+            <Sparkles className="w-3 h-3 mr-1" /> Powered by {usedModelLabel}
           </span>
         </div>
         <p className="text-slate-600 text-lg max-w-2xl mx-auto">
@@ -450,17 +468,39 @@ export default function AIAnalysis() {
             <p className="text-red-800 text-xl font-medium max-w-lg mx-auto leading-relaxed">
               {errorMsg}
             </p>
-            <div className="pt-4">
+            <div className="pt-4 flex flex-col items-center gap-4">
               <Button
                 variant="outline"
                 className="border-red-200 text-red-700 hover:bg-red-50 px-8"
                 onClick={() => {
                   setErrorMsg(null)
+                  setRawErrorDetails(null)
+                  setShowRawError(false)
                   handleAnalyzeFile()
                 }}
               >
                 <RefreshCcw className="w-4 h-4 mr-2" /> Tentar novamente
               </Button>
+
+              {rawErrorDetails && (
+                <div className="w-full mt-4 flex flex-col items-center">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-slate-500 hover:text-slate-700 text-xs"
+                    onClick={() => setShowRawError(!showRawError)}
+                  >
+                    {showRawError
+                      ? 'Ocultar Scanner de Erros'
+                      : 'Scanner de Erros (Detalhes Técnicos)'}
+                  </Button>
+                  {showRawError && (
+                    <div className="w-full mt-2 text-left bg-slate-900 text-slate-300 p-4 rounded-lg overflow-x-auto text-xs font-mono shadow-inner max-h-60 overflow-y-auto">
+                      <pre>{JSON.stringify(rawErrorDetails, null, 2)}</pre>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </Card>

@@ -264,8 +264,9 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
         extractedText = extractedText.substring(0, 200000)
       }
 
+      let usedModel = 'claude-3-5-sonnet-latest'
       const aiBody = {
-        model: 'claude-3-5-sonnet-latest',
+        model: usedModel,
         max_tokens: adaptiveThought ? 8192 : 4096,
         system: systemPrompt,
         messages: [
@@ -307,7 +308,8 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
           chatRes.statusCode === 403
         ) {
           $app.logger().info('Falling back to claude-3-haiku-20241022')
-          aiBody.model = 'claude-3-haiku-20241022'
+          usedModel = 'claude-3-haiku-20241022'
+          aiBody.model = usedModel
           chatRes = $http.send({
             url: 'https://api.anthropic.com/v1/messages',
             method: 'POST',
@@ -360,7 +362,9 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
             'Ocorreu um erro inesperado ao processar a análise. Por favor, tente novamente mais tarde.'
         }
 
-        return e.badRequestError(`[${errType}] ${errMsg}`)
+        return e.badRequestError(
+          `[${errType}] ${errMsg} | Detalhe da API: ${chatRes.json?.error?.message || ''}`,
+        )
       }
 
       try {
@@ -371,6 +375,7 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
           content = content.split('```')[1].split('```')[0]
         }
         analysisResult = JSON.parse(content.trim())
+        analysisResult.usedModel = usedModel
       } catch (parseErr) {
         $app
           .logger()
