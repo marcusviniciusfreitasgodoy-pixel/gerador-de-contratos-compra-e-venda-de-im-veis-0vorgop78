@@ -181,6 +181,32 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
           timeout: 60,
         })
 
+        if (extractRes.statusCode !== 200) {
+          let errType = extractRes.json?.error?.type || ''
+          let errMsg = extractRes.json?.error?.message || ''
+          if (
+            extractRes.statusCode === 404 ||
+            errType === 'not_found_error' ||
+            errMsg.includes('not found') ||
+            extractRes.statusCode === 400 ||
+            extractRes.statusCode === 403
+          ) {
+            imgBody.model = 'claude-3-haiku-20241022'
+            extractRes = $http.send({
+              url: 'https://api.anthropic.com/v1/messages',
+              method: 'POST',
+              headers: {
+                'x-api-key': anthropicKey,
+                'anthropic-version': '2023-06-01',
+                'content-type': 'application/json',
+                'cache-control': 'no-cache',
+              },
+              body: JSON.stringify(imgBody),
+              timeout: 60,
+            })
+          }
+        }
+
         if (extractRes.statusCode === 200) {
           extractedText = extractRes.json.content[0].text
         } else {
@@ -189,6 +215,15 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
           if (extractRes.json && extractRes.json.error) {
             imgErrType = extractRes.json.error.type || imgErrType
             imgErrMsg = extractRes.json.error.message || imgErrMsg
+          }
+          if (
+            extractRes.statusCode === 404 ||
+            extractRes.statusCode === 400 ||
+            extractRes.statusCode === 403
+          ) {
+            imgErrType = 'MODEL_NOT_AVAILABLE'
+            imgErrMsg =
+              'O modelo de IA solicitado não está disponível para sua chave. Verifique se sua conta Anthropic possui créditos ativos (Tier 1+).'
           }
           throw new Error(`[${imgErrType}] ${imgErrMsg}`)
         }
@@ -262,6 +297,33 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
       })
 
       if (chatRes.statusCode !== 200) {
+        let errType = chatRes.json?.error?.type || ''
+        let errMsg = chatRes.json?.error?.message || ''
+        if (
+          chatRes.statusCode === 404 ||
+          errType === 'not_found_error' ||
+          errMsg.includes('not found') ||
+          chatRes.statusCode === 400 ||
+          chatRes.statusCode === 403
+        ) {
+          $app.logger().info('Falling back to claude-3-haiku-20241022')
+          aiBody.model = 'claude-3-haiku-20241022'
+          chatRes = $http.send({
+            url: 'https://api.anthropic.com/v1/messages',
+            method: 'POST',
+            headers: {
+              'x-api-key': anthropicKey,
+              'anthropic-version': '2023-06-01',
+              'content-type': 'application/json',
+              'cache-control': 'no-cache',
+            },
+            body: JSON.stringify(aiBody),
+            timeout: 180,
+          })
+        }
+      }
+
+      if (chatRes.statusCode !== 200) {
         $app.logger().error('Anthropic AI failed', 'status', chatRes.statusCode, 'raw', chatRes.raw)
 
         let errMsg = 'Falha na comunicação com o serviço de IA.'
@@ -273,7 +335,7 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
         }
 
         if (chatRes.statusCode === 429 || errType === 'insufficient_credits') {
-          errType = 'insufficient_credits'
+          errType = 'INSUFFICIENT_FUNDS'
           errMsg =
             'Sem saldo ou limite de requisições excedido. Verifique o seu saldo (Credits) no Anthropic Console.'
         } else if (
@@ -281,18 +343,16 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
           errType === 'invalid_api_key' ||
           errType === 'authentication_error'
         ) {
-          errType = 'authentication_error'
+          errType = 'INVALID_KEY'
           errMsg =
             'Sua chave de API da Anthropic parece ser inválida. Verifique as configurações do seu perfil.'
-        } else if (chatRes.statusCode === 403 || errType === 'permission_error') {
-          errType = 'permission_error'
-          errMsg = 'Erro de permissão. Sua chave não tem acesso a este recurso.'
         } else if (
           chatRes.statusCode === 404 ||
           chatRes.statusCode === 400 ||
+          chatRes.statusCode === 403 ||
           errType === 'not_found_error'
         ) {
-          errType = 'not_found_error'
+          errType = 'MODEL_NOT_AVAILABLE'
           errMsg =
             'O modelo de IA solicitado não está disponível para sua chave. Verifique se sua conta Anthropic possui créditos ativos (Tier 1+).'
         } else {

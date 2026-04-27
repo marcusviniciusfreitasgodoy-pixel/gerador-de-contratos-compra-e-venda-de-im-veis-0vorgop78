@@ -169,27 +169,44 @@ export default function AIAnalysis() {
           : 'A análise expirou após 2 minutos. O contrato pode ser muito longo ou o servidor está sobrecarregado.'
       } else if (error.response?.message) {
         const errMsg = error.response.message
-        if (errMsg.includes('not_found_error') || error.status === 404 || error.status === 400) {
+        if (
+          errMsg.includes('MODEL_NOT_AVAILABLE') ||
+          errMsg.includes('not_found_error') ||
+          error.status === 404 ||
+          error.status === 400 ||
+          error.status === 403
+        ) {
           msg =
             'O modelo de IA solicitado não está disponível para sua chave. Verifique se sua conta Anthropic possui créditos ativos (Tier 1+).'
         } else if (
+          errMsg.includes('INVALID_KEY') ||
           errMsg.includes('authentication_error') ||
           errMsg.includes('invalid_api_key') ||
           error.status === 401
         ) {
           msg =
             'Sua chave de API da Anthropic parece ser inválida. Verifique as configurações do seu perfil.'
+        } else if (errMsg.includes('INSUFFICIENT_FUNDS')) {
+          msg =
+            'Sem saldo ou limite de requisições excedido. Verifique o seu saldo (Credits) no Anthropic Console.'
         } else {
           msg = errMsg.replace(/^\[.*?\]\s*/, '')
         }
       } else if (error.message) {
         const errMsg = error.message
-        if (errMsg.includes('not_found_error')) {
+        if (errMsg.includes('MODEL_NOT_AVAILABLE') || errMsg.includes('not_found_error')) {
           msg =
             'O modelo de IA solicitado não está disponível para sua chave. Verifique se sua conta Anthropic possui créditos ativos (Tier 1+).'
-        } else if (errMsg.includes('authentication_error') || errMsg.includes('invalid_api_key')) {
+        } else if (
+          errMsg.includes('INVALID_KEY') ||
+          errMsg.includes('authentication_error') ||
+          errMsg.includes('invalid_api_key')
+        ) {
           msg =
             'Sua chave de API da Anthropic parece ser inválida. Verifique as configurações do seu perfil.'
+        } else if (errMsg.includes('INSUFFICIENT_FUNDS')) {
+          msg =
+            'Sem saldo ou limite de requisições excedido. Verifique o seu saldo (Credits) no Anthropic Console.'
         } else {
           msg = errMsg.replace(/^\[.*?\]\s*/, '')
         }
@@ -380,7 +397,7 @@ export default function AIAnalysis() {
                         {isAnalyzing ? (
                           <>
                             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                            Processando Análise...
+                            Analisando contrato...
                           </>
                         ) : (
                           'Analisar com IA Jurídica'
@@ -408,7 +425,7 @@ export default function AIAnalysis() {
                       <div className="w-12 h-12 rounded-full border-4 border-purple-200 border-t-purple-600 animate-spin"></div>
                     </div>
                     <p className="text-purple-600 font-medium animate-pulse text-lg">
-                      Processando Análise... Por favor, aguarde.
+                      Analisando contrato... Por favor, aguarde.
                     </p>
                     <p className="text-slate-500 text-sm mt-2">
                       A IA está analisando as cláusulas em relação à base legal
