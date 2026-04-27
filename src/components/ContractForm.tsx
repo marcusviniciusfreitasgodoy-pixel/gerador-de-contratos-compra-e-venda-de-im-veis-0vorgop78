@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent } from '@/components/ui/card'
 import { contractSchema, type ContractFormValues } from '@/lib/schemas'
-import { ArrowLeft, Loader2, CheckCircle2, Bot, Save } from 'lucide-react'
+import { ArrowLeft, Loader2, CheckCircle2, Bot, Save, Wand2 } from 'lucide-react'
 import { createContract } from '@/services/contracts'
 import { FormInput, FormCurrencyInput, FormMaskedInput, FormSelect } from './FormInput'
 import { toast } from 'sonner'
@@ -157,6 +157,74 @@ export function ContractForm({
   const [generatedContractId, setGeneratedContractId] = useState<string | null>(null)
   const [draftText, setDraftText] = useState('')
   const { user } = useAuth()
+
+  const handleFillDummyData = () => {
+    // Vendedor
+    setValue('nome_vendedor', 'João da Silva', { shouldValidate: true })
+    setValue('cpf_vendedor', '111.111.111-11', { shouldValidate: true })
+    setValue('rg_vendedor', '11.111.111-1', { shouldValidate: true })
+    setValue('orgao_emissor_vendedor', 'SSP/SP', { shouldValidate: true })
+    setValue('nacionalidade_vendedor', 'Brasileiro(a)', { shouldValidate: true })
+    setValue('estado_civil_vendedor', 'Casado', { shouldValidate: true })
+    setValue('profissao_vendedor', 'Engenheiro', { shouldValidate: true })
+    setValue('endereco_vendedor', 'Rua das Flores, 123, Centro, São Paulo - SP', {
+      shouldValidate: true,
+    })
+    setValue('email_vendedor', 'joao.vendedor@exemplo.com', { shouldValidate: true })
+    setValue('telefone_vendedor', '(11) 98888-8888', { shouldValidate: true })
+
+    setValue('vendedor_banco', 'Itaú', { shouldValidate: true })
+    setValue('vendedor_agencia', '1234', { shouldValidate: true })
+    setValue('vendedor_conta', '12345-6', { shouldValidate: true })
+    setValue('vendedor_pix', 'joao.vendedor@exemplo.com', { shouldValidate: true })
+
+    // Comprador
+    setValue('nome_comprador', 'Maria Oliveira', { shouldValidate: true })
+    setValue('cpf_comprador', '222.222.222-22', { shouldValidate: true })
+    setValue('rg_comprador', '22.222.222-2', { shouldValidate: true })
+    setValue('orgao_emissor_comprador', 'SSP/SP', { shouldValidate: true })
+    setValue('nacionalidade_comprador', 'Brasileira', { shouldValidate: true })
+    setValue('estado_civil_comprador', 'Solteiro', { shouldValidate: true })
+    setValue('profissao_comprador', 'Médica', { shouldValidate: true })
+    setValue('endereco_comprador', 'Av. Paulista, 1000, Bela Vista, São Paulo - SP', {
+      shouldValidate: true,
+    })
+    setValue('email_comprador', 'maria.compradora@exemplo.com', { shouldValidate: true })
+    setValue('telefone_comprador', '(11) 97777-7777', { shouldValidate: true })
+
+    // Imóvel
+    setValue('endereco_imovel', 'Rua do Imóvel, 456, Apto 12, Jardins, São Paulo - SP', {
+      shouldValidate: true,
+    })
+    setValue('matricula_imovel', '123456', { shouldValidate: true })
+    setValue('rgi_imovel', '1º Cartório de Registro de Imóveis', { shouldValidate: true })
+    setValue('inscricao_municipal', '001.002.003-4', { shouldValidate: true })
+    setValue('area_total', 120, { shouldValidate: true })
+    setValue('vagas_garagem', 2, { shouldValidate: true })
+
+    // Valores
+    setValue('valor_sinal', 'R$ 50.000,00', { shouldValidate: true })
+    setValue('comissao', 'R$ 25.000,00', { shouldValidate: true })
+
+    const nextMonth = new Date()
+    nextMonth.setMonth(nextMonth.getMonth() + 1)
+    const dateStr = nextMonth.toISOString().split('T')[0]
+
+    if (type === 'a_vista') {
+      setValue('valor_saldo', 'R$ 450.000,00', { shouldValidate: true })
+      setValue('data_pagamento_saldo', dateStr, { shouldValidate: true })
+    } else {
+      setValue('valor_reforco', 'R$ 50.000,00', { shouldValidate: true })
+      setValue('valor_complemento', 'R$ 50.000,00', { shouldValidate: true })
+      setValue('valor_financiado', 'R$ 350.000,00', { shouldValidate: true })
+      setValue('instituicao_financeira', 'Caixa Econômica Federal', { shouldValidate: true })
+      setValue('taxa_juros', 9.5, { shouldValidate: true })
+      setValue('prazo_meses', 360, { shouldValidate: true })
+      setValue('data_liberacao_credito', dateStr, { shouldValidate: true })
+    }
+
+    toast.success('Campos preenchidos com dados fictícios!')
+  }
 
   const handleAnalyzeAI = async () => {
     setIsAnalyzing(true)
@@ -333,31 +401,44 @@ export function ContractForm({
               </Tabs>
 
               <div className="flex flex-col sm:flex-row justify-between items-center pt-6 border-t gap-4">
-                {Object.keys(errors).length > 0 ? (
-                  <p className="text-red-500 text-sm font-medium">
-                    Preencha todos os campos obrigatórios nas abas.
-                  </p>
-                ) : (
-                  <div className="text-sm text-slate-500">
-                    Formulário pronto para gerar contrato.
-                  </div>
-                )}
-                <Button
-                  type="submit"
-                  size="lg"
-                  disabled={!isValid || isGenerating}
-                  className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
-                >
-                  {isGenerating ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Gerando minuta...
-                    </>
+                <div className="flex-1">
+                  {Object.keys(errors).length > 0 ? (
+                    <p className="text-red-500 text-sm font-medium">
+                      Preencha todos os campos obrigatórios nas abas.
+                    </p>
                   ) : (
-                    <>
-                      <Save className="w-4 h-4 mr-2" /> Gerar Contrato
-                    </>
+                    <div className="text-sm text-slate-500">
+                      Formulário pronto para gerar contrato.
+                    </div>
                   )}
-                </Button>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="lg"
+                    onClick={handleFillDummyData}
+                    className="w-full sm:w-auto text-slate-600 border-slate-200"
+                  >
+                    <Wand2 className="w-4 h-4 mr-2" /> Preencher com dados fictícios
+                  </Button>
+                  <Button
+                    type="submit"
+                    size="lg"
+                    disabled={!isValid || isGenerating}
+                    className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Gerando minuta...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 mr-2" /> Gerar Contrato
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
             </form>
           </Form>
