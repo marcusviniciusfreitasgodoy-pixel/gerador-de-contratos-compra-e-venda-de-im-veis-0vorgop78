@@ -135,7 +135,9 @@ function ValuesTab({ type }: { type: 'a_vista' | 'financiado' }) {
 
       <div className="p-4 bg-slate-50 border rounded-lg flex justify-between items-center mt-6">
         <span className="font-semibold text-slate-700">Valor Total Calculado:</span>
-        <span className="text-2xl font-bold text-blue-600">{total || 'R$ 0,00'}</span>
+        <span className="text-2xl font-bold text-blue-600">
+          {total ? formatCurrency(total) : 'R$ 0,00'}
+        </span>
       </div>
     </div>
   )
@@ -203,26 +205,40 @@ export function ContractForm({
     setValue('vagas_garagem', 2, { shouldValidate: true })
 
     // Valores
-    setValue('valor_sinal', 'R$ 50.000,00', { shouldValidate: true })
-    setValue('comissao', 'R$ 25.000,00', { shouldValidate: true })
+    setValue('valor_sinal', 50000, { shouldValidate: true })
+    setValue('comissao', 25000, { shouldValidate: true })
 
     const nextMonth = new Date()
     nextMonth.setMonth(nextMonth.getMonth() + 1)
     const dateStr = nextMonth.toISOString().split('T')[0]
 
     if (type === 'a_vista') {
-      setValue('valor_saldo', 'R$ 450.000,00', { shouldValidate: true })
+      setValue('valor_saldo', 450000, { shouldValidate: true })
       setValue('data_pagamento_saldo', dateStr, { shouldValidate: true })
+
+      // Clear financiado fields
+      setValue('valor_reforco', 0, { shouldValidate: true })
+      setValue('valor_complemento', 0, { shouldValidate: true })
+      setValue('valor_financiado', 0, { shouldValidate: true })
+      setValue('taxa_juros', 0, { shouldValidate: true })
+      setValue('prazo_meses', 0, { shouldValidate: true })
+      setValue('instituicao_financeira', '', { shouldValidate: true })
+      setValue('data_liberacao_credito', '', { shouldValidate: true })
     } else {
-      setValue('valor_reforco', 'R$ 50.000,00', { shouldValidate: true })
-      setValue('valor_complemento', 'R$ 50.000,00', { shouldValidate: true })
-      setValue('valor_financiado', 'R$ 350.000,00', { shouldValidate: true })
+      setValue('valor_reforco', 50000, { shouldValidate: true })
+      setValue('valor_complemento', 50000, { shouldValidate: true })
+      setValue('valor_financiado', 350000, { shouldValidate: true })
       setValue('instituicao_financeira', 'Caixa Econômica Federal', { shouldValidate: true })
       setValue('taxa_juros', 9.5, { shouldValidate: true })
       setValue('prazo_meses', 360, { shouldValidate: true })
       setValue('data_liberacao_credito', dateStr, { shouldValidate: true })
+
+      // Clear a_vista fields
+      setValue('valor_saldo', 0, { shouldValidate: true })
+      setValue('data_pagamento_saldo', '', { shouldValidate: true })
     }
 
+    form.trigger()
     toast.success('Campos preenchidos com dados fictícios!')
   }
 
@@ -258,9 +274,16 @@ export function ContractForm({
     defaultValues: {
       tipo: type,
       status: 'em_elaboracao',
+      user: user?.id,
     } as any,
     mode: 'onChange',
   })
+
+  useEffect(() => {
+    if (user?.id) {
+      setValue('user', user.id)
+    }
+  }, [user?.id, setValue])
 
   const {
     watch,
@@ -277,29 +300,33 @@ export function ContractForm({
 
   useEffect(() => {
     let total = 0
-    total += parseCurrency(sinal) || 0
+    const parseSafe = (val: any) =>
+      typeof val === 'number' ? val : parseCurrency(String(val || '')) || 0
+
+    total += parseSafe(sinal)
     if (type === 'a_vista') {
-      total += parseCurrency(saldo) || 0
+      total += parseSafe(saldo)
     } else {
-      total += parseCurrency(reforco) || 0
-      total += parseCurrency(complemento) || 0
-      total += parseCurrency(financiado) || 0
+      total += parseSafe(reforco)
+      total += parseSafe(complemento)
+      total += parseSafe(financiado)
     }
-    setValue('valor_total', formatCurrency(total), { shouldValidate: true })
+    setValue('valor_total', total, { shouldValidate: true })
 
     // Auto-calculate comissao if user has a default percentage and comissao is empty
     if (user?.comissao_padrao_percentual && total > 0 && !comissao) {
       const perc = Number(user.comissao_padrao_percentual) / 100
-      setValue('comissao', formatCurrency(total * perc), { shouldValidate: true })
+      setValue('comissao', total * perc, { shouldValidate: true })
     }
   }, [sinal, saldo, reforco, complemento, financiado, type, setValue, user, comissao])
 
   const onSubmit = async (data: ContractFormValues) => {
     setIsGenerating(true)
     try {
-      const txt = generateDraftText(data, user)
+      const submitData = { ...data, user: user?.id }
+      const txt = generateDraftText(submitData, user)
       setDraftText(txt)
-      const saved = await createContract(data, txt)
+      const saved = await createContract(submitData, txt)
       setGeneratedContractId(saved.id)
       toast.success('Contrato gerado com sucesso!')
       setIsSuccess(true)
