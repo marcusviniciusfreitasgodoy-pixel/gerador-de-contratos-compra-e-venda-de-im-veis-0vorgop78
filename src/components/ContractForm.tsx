@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/dialog'
 import { AnalysisReportView, type AnalysisReport } from './AnalysisReportView'
 import pb from '@/lib/pocketbase/client'
+import { getErrorMessage } from '@/lib/pocketbase/errors'
 
 const ESTADO_CIVIL_OPTIONS = [
   { label: 'Solteiro(a)', value: 'Solteiro' },
@@ -279,7 +280,9 @@ export function ContractForm({
         setShowAnalysisModal(true)
       }
     } catch (err: any) {
-      toast.error('Erro ao analisar contrato.')
+      toast.error('Erro ao analisar contrato.', {
+        description: getErrorMessage(err) || 'Verifique suas configurações de API de IA.',
+      })
     } finally {
       setIsAnalyzing(false)
     }

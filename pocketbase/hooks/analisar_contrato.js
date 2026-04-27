@@ -15,7 +15,6 @@ routerAdd(
         arquivo = arquivo.split('base64,')[1]
       }
 
-      // Payload Sanitization for TXT
       if (tipo === 'txt') {
         arquivo = arquivo.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
         arquivo = arquivo.replace(/[═─━│┃┄┅┆┇┈┉╌╍╎╏║╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀]/g, ' ')
@@ -24,35 +23,29 @@ routerAdd(
       }
 
       let anthropicKey = ''
+      let openaiKey = ''
+      let geminiKey = ''
+
       if (e.auth?.id) {
         try {
           const userRecord = $app.findRecordById('users', e.auth.id)
           anthropicKey = userRecord.getString('anthropic_api_key')
+          openaiKey = userRecord.getString('openai_api_key')
+          geminiKey = userRecord.getString('gemini_api_key')
         } catch (_) {}
       }
 
-      if (anthropicKey) {
-        anthropicKey = anthropicKey.replace(/[^\x21-\x7E]/g, '')
-      } else {
-        anthropicKey = $secrets.get('ANTHROPIC_API_KEY')
-        if (anthropicKey) {
-          anthropicKey = anthropicKey.replace(/[^\x21-\x7E]/g, '')
-        }
-      }
+      if (!anthropicKey) anthropicKey = $secrets.get('ANTHROPIC_API_KEY') || ''
+      if (!openaiKey) openaiKey = $secrets.get('OPENAI_API_KEY') || ''
+      if (!geminiKey) geminiKey = $secrets.get('GEMINI_API_KEY') || ''
 
-      let openaiKey = e.auth?.getString('openai_api_key')
-      if (openaiKey) {
-        openaiKey = openaiKey.replace(/[^\x21-\x7E]/g, '')
-      } else {
-        openaiKey = $secrets.get('OPENAI_API_KEY')
-        if (openaiKey) {
-          openaiKey = openaiKey.replace(/[^\x21-\x7E]/g, '')
-        }
-      }
+      anthropicKey = anthropicKey.replace(/[^\x21-\x7E]/g, '')
+      openaiKey = openaiKey.replace(/[^\x21-\x7E]/g, '')
+      geminiKey = geminiKey.replace(/[^\x21-\x7E]/g, '')
 
-      if (!anthropicKey) {
+      if (!anthropicKey && !openaiKey && !geminiKey) {
         return e.badRequestError(
-          'Configure sua chave de IA da Anthropic no painel de integração ou nos segredos do sistema para habilitar esta função.',
+          'Configure pelo menos uma chave de API (Anthropic, OpenAI ou Gemini) para habilitar esta função.',
         )
       }
 
@@ -140,57 +133,50 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
   "relatorio_completo": "string"
 }`
 
-      let analysisResult = null
       let extractedText = ''
 
       if (tipo === 'imagem' || tipo === 'image') {
-        const imgBody = {
-          model: 'claude-3-5-sonnet-latest',
-          max_tokens: 8192,
-          messages: [
-            {
-              role: 'user',
-              content: [
-                {
-                  type: 'image',
-                  source: {
-                    type: 'base64',
-                    media_type: 'image/jpeg',
-                    data: arquivo,
+        let extracted = false
+        let extractErr = 'Nenhum provedor disponível'
+
+        if (anthropicKey && !extracted) {
+          const imgBody = {
+            model: 'claude-3-5-sonnet-latest',
+            max_tokens: 8192,
+            messages: [
+              {
+                role: 'user',
+                content: [
+                  {
+                    type: 'image',
+                    source: {
+                      type: 'base64',
+                      media_type: 'image/jpeg',
+                      data: arquivo,
+                    },
                   },
-                },
-                {
-                  type: 'text',
-                  text: 'Extraia o texto legível desta imagem. Retorne apenas o texto.',
-                },
-              ],
+                  {
+                    type: 'text',
+                    text: 'Extraia o texto legível desta imagem. Retorne apenas o texto.',
+                  },
+                ],
+              },
+            ],
+          }
+
+          let extractRes = $http.send({
+            url: 'https://api.anthropic.com/v1/messages',
+            method: 'POST',
+            headers: {
+              'x-api-key': anthropicKey,
+              'anthropic-version': '2023-06-01',
+              'content-type': 'application/json',
             },
-          ],
-        }
+            body: JSON.stringify(imgBody),
+            timeout: 60,
+          })
 
-        let extractRes = $http.send({
-          url: 'https://api.anthropic.com/v1/messages',
-          method: 'POST',
-          headers: {
-            'x-api-key': anthropicKey,
-            'anthropic-version': '2023-06-01',
-            'content-type': 'application/json',
-            'cache-control': 'no-cache',
-          },
-          body: JSON.stringify(imgBody),
-          timeout: 60,
-        })
-
-        if (extractRes.statusCode !== 200) {
-          let errType = extractRes.json?.error?.type || ''
-          let errMsg = extractRes.json?.error?.message || ''
-          if (
-            extractRes.statusCode === 404 ||
-            errType === 'not_found_error' ||
-            errMsg.includes('not found') ||
-            extractRes.statusCode === 400 ||
-            extractRes.statusCode === 403
-          ) {
+          if (extractRes.statusCode !== 200) {
             imgBody.model = 'claude-3-haiku-20241022'
             extractRes = $http.send({
               url: 'https://api.anthropic.com/v1/messages',
@@ -199,33 +185,83 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
                 'x-api-key': anthropicKey,
                 'anthropic-version': '2023-06-01',
                 'content-type': 'application/json',
-                'cache-control': 'no-cache',
               },
               body: JSON.stringify(imgBody),
               timeout: 60,
             })
           }
+
+          if (extractRes.statusCode === 200) {
+            extractedText = extractRes.json.content[0].text
+            extracted = true
+          } else {
+            extractErr = extractRes.json?.error?.message || 'Anthropic falhou'
+          }
         }
 
-        if (extractRes.statusCode === 200) {
-          extractedText = extractRes.json.content[0].text
-        } else {
-          let imgErrType = 'unknown_error'
-          let imgErrMsg = 'Erro desconhecido'
-          if (extractRes.json && extractRes.json.error) {
-            imgErrType = extractRes.json.error.type || imgErrType
-            imgErrMsg = extractRes.json.error.message || imgErrMsg
+        if (openaiKey && !extracted) {
+          const imgBody = {
+            model: 'gpt-4o-mini',
+            messages: [
+              {
+                role: 'user',
+                content: [
+                  {
+                    type: 'text',
+                    text: 'Extraia o texto legível desta imagem. Retorne apenas o texto.',
+                  },
+                  { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${arquivo}` } },
+                ],
+              },
+            ],
+            max_tokens: 4096,
           }
-          if (
-            extractRes.statusCode === 404 ||
-            extractRes.statusCode === 400 ||
-            extractRes.statusCode === 403
-          ) {
-            imgErrType = 'MODEL_NOT_AVAILABLE'
-            imgErrMsg =
-              'O modelo de IA solicitado não está disponível para sua chave. Verifique se sua conta Anthropic possui créditos ativos (Tier 1+).'
+          const extractRes = $http.send({
+            url: 'https://api.openai.com/v1/chat/completions',
+            method: 'POST',
+            headers: {
+              Authorization: 'Bearer ' + openaiKey,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(imgBody),
+            timeout: 60,
+          })
+          if (extractRes.statusCode === 200) {
+            extractedText = extractRes.json.choices[0].message.content
+            extracted = true
+          } else {
+            extractErr = extractRes.json?.error?.message || 'OpenAI falhou'
           }
-          throw new Error(`[${imgErrType}] ${imgErrMsg}`)
+        }
+
+        if (geminiKey && !extracted) {
+          const imgBody = {
+            contents: [
+              {
+                parts: [
+                  { text: 'Extraia o texto legível desta imagem. Retorne apenas o texto.' },
+                  { inline_data: { mime_type: 'image/jpeg', data: arquivo } },
+                ],
+              },
+            ],
+          }
+          const extractRes = $http.send({
+            url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(imgBody),
+            timeout: 60,
+          })
+          if (extractRes.statusCode === 200 && extractRes.json.candidates?.length > 0) {
+            extractedText = extractRes.json.candidates[0].content.parts[0].text
+            extracted = true
+          } else {
+            extractErr = extractRes.json?.error?.message || 'Gemini falhou'
+          }
+        }
+
+        if (!extracted) {
+          throw new Error(`Falha na extração de texto da imagem: ${extractErr}`)
         }
       } else if (tipo === 'txt') {
         extractedText = arquivo
@@ -264,52 +300,67 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
         extractedText = extractedText.substring(0, 200000)
       }
 
-      let usedModel = 'claude-3-5-sonnet-latest'
-      const aiBody = {
-        model: usedModel,
-        max_tokens: adaptiveThought ? 8192 : 4096,
-        system: systemPrompt,
-        messages: [
-          {
-            role: 'user',
-            content: `Analise este contrato (${tipoContrato}):\n\n${extractedText}`,
+      let analysisResult = null
+      let usedModel = ''
+      let success = false
+      let lastErrorMsg = 'Falha na comunicação com os serviços de IA.'
+
+      const tryParse = (content, modelName) => {
+        try {
+          let clean = content
+          if (content.includes('```json')) {
+            clean = content.split('```json')[1].split('```')[0]
+          } else if (content.includes('```')) {
+            clean = content.split('```')[1].split('```')[0]
+          }
+          analysisResult = JSON.parse(clean.trim())
+          analysisResult.usedModel = modelName
+          usedModel = modelName
+          success = true
+          return true
+        } catch (parseErr) {
+          $app.logger().error('JSON Parse failed', 'model', modelName, 'error', parseErr.message)
+          return false
+        }
+      }
+
+      const finalSystemPrompt =
+        systemPrompt +
+        (adaptiveThought
+          ? '\n\nINSTRUÇÃO ADICIONAL: Modo de Pensamento Adaptativo Ativado. Realize uma auditoria profunda, raciocinando meticulosamente sobre cada cláusula e buscando potenciais riscos ocultos ou omissões sutis com o máximo rigor possível.'
+          : '')
+
+      // 1. Anthropic Fallback
+      if (anthropicKey && !success) {
+        let m = 'claude-3-5-sonnet-latest'
+        const aiBody = {
+          model: m,
+          max_tokens: adaptiveThought ? 8192 : 4096,
+          system: finalSystemPrompt,
+          temperature: 1.0,
+          messages: [
+            {
+              role: 'user',
+              content: `Analise este contrato (${tipoContrato}):\n\n${extractedText}`,
+            },
+          ],
+        }
+
+        let chatRes = $http.send({
+          url: 'https://api.anthropic.com/v1/messages',
+          method: 'POST',
+          headers: {
+            'x-api-key': anthropicKey,
+            'anthropic-version': '2023-06-01',
+            'content-type': 'application/json',
           },
-        ],
-      }
+          body: JSON.stringify(aiBody),
+          timeout: 180,
+        })
 
-      if (adaptiveThought) {
-        aiBody.system =
-          aiBody.system +
-          '\n\nINSTRUÇÃO ADICIONAL: Modo de Pensamento Adaptativo Ativado. Realize uma auditoria profunda, raciocinando meticulosamente sobre cada cláusula e buscando potenciais riscos ocultos ou omissões sutis com o máximo rigor possível.'
-      }
-      aiBody.temperature = 1.0
-
-      let chatRes = $http.send({
-        url: 'https://api.anthropic.com/v1/messages',
-        method: 'POST',
-        headers: {
-          'x-api-key': anthropicKey,
-          'anthropic-version': '2023-06-01',
-          'content-type': 'application/json',
-          'cache-control': 'no-cache',
-        },
-        body: JSON.stringify(aiBody),
-        timeout: 180,
-      })
-
-      if (chatRes.statusCode !== 200) {
-        let errType = chatRes.json?.error?.type || ''
-        let errMsg = chatRes.json?.error?.message || ''
-        if (
-          chatRes.statusCode === 404 ||
-          errType === 'not_found_error' ||
-          errMsg.includes('not found') ||
-          chatRes.statusCode === 400 ||
-          chatRes.statusCode === 403
-        ) {
-          $app.logger().info('Falling back to claude-3-haiku-20241022')
-          usedModel = 'claude-3-haiku-20241022'
-          aiBody.model = usedModel
+        if (chatRes.statusCode !== 200) {
+          m = 'claude-3-haiku-20241022'
+          aiBody.model = m
           chatRes = $http.send({
             url: 'https://api.anthropic.com/v1/messages',
             method: 'POST',
@@ -317,79 +368,102 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
               'x-api-key': anthropicKey,
               'anthropic-version': '2023-06-01',
               'content-type': 'application/json',
-              'cache-control': 'no-cache',
             },
             body: JSON.stringify(aiBody),
             timeout: 180,
           })
         }
+
+        if (chatRes.statusCode === 200) {
+          let content = chatRes.json.content[0].text
+          tryParse(content, m)
+        } else {
+          lastErrorMsg = `Anthropic falhou: ${chatRes.json?.error?.message || `HTTP ${chatRes.statusCode}`}`
+          $app
+            .logger()
+            .warn('Anthropic attempt failed', 'status', chatRes.statusCode, 'msg', lastErrorMsg)
+        }
       }
 
-      if (chatRes.statusCode !== 200) {
-        $app.logger().error('Anthropic AI failed', 'status', chatRes.statusCode, 'raw', chatRes.raw)
-
-        let errMsg = 'Falha na comunicação com o serviço de IA.'
-        let errType = 'unknown_error'
-
-        if (chatRes.json && chatRes.json.error) {
-          errType = chatRes.json.error.type || errType
-          errMsg = chatRes.json.error.message || errMsg
+      // 2. OpenAI Fallback
+      if (openaiKey && !success) {
+        let m = 'gpt-4o-mini'
+        const aiBody = {
+          model: m,
+          messages: [
+            { role: 'system', content: finalSystemPrompt },
+            {
+              role: 'user',
+              content: `Analise este contrato (${tipoContrato}):\n\n${extractedText}`,
+            },
+          ],
+          response_format: { type: 'json_object' },
+          temperature: 1.0,
         }
 
-        if (chatRes.statusCode === 429 || errType === 'insufficient_credits') {
-          errType = 'INSUFFICIENT_FUNDS'
-          errMsg =
-            'Sem saldo ou limite de requisições excedido. Verifique o seu saldo (Credits) no Anthropic Console.'
-        } else if (
-          chatRes.statusCode === 401 ||
-          errType === 'invalid_api_key' ||
-          errType === 'authentication_error'
-        ) {
-          errType = 'INVALID_KEY'
-          errMsg =
-            'Sua chave de API da Anthropic parece ser inválida. Verifique as configurações do seu perfil.'
-        } else if (
-          chatRes.statusCode === 404 ||
-          chatRes.statusCode === 400 ||
-          chatRes.statusCode === 403 ||
-          errType === 'not_found_error'
-        ) {
-          errType = 'MODEL_NOT_AVAILABLE'
-          errMsg =
-            'O modelo de IA solicitado não está disponível para sua chave. Verifique se sua conta Anthropic possui créditos ativos (Tier 1+).'
+        let chatRes = $http.send({
+          url: 'https://api.openai.com/v1/chat/completions',
+          method: 'POST',
+          headers: {
+            Authorization: 'Bearer ' + openaiKey,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(aiBody),
+          timeout: 180,
+        })
+
+        if (chatRes.statusCode === 200) {
+          let content = chatRes.json.choices[0].message.content
+          tryParse(content, m)
         } else {
-          errMsg =
-            'Ocorreu um erro inesperado ao processar a análise. Por favor, tente novamente mais tarde.'
+          lastErrorMsg = `OpenAI falhou: ${chatRes.json?.error?.message || `HTTP ${chatRes.statusCode}`}`
+          $app
+            .logger()
+            .warn('OpenAI attempt failed', 'status', chatRes.statusCode, 'msg', lastErrorMsg)
+        }
+      }
+
+      // 3. Gemini Fallback
+      if (geminiKey && !success) {
+        let m = 'gemini-1.5-flash'
+        const geminiPrompt = `System: ${finalSystemPrompt}\n\nUser: Analise este contrato (${tipoContrato}):\n\n${extractedText}`
+        const aiBody = {
+          contents: [{ role: 'user', parts: [{ text: geminiPrompt }] }],
+          generationConfig: {
+            temperature: 1.0,
+            responseMimeType: 'application/json',
+          },
         }
 
+        let chatRes = $http.send({
+          url: `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${geminiKey}`,
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(aiBody),
+          timeout: 180,
+        })
+
+        if (chatRes.statusCode === 200 && chatRes.json.candidates?.length > 0) {
+          let content = chatRes.json.candidates[0].content.parts[0].text
+          tryParse(content, m)
+        } else {
+          lastErrorMsg = `Gemini falhou: ${chatRes.json?.error?.message || `HTTP ${chatRes.statusCode}`}`
+          $app
+            .logger()
+            .warn('Gemini attempt failed', 'status', chatRes.statusCode, 'msg', lastErrorMsg)
+        }
+      }
+
+      if (!success) {
         return e.badRequestError(
-          `[${errType}] ${errMsg} | Detalhe da API: ${chatRes.json?.error?.message || ''}`,
+          `Nenhum provedor de IA configurado obteve sucesso. Último erro: ${lastErrorMsg}`,
         )
       }
 
-      try {
-        let content = chatRes.json.content[0].text
-        if (content.includes('```json')) {
-          content = content.split('```json')[1].split('```')[0]
-        } else if (content.includes('```')) {
-          content = content.split('```')[1].split('```')[0]
-        }
-        analysisResult = JSON.parse(content.trim())
-        analysisResult.usedModel = usedModel
-      } catch (parseErr) {
-        $app
-          .logger()
-          .error(
-            'JSON Parse failed',
-            'error',
-            parseErr.message,
-            'content',
-            chatRes.json?.content?.[0]?.text,
-          )
-        return e.json(500, {
-          error:
-            'Unable to analyze the document. Please ensure the file contains readable text or check your AI configuration.',
-        })
+      if (!analysisResult) {
+        return e.internalServerError('Falha no processamento do resultado da análise.')
       }
 
       try {
@@ -436,9 +510,10 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
       return e.json(200, analysisResult)
     } catch (err) {
       $app.logger().error('Erro na rota analisar-contrato', 'error', err.message)
-      const errorMsg = err.message.startsWith('[')
-        ? err.message
-        : 'Não consegui analisar o contrato. Verifique o arquivo e tente novamente.'
+      const errorMsg =
+        err.message.startsWith('[') || err.message.includes('Falha')
+          ? err.message
+          : 'Não consegui analisar o contrato. Verifique o arquivo e as chaves de API.'
       return e.badRequestError(errorMsg)
     }
   },
