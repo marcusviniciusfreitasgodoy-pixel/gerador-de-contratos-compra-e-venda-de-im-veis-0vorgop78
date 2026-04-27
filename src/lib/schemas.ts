@@ -61,6 +61,14 @@ export const contractSchema = z
     instituicao_financeira: z.string().optional(),
     taxa_juros: z.string().optional(),
     prazo_meses: z.string().optional(),
+
+    data_liberacao_credito: z.string().optional(),
+    data_pagamento_saldo: z.string().optional(),
+
+    vendedor_banco: z.string().optional(),
+    vendedor_agencia: z.string().optional(),
+    vendedor_conta: z.string().optional(),
+    vendedor_pix: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.tipo === 'financiado') {

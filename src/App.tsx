@@ -5,6 +5,7 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import { AuthProvider } from '@/hooks/use-auth'
 import Layout from '@/components/Layout'
 import Home from '@/pages/Home'
+import NewContract from '@/pages/NewContract'
 import Profile from '@/pages/Profile'
 import Login from '@/pages/Login'
 import AIAnalysis from '@/pages/AIAnalysis'
@@ -24,6 +25,7 @@ export default function App() {
             <Route path="/signup" element={<SignUp />} />
             <Route element={<Layout />}>
               <Route path="/" element={<Home />} />
+              <Route path="/contratos/novo" element={<NewContract />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/analysis" element={<AIAnalysis />} />
               <Route path="/history" element={<AnalysisHistory />} />

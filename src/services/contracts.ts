@@ -36,6 +36,8 @@ export const createContract = async (data: ContractFormValues, minutaTexto?: str
     taxa_juros: Number(data.taxa_juros) || 0,
     prazo_meses: Number(data.prazo_meses) || 0,
     instituicao_financeira: data.instituicao_financeira,
+    data_liberacao_credito: toPbDate(data.data_liberacao_credito),
+    data_pagamento_saldo: toPbDate(data.data_pagamento_saldo),
     vendedor_banco: data.vendedor_banco,
     vendedor_agencia: data.vendedor_agencia,
     vendedor_conta: data.vendedor_conta,

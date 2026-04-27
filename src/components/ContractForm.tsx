@@ -74,6 +74,20 @@ function PersonTab({ prefix }: { prefix: 'vendedor' | 'comprador' }) {
         placeholder="(00) 00000-0000"
         maskType="phone"
       />
+
+      {prefix === 'vendedor' && (
+        <>
+          <div className="col-span-1 md:col-span-2 mt-4 pt-4 border-t">
+            <h3 className="font-semibold text-lg text-slate-800 mb-2">
+              Dados Bancários para Pagamento
+            </h3>
+          </div>
+          <FormInput name="vendedor_banco" label="Banco" placeholder="Ex: Itaú, Nubank" />
+          <FormInput name="vendedor_agencia" label="Agência" placeholder="Ex: 0000" />
+          <FormInput name="vendedor_conta" label="Conta" placeholder="Ex: 00000-0" />
+          <FormInput name="vendedor_pix" label="Chave PIX" placeholder="CPF, Email, Telefone..." />
+        </>
+      )}
     </div>
   )
 }
@@ -99,7 +113,12 @@ function ValuesTab({ type }: { type: 'a_vista' | 'financiado' }) {
     <div className="space-y-6 animate-in fade-in">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormCurrencyInput name="valor_sinal" label="Sinal" />
-        {type === 'a_vista' && <FormCurrencyInput name="valor_saldo" label="Saldo" />}
+        {type === 'a_vista' && (
+          <>
+            <FormCurrencyInput name="valor_saldo" label="Saldo" />
+            <FormInput name="data_pagamento_saldo" label="Data de Pagamento do Saldo" type="date" />
+          </>
+        )}
         {type === 'financiado' && (
           <>
             <FormCurrencyInput name="valor_reforco" label="Reforço" />
@@ -108,6 +127,7 @@ function ValuesTab({ type }: { type: 'a_vista' | 'financiado' }) {
             <FormSelect name="instituicao_financeira" label="Banco" options={BANCO_OPTIONS} />
             <FormInput name="taxa_juros" label="Taxa de Juros (%)" type="number" />
             <FormInput name="prazo_meses" label="Prazo em Meses" type="number" />
+            <FormInput name="data_liberacao_credito" label="Previsão de Liberação" type="date" />
           </>
         )}
         <FormCurrencyInput name="comissao" label="Comissão Imobiliária" />
@@ -169,7 +189,7 @@ export function ContractForm({
     resolver: zodResolver(contractSchema),
     defaultValues: {
       tipo: type,
-      status: 'pendente',
+      status: 'em_elaboracao',
     } as any,
     mode: 'onChange',
   })
@@ -185,6 +205,7 @@ export function ContractForm({
   const reforco = watch('valor_reforco')
   const complemento = watch('valor_complemento')
   const financiado = watch('valor_financiado')
+  const comissao = watch('comissao')
 
   useEffect(() => {
     let total = 0
@@ -197,7 +218,13 @@ export function ContractForm({
       total += parseCurrency(financiado) || 0
     }
     setValue('valor_total', formatCurrency(total), { shouldValidate: true })
-  }, [sinal, saldo, reforco, complemento, financiado, type, setValue])
+
+    // Auto-calculate comissao if user has a default percentage and comissao is empty
+    if (user?.comissao_padrao_percentual && total > 0 && !comissao) {
+      const perc = Number(user.comissao_padrao_percentual) / 100
+      setValue('comissao', formatCurrency(total * perc), { shouldValidate: true })
+    }
+  }, [sinal, saldo, reforco, complemento, financiado, type, setValue, user, comissao])
 
   const onSubmit = async (data: ContractFormValues) => {
     setIsGenerating(true)
