@@ -49,7 +49,7 @@ routerAdd(
     ) {
       isModelsList = false
       let reqBody = {
-        model: 'claude-3-5-sonnet-20240620',
+        model: 'claude-3-5-sonnet-latest',
         max_tokens: 5,
         messages: [{ role: 'user', content: 'Say "ok"' }],
       }
@@ -65,48 +65,6 @@ routerAdd(
         body: JSON.stringify(reqBody),
         timeout: 15,
       })
-
-      if (
-        res.statusCode !== 200 &&
-        res.json &&
-        res.json.error &&
-        res.json.error.type === 'not_found_error'
-      ) {
-        reqBody.model = 'claude-3-5-sonnet-20241022'
-        res = $http.send({
-          url: 'https://api.anthropic.com/v1/messages',
-          method: 'POST',
-          headers: {
-            'x-api-key': apiKey,
-            'anthropic-version': '2023-06-01',
-            'content-type': 'application/json',
-          },
-          body: JSON.stringify(reqBody),
-          timeout: 15,
-        })
-        usedFallback = true
-      }
-
-      if (
-        res.statusCode !== 200 &&
-        res.json &&
-        res.json.error &&
-        res.json.error.type === 'not_found_error'
-      ) {
-        reqBody.model = 'claude-3-5-sonnet-latest'
-        res = $http.send({
-          url: 'https://api.anthropic.com/v1/messages',
-          method: 'POST',
-          headers: {
-            'x-api-key': apiKey,
-            'anthropic-version': '2023-06-01',
-            'content-type': 'application/json',
-          },
-          body: JSON.stringify(reqBody),
-          timeout: 15,
-        })
-        usedFallback = true
-      }
 
       // Se ainda der not_found_error depois de todas as tentativas, a chave é válida mas os modelos estão restritos
       if (
@@ -139,7 +97,8 @@ routerAdd(
         res.statusCode === 401
       ) {
         errorType = 'authentication_error'
-        errorMsg = 'Chave API inválida. Por favor, verifique a chave configurada em seu perfil.'
+        errorMsg =
+          'Sua chave de API da Anthropic parece ser inválida. Verifique as configurações do seu perfil.'
       } else if (errorType === 'insufficient_credits' || res.statusCode === 429) {
         errorType = 'insufficient_credits'
         errorMsg =
@@ -147,13 +106,20 @@ routerAdd(
       } else if (errorType === 'permission_error' || res.statusCode === 403) {
         errorType = 'permission_error'
         errorMsg = 'Erro de permissão. Sua chave não tem acesso a este recurso.'
-      } else if (errorType === 'not_found_error' || res.statusCode === 404) {
+      } else if (
+        errorType === 'not_found_error' ||
+        res.statusCode === 404 ||
+        res.statusCode === 400
+      ) {
         errorType = 'not_found_error'
         errorMsg =
           'O modelo de IA solicitado não está disponível para sua chave. Verifique se sua conta Anthropic possui créditos ativos (Tier 1+).'
       } else if (res.statusCode >= 500) {
         errorType = 'server_error'
         errorMsg = 'O serviço da Anthropic está indisponível no momento.'
+      } else {
+        errorMsg =
+          'Ocorreu um erro inesperado ao processar a análise. Por favor, tente novamente mais tarde.'
       }
 
       $app

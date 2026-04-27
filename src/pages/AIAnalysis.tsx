@@ -161,34 +161,38 @@ export default function AIAnalysis() {
       clearTimeout(timeoutId)
       console.error(error)
       let msg =
-        'Não foi possível analisar o documento. Verifique se há texto legível e tente novamente.'
+        'Ocorreu um erro inesperado ao processar a análise. Por favor, tente novamente mais tarde.'
 
       if (error.name === 'AbortError') {
         msg = adaptiveThought
           ? 'A análise expirou após 3 minutos. O pensamento adaptativo exige mais tempo.'
           : 'A análise expirou após 2 minutos. O contrato pode ser muito longo ou o servidor está sobrecarregado.'
       } else if (error.response?.message) {
-        msg = error.response.message
-        if (msg.includes('not_found_error')) {
+        const errMsg = error.response.message
+        if (errMsg.includes('not_found_error') || error.status === 404 || error.status === 400) {
           msg =
             'O modelo de IA solicitado não está disponível para sua chave. Verifique se sua conta Anthropic possui créditos ativos (Tier 1+).'
-        } else if (msg.includes('authentication_error') || msg.includes('invalid_api_key')) {
-          msg = 'Chave API inválida. Por favor, verifique a chave configurada em seu perfil.'
+        } else if (
+          errMsg.includes('authentication_error') ||
+          errMsg.includes('invalid_api_key') ||
+          error.status === 401
+        ) {
+          msg =
+            'Sua chave de API da Anthropic parece ser inválida. Verifique as configurações do seu perfil.'
         } else {
-          msg = msg.replace(/^\[.*?\]\s*/, '')
+          msg = errMsg.replace(/^\[.*?\]\s*/, '')
         }
       } else if (error.message) {
-        msg = error.message
-        if (msg.includes('not_found_error')) {
+        const errMsg = error.message
+        if (errMsg.includes('not_found_error')) {
           msg =
             'O modelo de IA solicitado não está disponível para sua chave. Verifique se sua conta Anthropic possui créditos ativos (Tier 1+).'
-        } else if (msg.includes('authentication_error') || msg.includes('invalid_api_key')) {
-          msg = 'Chave API inválida. Por favor, verifique a chave configurada em seu perfil.'
+        } else if (errMsg.includes('authentication_error') || errMsg.includes('invalid_api_key')) {
+          msg =
+            'Sua chave de API da Anthropic parece ser inválida. Verifique as configurações do seu perfil.'
         } else {
-          msg = msg.replace(/^\[.*?\]\s*/, '')
+          msg = errMsg.replace(/^\[.*?\]\s*/, '')
         }
-      } else {
-        msg = 'Falha na conexão com o servidor. Verifique sua internet e tente novamente.'
       }
 
       setErrorMsg(msg)
@@ -435,6 +439,7 @@ export default function AIAnalysis() {
                 className="border-red-200 text-red-700 hover:bg-red-50 px-8"
                 onClick={() => {
                   setErrorMsg(null)
+                  handleAnalyzeFile()
                 }}
               >
                 <RefreshCcw className="w-4 h-4 mr-2" /> Tentar novamente

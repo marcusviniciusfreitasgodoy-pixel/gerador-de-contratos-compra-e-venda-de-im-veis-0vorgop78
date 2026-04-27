@@ -134,7 +134,7 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
 
       if (tipo === 'imagem' || tipo === 'image') {
         const imgBody = {
-          model: 'claude-3-5-sonnet-20240620',
+          model: 'claude-3-5-sonnet-latest',
           max_tokens: 8192,
           messages: [
             {
@@ -168,46 +168,6 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
           body: JSON.stringify(imgBody),
           timeout: 60,
         })
-
-        if (
-          extractRes.statusCode !== 200 &&
-          extractRes.json &&
-          extractRes.json.error &&
-          extractRes.json.error.type === 'not_found_error'
-        ) {
-          imgBody.model = 'claude-3-5-sonnet-20241022'
-          extractRes = $http.send({
-            url: 'https://api.anthropic.com/v1/messages',
-            method: 'POST',
-            headers: {
-              'x-api-key': anthropicKey,
-              'anthropic-version': '2023-06-01',
-              'content-type': 'application/json',
-            },
-            body: JSON.stringify(imgBody),
-            timeout: 60,
-          })
-        }
-
-        if (
-          extractRes.statusCode !== 200 &&
-          extractRes.json &&
-          extractRes.json.error &&
-          extractRes.json.error.type === 'not_found_error'
-        ) {
-          imgBody.model = 'claude-3-5-sonnet-latest'
-          extractRes = $http.send({
-            url: 'https://api.anthropic.com/v1/messages',
-            method: 'POST',
-            headers: {
-              'x-api-key': anthropicKey,
-              'anthropic-version': '2023-06-01',
-              'content-type': 'application/json',
-            },
-            body: JSON.stringify(imgBody),
-            timeout: 60,
-          })
-        }
 
         if (extractRes.statusCode === 200) {
           extractedText = extractRes.json.content[0].text
@@ -258,7 +218,7 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
       }
 
       const aiBody = {
-        model: 'claude-3-5-sonnet-20240620',
+        model: 'claude-3-5-sonnet-latest',
         max_tokens: adaptiveThought ? 8192 : 4096,
         system: systemPrompt,
         messages: [
@@ -288,46 +248,6 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
         timeout: 180,
       })
 
-      if (
-        chatRes.statusCode !== 200 &&
-        chatRes.json &&
-        chatRes.json.error &&
-        chatRes.json.error.type === 'not_found_error'
-      ) {
-        aiBody.model = 'claude-3-5-sonnet-20241022'
-        chatRes = $http.send({
-          url: 'https://api.anthropic.com/v1/messages',
-          method: 'POST',
-          headers: {
-            'x-api-key': anthropicKey,
-            'anthropic-version': '2023-06-01',
-            'content-type': 'application/json',
-          },
-          body: JSON.stringify(aiBody),
-          timeout: 180,
-        })
-      }
-
-      if (
-        chatRes.statusCode !== 200 &&
-        chatRes.json &&
-        chatRes.json.error &&
-        chatRes.json.error.type === 'not_found_error'
-      ) {
-        aiBody.model = 'claude-3-5-sonnet-latest'
-        chatRes = $http.send({
-          url: 'https://api.anthropic.com/v1/messages',
-          method: 'POST',
-          headers: {
-            'x-api-key': anthropicKey,
-            'anthropic-version': '2023-06-01',
-            'content-type': 'application/json',
-          },
-          body: JSON.stringify(aiBody),
-          timeout: 180,
-        })
-      }
-
       if (chatRes.statusCode !== 200) {
         $app.logger().error('Anthropic AI failed', 'status', chatRes.statusCode, 'raw', chatRes.raw)
 
@@ -349,14 +269,22 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
           errType === 'authentication_error'
         ) {
           errType = 'authentication_error'
-          errMsg = 'Chave API inválida. Por favor, verifique a chave configurada em seu perfil.'
+          errMsg =
+            'Sua chave de API da Anthropic parece ser inválida. Verifique as configurações do seu perfil.'
         } else if (chatRes.statusCode === 403 || errType === 'permission_error') {
           errType = 'permission_error'
           errMsg = 'Erro de permissão. Sua chave não tem acesso a este recurso.'
-        } else if (chatRes.statusCode === 404 || errType === 'not_found_error') {
+        } else if (
+          chatRes.statusCode === 404 ||
+          chatRes.statusCode === 400 ||
+          errType === 'not_found_error'
+        ) {
           errType = 'not_found_error'
           errMsg =
             'O modelo de IA solicitado não está disponível para sua chave. Verifique se sua conta Anthropic possui créditos ativos (Tier 1+).'
+        } else {
+          errMsg =
+            'Ocorreu um erro inesperado ao processar a análise. Por favor, tente novamente mais tarde.'
         }
 
         return e.badRequestError(`[${errType}] ${errMsg}`)
