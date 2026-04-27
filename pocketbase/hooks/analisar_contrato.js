@@ -23,22 +23,21 @@ routerAdd(
         arquivo = arquivo.replace(/\s{2,}/g, ' ').trim()
       }
 
-      let anthropicKey = $secrets.get('ANTHROPIC_API_KEY')
-      let openaiKey = $secrets.get('OPENAI_API_KEY')
-
+      let anthropicKey = e.auth?.getString('anthropic_api_key')
       if (anthropicKey) {
         anthropicKey = anthropicKey.replace(/[^\x21-\x7E]/g, '')
       } else {
-        anthropicKey = e.auth?.getString('anthropic_api_key')
+        anthropicKey = $secrets.get('ANTHROPIC_API_KEY')
         if (anthropicKey) {
           anthropicKey = anthropicKey.replace(/[^\x21-\x7E]/g, '')
         }
       }
 
+      let openaiKey = e.auth?.getString('openai_api_key')
       if (openaiKey) {
         openaiKey = openaiKey.replace(/[^\x21-\x7E]/g, '')
       } else {
-        openaiKey = e.auth?.getString('openai_api_key')
+        openaiKey = $secrets.get('OPENAI_API_KEY')
         if (openaiKey) {
           openaiKey = openaiKey.replace(/[^\x21-\x7E]/g, '')
         }
@@ -176,7 +175,7 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
           extractRes.json.error &&
           extractRes.json.error.type === 'not_found_error'
         ) {
-          imgBody.model = 'claude-3-5-sonnet-latest'
+          imgBody.model = 'claude-3-5-sonnet-20241022'
           extractRes = $http.send({
             url: 'https://api.anthropic.com/v1/messages',
             method: 'POST',
@@ -196,7 +195,7 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
           extractRes.json.error &&
           extractRes.json.error.type === 'not_found_error'
         ) {
-          imgBody.model = 'claude-3-haiku-20240307'
+          imgBody.model = 'claude-3-5-sonnet-latest'
           extractRes = $http.send({
             url: 'https://api.anthropic.com/v1/messages',
             method: 'POST',
@@ -295,7 +294,7 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
         chatRes.json.error &&
         chatRes.json.error.type === 'not_found_error'
       ) {
-        aiBody.model = 'claude-3-5-sonnet-latest'
+        aiBody.model = 'claude-3-5-sonnet-20241022'
         chatRes = $http.send({
           url: 'https://api.anthropic.com/v1/messages',
           method: 'POST',
@@ -315,7 +314,7 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
         chatRes.json.error &&
         chatRes.json.error.type === 'not_found_error'
       ) {
-        aiBody.model = 'claude-3-haiku-20240307'
+        aiBody.model = 'claude-3-5-sonnet-latest'
         chatRes = $http.send({
           url: 'https://api.anthropic.com/v1/messages',
           method: 'POST',
@@ -338,19 +337,26 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
         if (chatRes.json && chatRes.json.error) {
           errType = chatRes.json.error.type || errType
           errMsg = chatRes.json.error.message || errMsg
-        } else if (chatRes.statusCode === 429 || errType === 'insufficient_credits') {
+        }
+
+        if (chatRes.statusCode === 429 || errType === 'insufficient_credits') {
           errType = 'insufficient_credits'
           errMsg =
             'Sem saldo ou limite de requisições excedido. Verifique o seu saldo (Credits) no Anthropic Console.'
-        } else if (chatRes.statusCode === 401 || errType === 'invalid_api_key') {
-          errType = 'invalid_api_key'
-          errMsg = 'Chave de API inválida ou não autorizada.'
+        } else if (
+          chatRes.statusCode === 401 ||
+          errType === 'invalid_api_key' ||
+          errType === 'authentication_error'
+        ) {
+          errType = 'authentication_error'
+          errMsg = 'Chave API inválida. Por favor, verifique a chave configurada em seu perfil.'
         } else if (chatRes.statusCode === 403 || errType === 'permission_error') {
           errType = 'permission_error'
           errMsg = 'Erro de permissão. Sua chave não tem acesso a este recurso.'
         } else if (chatRes.statusCode === 404 || errType === 'not_found_error') {
           errType = 'not_found_error'
-          errMsg = 'Modelo não encontrado ou indisponível para esta chave.'
+          errMsg =
+            'O modelo de IA solicitado não está disponível para sua chave. Verifique se sua conta Anthropic possui créditos ativos (Tier 1+).'
         }
 
         return e.badRequestError(`[${errType}] ${errMsg}`)

@@ -169,11 +169,28 @@ export default function AIAnalysis() {
           : 'A análise expirou após 2 minutos. O contrato pode ser muito longo ou o servidor está sobrecarregado.'
       } else if (error.response?.message) {
         msg = error.response.message
+        if (msg.includes('not_found_error')) {
+          msg =
+            'O modelo de IA solicitado não está disponível para sua chave. Verifique se sua conta Anthropic possui créditos ativos (Tier 1+).'
+        } else if (msg.includes('authentication_error') || msg.includes('invalid_api_key')) {
+          msg = 'Chave API inválida. Por favor, verifique a chave configurada em seu perfil.'
+        } else {
+          msg = msg.replace(/^\[.*?\]\s*/, '')
+        }
       } else if (error.message) {
         msg = error.message
+        if (msg.includes('not_found_error')) {
+          msg =
+            'O modelo de IA solicitado não está disponível para sua chave. Verifique se sua conta Anthropic possui créditos ativos (Tier 1+).'
+        } else if (msg.includes('authentication_error') || msg.includes('invalid_api_key')) {
+          msg = 'Chave API inválida. Por favor, verifique a chave configurada em seu perfil.'
+        } else {
+          msg = msg.replace(/^\[.*?\]\s*/, '')
+        }
       } else {
         msg = 'Falha na conexão com o servidor. Verifique sua internet e tente novamente.'
       }
+
       setErrorMsg(msg)
       toast.error('Erro na Análise', { description: msg })
     } finally {
