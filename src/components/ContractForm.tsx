@@ -160,6 +160,22 @@ export function ContractForm({
   const [draftText, setDraftText] = useState('')
   const { user } = useAuth()
 
+  const form = useForm<ContractFormValues>({
+    resolver: zodResolver(contractSchema),
+    defaultValues: {
+      tipo: type,
+      status: 'em_elaboracao',
+      user: user?.id,
+    } as any,
+    mode: 'onChange',
+  })
+
+  const {
+    watch,
+    setValue,
+    formState: { isValid, errors },
+  } = form
+
   const handleFillDummyData = () => {
     // Vendedor
     setValue('nome_vendedor', 'João da Silva', { shouldValidate: true })
@@ -269,27 +285,11 @@ export function ContractForm({
     }
   }
 
-  const form = useForm<ContractFormValues>({
-    resolver: zodResolver(contractSchema),
-    defaultValues: {
-      tipo: type,
-      status: 'em_elaboracao',
-      user: user?.id,
-    } as any,
-    mode: 'onChange',
-  })
-
   useEffect(() => {
     if (user?.id) {
       setValue('user', user.id)
     }
   }, [user?.id, setValue])
-
-  const {
-    watch,
-    setValue,
-    formState: { isValid, errors },
-  } = form
 
   const sinal = watch('valor_sinal')
   const saldo = watch('valor_saldo')
