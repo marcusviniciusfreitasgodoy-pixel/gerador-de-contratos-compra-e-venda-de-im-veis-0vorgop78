@@ -52,6 +52,21 @@ export function generateDraftText(data: any, user: any) {
     imovel_ocupado,
     possui_torna,
     vendedor_casado,
+    regime_bens,
+    nome_conjuge,
+    imovel_financiado,
+    imovel_locado,
+    imovel_inventario,
+    possui_onus,
+    valor_fgts,
+    parcelas,
+    prazo_pagamento,
+    prazo_desocupacao,
+    ocupacao_imovel,
+    pep,
+    procurador,
+    matricula_atualizada,
+    debitos_condominio,
   } = data
 
   const dateNow = new Date().toLocaleDateString('pt-BR')
@@ -90,15 +105,34 @@ export function generateDraftText(data: any, user: any) {
 
   baseText = `${titulo}\n\n`
   baseText += `VENDEDOR(ES): ${vendedorQualificacao}\n\n`
-  if (vendedor_casado && tipo_vendedor === 'pf')
-    baseText += `ANUENTE (Cônjuge do Vendedor): [Nome do Cônjuge], portador do CPF [CPF], que declara expressa concordância com a presente venda.\n\n`
+  if (vendedor_casado && tipo_vendedor === 'pf') {
+    baseText += `ANUENTE (Cônjuge do Vendedor): ${nome_conjuge || '[Nome do Cônjuge]'}, qualificando-se e declarando expressa concordância com a presente venda, casados sob o regime de ${regime_bens || '[Regime de Bens]'}.\n\n`
+  }
   baseText += `COMPRADOR(ES): ${compradorQualificacao}\n\n`
 
   baseText += `CLÁUSULA PRIMEIRA - DO OBJETO\nO objeto do presente contrato é o imóvel situado em ${endereco_imovel || '[Endereço do Imóvel]'}, Matrícula nº ${matricula_imovel || '[Matrícula]'}, registrado no ${cartorio || rgi_imovel || '[RGI]'}, Inscrição Municipal nº ${inscricao_municipal || '[IPTU]'}, possuindo área total de ${area_total || '[Área]'} m² e ${vagas_garagem || '[Vagas]'} vaga(s) de garagem.\n`
-  if (situacao_juridica_imovel)
-    baseText += `Parágrafo Único: O imóvel é prometido à venda na seguinte situação jurídica e averbações: ${situacao_juridica_imovel}.\n\n`
-  else
-    baseText += `Parágrafo Único: O VENDEDOR declara que o imóvel encontra-se livre e desembaraçado de quaisquer ônus reais, fiscais ou convencionais.\n\n`
+
+  let onusText = ''
+  if (
+    possui_onus ||
+    imovel_financiado ||
+    imovel_inventario ||
+    imovel_locado ||
+    situacao_juridica_imovel
+  ) {
+    onusText = 'O imóvel é prometido à venda na seguinte situação jurídica: '
+    const details = []
+    if (imovel_financiado) details.push('financiado/alienado')
+    if (imovel_inventario) details.push('em processo de inventário')
+    if (imovel_locado) details.push('atualmente locado')
+    if (possui_onus) details.push('com ônus pendentes informados')
+    if (situacao_juridica_imovel) details.push(situacao_juridica_imovel)
+    onusText += details.join(', ') + '.\n\n'
+  } else {
+    onusText =
+      'O VENDEDOR declara que o imóvel encontra-se livre e desembaraçado de quaisquer ônus reais, fiscais ou convencionais.\n\n'
+  }
+  baseText += `Parágrafo Único: ${onusText}`
 
   baseText += `CLÁUSULA SEGUNDA - DO PREÇO E PAGAMENTO\n${pgtoText}\n`
 
@@ -112,11 +146,19 @@ export function generateDraftText(data: any, user: any) {
   }
 
   if (uso_fgts) {
-    baseText += `CLÁUSULA - DA UTILIZAÇÃO DO FGTS\nFica expressamente autorizada e pactuada a utilização de recursos vinculados à conta do FGTS do COMPRADOR para composição do pagamento, responsabilizando-se o mesmo pela regularidade e preenchimento dos requisitos da CEF.\n\n`
+    baseText += `CLÁUSULA - DA UTILIZAÇÃO DO FGTS\nFica expressamente autorizada e pactuada a utilização de recursos vinculados à conta do FGTS do COMPRADOR no valor de ${valor_fgts ? formatCurrency(valor_fgts) : '[Valor]'} para composição do pagamento, responsabilizando-se o mesmo pela regularidade e preenchimento dos requisitos da Caixa Econômica Federal.\n\n`
   }
 
   if (imovel_ocupado) {
-    baseText += `CLÁUSULA - DA DESOCUPAÇÃO DO IMÓVEL\nO VENDEDOR declara que o imóvel encontra-se atualmente ocupado e compromete-se, de forma irrevogável, a desocupá-lo e entregá-lo totalmente livre de pessoas e coisas até a data acordada para imissão na posse, sob pena de multa diária.\n\n`
+    baseText += `CLÁUSULA - DA DESOCUPAÇÃO DO IMÓVEL\nO VENDEDOR declara que o imóvel encontra-se atualmente ocupado por ${ocupacao_imovel || 'si ou terceiros'} e compromete-se, de forma irrevogável, a desocupá-lo e entregá-lo totalmente livre de pessoas e coisas até ${prazo_desocupacao ? new Date(prazo_desocupacao).toLocaleDateString('pt-BR') : 'a data da posse'}, sob pena de multa diária.\n\n`
+  }
+
+  if (imovel_locado) {
+    baseText += `CLÁUSULA - DA LOCAÇÃO E PREFERÊNCIA\nO VENDEDOR declara que o imóvel encontra-se locado a terceiros, garantindo ter concedido o direito de preferência ao locatário nos moldes da Lei do Inquilinato (Lei 8.245/91), e que houve renúncia expressa a este direito. A desocupação ocorrerá nos termos acordados com o locatário.\n\n`
+  }
+
+  if (imovel_inventario) {
+    baseText += `CLÁUSULA - DO INVENTÁRIO\nAs partes declaram ciência de que o imóvel é objeto de partilha em processo de inventário. A lavratura da escritura pública definitiva de compra e venda fica condicionada à expedição do formal de partilha e respectivo registro.\n\n`
   }
 
   if (clausula_arrependimento) {
@@ -130,6 +172,8 @@ export function generateDraftText(data: any, user: any) {
   }
 
   baseText += `CLÁUSULA - DA POSSE, ESCRITURA E MULTA\nA posse direta será transferida ao COMPRADOR na data de ${data_posse ? new Date(data_posse).toLocaleDateString('pt-BR') : '[Data Posse]'}. A escritura definitiva deverá ser outorgada até ${prazo_escritura ? new Date(prazo_escritura).toLocaleDateString('pt-BR') : '[Data Escritura]'}. Fica estipulada multa penal de ${percentual_multa || 10}% sobre o valor do contrato para a parte que infringir qualquer cláusula.\n\n`
+
+  baseText += `CLÁUSULA - DA COMISSÃO DE CORRETAGEM (PROTEÇÃO COMERCIAL)\nFica estipulado que, em caso de desistência imotivada de qualquer das partes após a assinatura deste instrumento, os honorários de intermediação (comissão de corretagem) serão devidos integralmente pela parte que der causa à rescisão, não cabendo restituição dos valores pagos à imobiliária ou corretores intervenientes.\n\n`
 
   // Mandatory Compliance Clauses
   baseText += `CLÁUSULA - PREVENÇÃO À LAVAGEM DE DINHEIRO E FINANCIAMENTO AO TERRORISMO (PLD-FT)\nEm estrito atendimento ao Provimento CNJ nº 88/2019, o COMPRADOR declara expressamente que os recursos utilizados para o pagamento do preço têm origem lícita. As partes declaram ciência de que a presente operação poderá ser comunicada ao COAF, isentando os intermediadores de qualquer responsabilidade decorrente deste reporte legal.\n\n`

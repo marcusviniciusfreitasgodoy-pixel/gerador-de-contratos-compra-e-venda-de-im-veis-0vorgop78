@@ -71,6 +71,12 @@ routerAdd(
       vendedor_conta,
       vendedor_pix,
       user_details,
+      imovel_locado,
+      imovel_inventario,
+      uso_fgts,
+      vendedor_casado,
+      nome_conjuge,
+      regime_bens,
     } = body
 
     const hojeDate = new Date()
@@ -208,6 +214,7 @@ routerAdd(
         
         <h3>Cláusula 1ª - Das Partes</h3>
         <p><strong>VENDEDOR:</strong> ${nome_vendedor || ''}, nacionalidade: ${nacionalidade_vendedor || ''}, estado civil: ${estado_civil_vendedor || ''}, profissão: ${profissao_vendedor || ''}, portador do RG nº ${rg_vendedor || ''} expedido por ${orgao_emissor_vendedor || ''}, inscrito no CPF sob o nº ${cpf_vendedor || ''}, residente e domiciliado em ${endereco_vendedor || ''}. E-mail: ${email_vendedor || ''}, Telefone: ${telefone_vendedor || ''}.</p>
+        ${vendedor_casado ? `<p><strong>ANUENTE (Cônjuge):</strong> ${nome_conjuge || '[Nome do Cônjuge]'}, casados sob o regime de ${regime_bens || '[Regime]'}.</p>` : ''}
         <p><strong>COMPRADOR:</strong> ${nome_comprador || ''}, nacionalidade: ${nacionalidade_comprador || ''}, estado civil: ${estado_civil_comprador || ''}, profissão: ${profissao_comprador || ''}, portador do RG nº ${rg_comprador || ''} expedido por ${orgao_emissor_comprador || ''}, inscrito no CPF sob o nº ${cpf_comprador || ''}, residente e domiciliado em ${endereco_comprador || ''}. E-mail: ${email_comprador || ''}, Telefone: ${telefone_comprador || ''}.</p>
         <br>
 
@@ -225,6 +232,8 @@ routerAdd(
         ${financiamentoClause}
         ${documentacaoClause}
         ${pldftClause}
+        ${imovel_locado ? `<h3>Cláusula ${clauseNum++}ª - Da Locação</h3><p>O imóvel encontra-se locado, tendo sido assegurado o direito de preferência nos moldes legais.</p><br>` : ''}
+        ${imovel_inventario ? `<h3>Cláusula ${clauseNum++}ª - Do Inventário</h3><p>O imóvel encontra-se em processo de inventário, ficando a escritura condicionada à expedição do formal de partilha.</p><br>` : ''}
         ${obrigacoesClause}
         ${posseClause}
         ${penalidadesClause}

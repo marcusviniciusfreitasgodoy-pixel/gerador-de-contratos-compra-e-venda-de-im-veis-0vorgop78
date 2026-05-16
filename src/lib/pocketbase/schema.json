@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-16T15:56:56.315Z",
+  "generatedAt": "2026-05-16T16:05:17.792Z",
   "collections": [
     {
       "name": "users",
@@ -568,6 +568,96 @@
         {
           "name": "compliance_checklist",
           "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "regime_bens",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "nome_conjuge",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "imovel_financiado",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "imovel_locado",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "imovel_inventario",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "possui_onus",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_fgts",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "parcelas",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "prazo_pagamento",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "prazo_desocupacao",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "ocupacao_imovel",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "pep",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "procurador",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "matricula_atualizada",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "debitos_condominio",
+          "type": "bool",
           "required": false,
           "system": false
         }

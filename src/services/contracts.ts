@@ -59,6 +59,21 @@ export const createContract = async (data: ContractFormValues, minutaTexto?: str
     possui_torna: data.possui_torna,
     vendedor_casado: data.vendedor_casado,
     checklist_compliance: data.checklist_compliance,
+    regime_bens: data.regime_bens,
+    nome_conjuge: data.nome_conjuge,
+    imovel_financiado: data.imovel_financiado,
+    imovel_locado: data.imovel_locado,
+    imovel_inventario: data.imovel_inventario,
+    possui_onus: data.possui_onus,
+    valor_fgts: data.valor_fgts,
+    parcelas: data.parcelas,
+    prazo_pagamento: data.prazo_pagamento,
+    prazo_desocupacao: data.prazo_desocupacao,
+    ocupacao_imovel: data.ocupacao_imovel,
+    pep: data.pep,
+    procurador: data.procurador,
+    matricula_atualizada: data.matricula_atualizada,
+    debitos_condominio: data.debitos_condominio,
   }
 
   return await pb.collection('contracts').create(payload)
