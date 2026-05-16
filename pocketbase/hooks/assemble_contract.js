@@ -41,7 +41,8 @@ routerAdd(
           financiamento: !!body.financiamento_comprador,
           fgts: !!body.fgts_comprador,
           banco: body.instituicao_financeira || '',
-          prazo_aprovacao: Number(body.prazo_financiamento) || 45,
+          prazo_aprovacao: Number(body.prazo_aprovacao) || Number(body.prazo_financiamento) || 45,
+          renda_declarada: Number(body.renda_declarada_comprador) || 0,
         },
       },
       vendedor: {
@@ -137,6 +138,8 @@ routerAdd(
         assinatura_eletronica: !!body.assinatura_eletronica,
         plataforma_assinatura: body.plataforma_assinatura || 'Clicksign',
         foro: body.foro_comarca || 'Rio de Janeiro/RJ',
+        mediacao: !!body.mediacao,
+        arbitragem: !!body.arbitragem,
       },
     }
 
@@ -148,11 +151,12 @@ routerAdd(
       return e.badRequestError('Compliance Alert: CPF do vendedor é obrigatório.')
     }
     if (
-      master_data.vendedor.estado_civil.toLowerCase() === 'casado' &&
+      (master_data.vendedor.estado_civil.toLowerCase() === 'casado' ||
+        master_data.vendedor.estado_civil.toLowerCase() === 'casada') &&
       !master_data.vendedor.conjuge.nome
     ) {
       return e.badRequestError(
-        'Compliance Alert: Dados do cônjuge do vendedor são obrigatórios para casados.',
+        'Compliance Alert: Dados do cônjuge do vendedor são obrigatórios para casados (Sellers married under Communion of Assets require Spouse identification).',
       )
     }
     if (master_data.comprador.financeiro.financiamento && !master_data.comprador.financeiro.banco) {
@@ -182,91 +186,105 @@ routerAdd(
       0,
     )
 
+    const triggerLogicEval = (logicStr, data) => {
+      if (!logicStr) return true
+      try {
+        const rule = JSON.parse(logicStr)
+        const keys = rule.path.split('.')
+        let val = data
+        for (let k of keys) {
+          if (val === undefined) break
+          val = val[k]
+        }
+
+        if (rule.operator === '>') return val > rule.value
+        if (rule.operator === '<') return val < rule.value
+        if (rule.operator === '!=') return val != rule.value
+        if (rule.operator === 'in') return Array.isArray(rule.value) && rule.value.includes(val)
+
+        return val == rule.value
+      } catch (err) {
+        return false
+      }
+    }
+
+    const replaceVariables = (text, data) => {
+      return text.replace(/\{\{([\w.]+)\}\}/g, (match, path) => {
+        const keys = path.split('.')
+        let val = data
+        for (let k of keys) {
+          val = val?.[k]
+          if (val === undefined) break
+        }
+        return val !== undefined ? val : match
+      })
+    }
+
     let availableClauses = []
     clauses.forEach((m) => {
       const cat = m.getString('category')
       const trigger = m.getString('trigger_logic') || ''
-      const triggerLower = trigger.toLowerCase()
 
       let include = true
 
-      if (cat === 'clausula_condicional') {
-        include = false
-        if (
-          master_data.financeiro.valor_financiamento > 0 &&
-          triggerLower.includes('financiamento')
-        )
-          include = true
-        if (master_data.financeiro.valor_fgts > 0 && triggerLower.includes('fgts')) include = true
-        if (master_data.imovel.situacao_juridica.ocupado && triggerLower.includes('ocupado'))
-          include = true
-        if (master_data.imovel.situacao_juridica.locado && triggerLower.includes('locado'))
-          include = true
-        if (
-          master_data.vendedor.estado_civil.toLowerCase() === 'casado' &&
-          triggerLower.includes('casado')
-        )
-          include = true
-        if (
-          !triggerLower.includes('financiamento') &&
-          !triggerLower.includes('fgts') &&
-          !triggerLower.includes('ocupado') &&
-          !triggerLower.includes('locado') &&
-          !triggerLower.includes('casado')
-        ) {
-          include = true // Let AI handle the rest
-        }
+      if (cat === 'clausula_condicional' && trigger) {
+        include = triggerLogicEval(trigger, master_data)
       }
 
       if (include) {
+        const rawContent = m.getString('content')
+        const interpolatedContent = replaceVariables(rawContent, master_data)
+
         availableClauses.push({
           id: m.id,
           code: m.getString('code') || m.getString('title').split(' - ')[0] || m.getString('title'),
           title: m.getString('title'),
           type: cat,
-          trigger: trigger || 'Always include if applicable',
-          content: m.getString('content'),
+          trigger: trigger || 'Always include',
+          content: interpolatedContent,
           version: m.getInt('version') || 1,
+          priority: m.getInt('priority') || 999,
         })
       }
     })
 
-    const systemPrompt = `Você é um Advogado Sênior Especialista em Direito Imobiliário.
+    // Sort by priority to help AI sequence them naturally
+    availableClauses.sort((a, b) => a.priority - b.priority)
+
+    const systemPrompt = `Você é um Advogado Sênior Especialista em Direito Imobiliário brasileiro.
 Sua função é montar contratos juridicamente consistentes utilizando EXCLUSIVAMENTE as cláusulas fornecidas na "Available Clauses Library".
 
 Regras Obrigatórias (Hard Rules):
-1. NEVER invent clauses. Only use the ones provided in the library.
-2. NEVER alter the legal meaning of the provided clauses. You may adjust grammar to connect them.
-3. Replace placeholders/variables like {{variable_name}} with the corresponding values from the Master JSON data. Example: {{comprador.nome}}. If missing, leave intact.
-4. Respect conditional logic based on the Master JSON values. Include only relevant conditional clauses.
-5. Maintain formal legal language and formatting.
-6. The final generated contract MUST strictly follow the "Estrutura Obrigatória":
-   1. Cabeçalho (Título e Data)
-   2. Qualificação das Partes (Vendedor, Comprador, Cônjuges, Procuradores)
-   3. Objeto do Contrato (Descrição do Imóvel e Registro)
-   4. Condições de Pagamento e Preço
-   5. Financiamento Bancário (se houver)
-   6. Uso de FGTS (se houver)
-   7. Posse e Desocupação
-   8. Vistoria (se houver)
-   9. Tributos e Despesas
-   10. Penalidades e Multas
-   11. Comissão de Corretagem
-   12. Cláusulas de Proteção Comercial
-   13. Conformidade LGPD
-   14. Resolução de Conflitos / Foro
-   15. Disposições Gerais
-   16. Assinaturas
-   17. Testemunhas
+1. NEVER invent clauses. Only use the ones provided in the library. As variáveis interpoladas já foram preenchidas nos textos das cláusulas.
+2. NEVER alter the legal meaning of the provided clauses. You may adjust grammar to connect them smoothly.
+3. Replace any remaining placeholders like {{variable_name}} with the corresponding values from the Master JSON data.
+4. Maintain formal legal language and formatting.
+5. The final generated contract MUST strictly follow the "Estrutura Obrigatória" sequence:
+   -> Header (Título e Data)
+   -> Qualifications (Qualificação das Partes: Vendedor, Comprador, Cônjuges, Procuradores)
+   -> Object (Objeto do Contrato)
+   -> Description (Descrição do Imóvel e Registro)
+   -> Price/Payment (Condições de Pagamento e Preço)
+   -> Financing (Financiamento Bancário - se aplicável)
+   -> Possession (Posse e Desocupação)
+   -> Taxes (Tributos e Despesas)
+   -> Obligations (Obrigações)
+   -> Special Clauses (Cláusulas Especiais e Proteção Comercial)
+   -> Commission (Comissão de Corretagem)
+   -> Default (Penalidades e Multas)
+   -> Rescission (Rescisão)
+   -> LGPD (Conformidade LGPD)
+   -> Electronic Signature (Assinatura Eletrônica)
+   -> Forum (Foro / Resolução de Conflitos)
+   -> Signatures (Assinaturas e Testemunhas)
 
 Process:
-1. Analyze Master JSON Data.
-2. Match it with the provided clauses.
-3. Assemble the contract following the 17-item structure.
-4. Do not output anything other than the final contract.
+1. Analyze the matched "Available Clauses Library".
+2. Assemble the contract following the exact Structure Enforcement sequence above.
+3. Do not output anything other than the final contract.
 
 Output:
-Provide ONLY the final assembled contract text in plain text or simple markdown format. Do not include conversational text or explanations.`
+Provide ONLY the final assembled contract text in simple markdown format (## for sections). Do not include conversational text ou explicações.`
 
     const userPrompt = `Master JSON Data (Variables & Triggers):
 ${JSON.stringify(master_data, null, 2)}

@@ -107,6 +107,8 @@ export const contractSchema = z.object({
   data_pagamento_sinal: z.string().optional(),
   prazo_escritura: z.string().optional(),
   prazo_financiamento: z.coerce.number().optional(),
+  prazo_aprovacao: z.coerce.number().optional(),
+  renda_declarada_comprador: currencyToNumber.optional(),
   multa_inadimplencia: z.coerce.number().optional(),
   posse_imediata: z.boolean().default(false),
   data_posse: z.string().optional(),

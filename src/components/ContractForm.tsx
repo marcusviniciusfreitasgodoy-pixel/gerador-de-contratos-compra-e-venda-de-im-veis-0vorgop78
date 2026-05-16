@@ -341,6 +341,8 @@ function FinancialTab() {
         <div className="col-span-1"></div>
         <FormCurrencyInput name="valor_financiamento" label="Valor a Financiar" />
         <FormInput name="instituicao_financeira" label="Instituição Financeira" />
+        <FormInput name="prazo_aprovacao" label="Prazo Aprovação (dias)" type="number" />
+        <FormCurrencyInput name="renda_declarada_comprador" label="Renda Declarada" />
         <FormCurrencyInput name="valor_fgts" label="Valor FGTS" />
         <FormCurrencyInput name="valor_recursos_proprios" label="Recursos Próprios / Saldo" />
         <FormInput name="quantidade_parcelas" label="Qtd. Parcelas" type="number" />
@@ -533,6 +535,14 @@ export function ContractForm({
       return toast.error('Dados do cônjuge do vendedor são obrigatórios para casados.')
     if (values.financiamento_comprador && !values.instituicao_financeira)
       return toast.error('Instituição Financeira é obrigatória para financiamentos.')
+
+    if (
+      (values.estado_civil_vendedor === 'Casado' || values.estado_civil_vendedor === 'Casada') &&
+      !values.conjuge_vendedor
+    ) {
+      return toast.error('Compliance: Vendedores casados exigem identificação do cônjuge.')
+    }
+
     setShowChecklist(true)
   }
 
