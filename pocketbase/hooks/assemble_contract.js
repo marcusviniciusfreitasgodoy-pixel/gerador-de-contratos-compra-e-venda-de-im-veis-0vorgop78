@@ -4,65 +4,135 @@ routerAdd(
   (e) => {
     const body = e.requestInfo().body || {}
 
+    // Master JSON Schema mapping
+    const master_data = {
+      operacao: {
+        tipo_contrato: body.tipo_documento || '',
+        data_contrato: new Date().toISOString(),
+        foro: body.foro_comarca || '',
+      },
+      comprador: {
+        nome: body.nome_comprador || '',
+        cpf: body.cpf_comprador || '',
+        rg: body.rg_comprador || '',
+        estado_civil: body.estado_civil_comprador || '',
+        regime_bens: body.regime_bens_comprador || '',
+        email: body.email_comprador || '',
+        telefone: body.telefone_comprador || '',
+        financiamento: !!body.financiamento_comprador,
+        fgts: !!body.fgts_comprador,
+      },
+      vendedor: {
+        nome: body.nome_vendedor || '',
+        cpf: body.cpf_vendedor || '',
+        estado_civil: body.estado_civil_vendedor || '',
+        conjuge: body.conjuge_vendedor || '',
+      },
+      imovel: {
+        tipo: body.tipo_imovel || '',
+        endereco: body.endereco_imovel || '',
+        matricula: body.matricula_imovel || '',
+        cartorio: body.cartorio_imovel || '',
+        ocupado: !!body.imovel_ocupado,
+        locado: !!body.imovel_locado,
+        financiado: !!body.imovel_financiado,
+        inventario: !!body.imovel_inventario,
+        onus: !!body.possui_onus,
+      },
+      financeiro: {
+        valor_total: Number(body.valor_total) || 0,
+        valor_sinal: Number(body.valor_sinal) || 0,
+        valor_financiamento: Number(body.valor_financiamento) || 0,
+        parcelas: Number(body.quantidade_parcelas) || 0,
+        prazo_financiamento: Number(body.prazo_financiamento) || 0,
+        instituicao_financeira: body.instituicao_financeira || '',
+      },
+      posse: {
+        imediata: !!body.posse_imediata,
+        data_posse: body.data_posse || '',
+      },
+      comissao: {
+        percentual: Number(body.percentual_comissao) || 0,
+        valor: Number(body.valor_comissao) || 0,
+        garantida: !!body.comissao_garantida,
+      },
+    }
+
+    // Hard Blocks (Compliance Validation)
+    if (
+      master_data.vendedor.estado_civil.toLowerCase() === 'casado' &&
+      !master_data.vendedor.conjuge
+    ) {
+      return e.badRequestError(
+        'Marriage Rule Compliance Alert: Dados do cônjuge do vendedor são obrigatórios para casados.',
+      )
+    }
+
+    if (master_data.comprador.financiamento && !master_data.financeiro.instituicao_financeira) {
+      return e.badRequestError(
+        'Financing Rule Compliance Alert: Instituição Financeira é obrigatória para financiamentos.',
+      )
+    }
+
     const clauses = $app.findRecordsByFilter(
       'legal_knowledge',
       "category = 'clausula_fixa' || category = 'clausula_condicional'",
-      'title',
+      'priority',
       1000,
       0,
     )
 
-    let finalBlocks = []
-    let usedClauses = []
-
-    const addClause = (codePrefix) => {
-      const matched = clauses.filter((c) => c.getString('title').startsWith(codePrefix))
-      matched.forEach((m) => {
-        let content = m.getString('content')
-        content = content.replace(/\{\{(.*?)\}\}/g, (match, p1) => {
-          const key = p1.trim()
-          if (body[key] !== undefined && body[key] !== null && body[key] !== '') {
-            return String(body[key])
-          }
-          return match
-        })
-        finalBlocks.push(`### ${m.getString('title')}\n\n${content}`)
-        usedClauses.push({
-          code: m.getString('title').split(' - ')[0],
-          title: m.getString('title'),
-          version: m.getInt('version') || 1,
-        })
+    let availableClauses = []
+    clauses.forEach((m) => {
+      availableClauses.push({
+        id: m.id,
+        code: m.getString('code') || m.getString('title').split(' - ')[0] || m.getString('title'),
+        title: m.getString('title'),
+        type: m.getString('category'),
+        trigger: m.getString('trigger_logic') || 'Always include if applicable',
+        content: m.getString('content'),
+        version: m.getInt('version') || 1,
       })
-    }
+    })
 
-    addClause('FIX')
+    const systemPrompt = `You are a Specialist in Brazilian real estate contracts.
 
-    if (body.clausula_lgpd) addClause('FIX006')
-    if (body.assinatura_eletronica) addClause('FIX007')
+Rules:
+1. Never invent clauses; only use the ones provided in the library.
+2. Never alter the legal meaning of the provided clauses.
+3. Replace placeholders/variables like {{variable_name}} with the corresponding values from the Master JSON data. For example, {{comprador.nome}} should be replaced by the buyer's name. If a value is missing, leave the placeholder intact.
+4. Respect conditional logic based on the "trigger" of each clause and the provided Master JSON. Include conditional clauses only if their trigger logic evaluates to true against the Master JSON data.
+5. Maintain formal legal language.
+6. Organize the final contract in logical sequence: 1. Qualification of Parties, 2. Object, 3. Price and Payment, 4. Specific Conditions (Financing, Possession, etc.), 5. General Provisions.
+7. Ensure the final text forms a coherent, continuous legal document without internal clause code brackets (e.g., [FIN001]).
 
-    if (body.financiamento_comprador) addClause('FIN')
-    if (body.imovel_ocupado) addClause('POS')
-    if (body.imovel_locado) addClause('LOC')
-    if (body.imovel_inventario) addClause('INV')
-    if (Number(body.valor_comissao) > 0) addClause('COM')
-    if (body.estado_civil_vendedor === 'Casado') addClause('CAS')
+Process:
+1. Analyze Master JSON Data.
+2. Identify Triggers for each available clause.
+3. Select Clauses that are "clausula_fixa" or "clausula_condicional" whose trigger evaluates to true.
+4. Assemble Contract replacing placeholders.
+5. Validate Consistency.
 
-    let minuta = finalBlocks.join('\n\n')
+Output:
+Provide ONLY the final assembled contract text in plain text or simple markdown format, starting directly with the document title and content. Do not include conversational text or explanations.`
 
-    const block1Role =
-      'You are a Specialist in Brazilian real estate law. You must use the authorized clauses provided only. Do not invent new legal frameworks.'
-    const block2Rules =
-      'Use formal, clear, and unambiguous language. Never omit mandatory clauses. Respect conditional logic. Integrate the selected clauses seamlessly into a professional contract structure: 1. Qualification of Parties, 2. Object, 3. Price and Payment, 4. Specific Conditions (Financing, Possession, etc.), 5. General Provisions.'
-    const block3Input = `Contract Variables:\n${JSON.stringify(body, null, 2)}\n\nSelected Pre-approved Clauses:\n${minuta}`
-    const block4Decision =
-      'Map the triggers to specific clause codes and ensure the final text forms a coherent, continuous legal document without brackets like [FIX001]. Output ONLY the final contract text in plain text or simple markdown. Start directly with the contract content.'
+    const userPrompt = `Master JSON Data (Variables & Triggers):
+${JSON.stringify(master_data, null, 2)}
 
-    const prompt = `${block1Role}\n\n${block2Rules}\n\n${block3Input}\n\n${block4Decision}`
+Available Clauses Library:
+${JSON.stringify(availableClauses, null, 2)}
+
+Please assemble the contract.`
 
     const url = $secrets.get('SKIP_AI_GATEWAY_URL')
     const apiKey = $secrets.get('SKIP_AI_GATEWAY_API_KEY')
 
-    let generatedText = minuta
+    let generatedText = 'Minuta não gerada. Erro no provedor de IA.'
+    let usedClauses = availableClauses.map((c) => ({
+      code: c.code,
+      title: c.title,
+      version: c.version,
+    }))
 
     if (url && apiKey) {
       try {
@@ -79,20 +149,22 @@ routerAdd(
           body: JSON.stringify({
             model: 'gpt-4o-mini',
             messages: [
-              { role: 'system', content: 'You are an expert real estate lawyer in Brazil.' },
-              { role: 'user', content: prompt },
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt },
             ],
           }),
-          timeout: 30,
+          timeout: 110,
         })
 
         if (res.statusCode === 200 && res.json && res.json.choices && res.json.choices.length > 0) {
           generatedText = res.json.choices[0].message.content
         } else {
           $app.logger().warn('AI Gateway returned non-200', 'status', res.statusCode)
+          throw new Error('AI Generation failed')
         }
       } catch (err) {
         $app.logger().error('AI Gateway call failed', 'error', err)
+        return e.badRequestError('Error generating contract with AI.')
       }
     }
 
