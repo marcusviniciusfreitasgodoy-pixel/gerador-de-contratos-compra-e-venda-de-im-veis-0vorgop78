@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-16T16:28:57.403Z",
+  "generatedAt": "2026-05-16T16:36:48.132Z",
   "collections": [
     {
       "name": "users",
@@ -884,6 +884,156 @@
         {
           "name": "used_clauses",
           "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "data_nascimento_comprador",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "data_nascimento_vendedor",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cep_comprador",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cep_vendedor",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "nome_conjuge_comprador",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cpf_conjuge_comprador",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "rg_conjuge_comprador",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cpf_conjuge_vendedor",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "rg_conjuge_vendedor",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cpf_procurador_comprador",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "instrumento_procurador_comprador",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cpf_procurador_vendedor",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "instrumento_procurador_vendedor",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "bairro_imovel",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cidade_imovel",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "estado_imovel",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cep_imovel",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "numero_imovel",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "complemento_imovel",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "quartos",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "suites",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "acoes_judiciais",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "vistoria_obrigatoria",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "data_assinatura",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "data_quitacao",
+          "type": "date",
           "required": false,
           "system": false
         }

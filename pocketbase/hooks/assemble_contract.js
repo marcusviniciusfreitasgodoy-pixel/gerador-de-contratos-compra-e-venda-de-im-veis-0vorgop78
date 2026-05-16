@@ -4,85 +4,173 @@ routerAdd(
   (e) => {
     const body = e.requestInfo().body || {}
 
+    const normalizeDigits = (str) => (str ? String(str).replace(/\D/g, '') : '')
+
     // Master JSON Schema mapping
     const master_data = {
-      operacao: {
-        tipo_contrato: body.tipo_documento || '',
-        data_contrato: new Date().toISOString(),
-        foro: body.foro_comarca || '',
+      metadata: {
+        versao_sistema: '1.0',
+        tipo_contrato: body.tipo_documento || 'promessa_compra_venda',
       },
       comprador: {
         nome: body.nome_comprador || '',
-        cpf: body.cpf_comprador || '',
+        cpf: normalizeDigits(body.cpf_comprador),
         rg: body.rg_comprador || '',
+        orgao_emissor: body.orgao_emissor_comprador || '',
+        data_nascimento: body.data_nascimento_comprador || '',
+        nacionalidade: body.nacionalidade_comprador || 'brasileiro',
+        profissao: body.profissao_comprador || '',
         estado_civil: body.estado_civil_comprador || '',
         regime_bens: body.regime_bens_comprador || '',
         email: body.email_comprador || '',
-        telefone: body.telefone_comprador || '',
-        financiamento: !!body.financiamento_comprador,
-        fgts: !!body.fgts_comprador,
+        telefone: normalizeDigits(body.telefone_comprador),
+        endereco: body.endereco_comprador || '',
+        cep: normalizeDigits(body.cep_comprador),
+        conjuge: {
+          nome: body.nome_conjuge_comprador || '',
+          cpf: normalizeDigits(body.cpf_conjuge_comprador),
+          rg: body.rg_conjuge_comprador || '',
+        },
+        procurador: {
+          possui: !!body.possui_procurador_comprador,
+          nome: body.nome_procurador_comprador || '',
+          cpf: normalizeDigits(body.cpf_procurador_comprador),
+          instrumento: body.instrumento_procurador_comprador || '',
+        },
+        financeiro: {
+          financiamento: !!body.financiamento_comprador,
+          fgts: !!body.fgts_comprador,
+          banco: body.instituicao_financeira || '',
+          prazo_aprovacao: Number(body.prazo_financiamento) || 45,
+        },
       },
       vendedor: {
         nome: body.nome_vendedor || '',
-        cpf: body.cpf_vendedor || '',
+        cpf: normalizeDigits(body.cpf_vendedor),
+        rg: body.rg_vendedor || '',
         estado_civil: body.estado_civil_vendedor || '',
-        conjuge: body.conjuge_vendedor || '',
+        regime_bens: body.regime_bens_vendedor || '',
+        email: body.email_vendedor || '',
+        telefone: normalizeDigits(body.telefone_vendedor),
+        endereco: body.endereco_vendedor || '',
+        cep: normalizeDigits(body.cep_vendedor),
+        conjuge: {
+          nome: body.conjuge_vendedor || '',
+          cpf: normalizeDigits(body.cpf_conjuge_vendedor),
+          rg: body.rg_conjuge_vendedor || '',
+        },
+        procurador: {
+          possui: !!body.procurador_vendedor,
+          nome: body.nome_procurador_vendedor || '',
+          cpf: normalizeDigits(body.cpf_procurador_vendedor),
+          instrumento: body.instrumento_procurador_vendedor || '',
+        },
       },
       imovel: {
-        tipo: body.tipo_imovel || '',
+        tipo: body.tipo_imovel || 'apartamento',
         endereco: body.endereco_imovel || '',
-        matricula: body.matricula_imovel || '',
-        cartorio: body.cartorio_imovel || '',
-        ocupado: !!body.imovel_ocupado,
-        locado: !!body.imovel_locado,
-        financiado: !!body.imovel_financiado,
-        inventario: !!body.imovel_inventario,
-        onus: !!body.possui_onus,
+        numero: body.numero_imovel || '',
+        complemento: body.complemento_imovel || '',
+        bairro: body.bairro_imovel || '',
+        cidade: body.cidade_imovel || '',
+        estado: body.estado_imovel || '',
+        cep: normalizeDigits(body.cep_imovel),
+        registro: {
+          matricula: body.matricula_imovel || '',
+          cartorio: body.cartorio_imovel || '',
+          inscricao_iptu: body.inscricao_iptu || '',
+        },
+        caracteristicas: {
+          area_privativa: body.area_privativa || '',
+          area_total: body.area_total || '',
+          vagas: Number(body.vagas_garagem) || 0,
+          suite: Number(body.suites) || 0,
+          quartos: Number(body.quartos) || 0,
+        },
+        situacao_juridica: {
+          ocupado: !!body.imovel_ocupado,
+          locado: !!body.imovel_locado,
+          financiado: !!body.imovel_financiado,
+          inventario: !!body.imovel_inventario,
+          usufruto: !!body.possui_usufruto,
+          onus: !!body.possui_onus,
+          acoes_judiciais: !!body.acoes_judiciais,
+        },
       },
       financeiro: {
         valor_total: Number(body.valor_total) || 0,
         valor_sinal: Number(body.valor_sinal) || 0,
+        valor_fgts: Number(body.valor_fgts) || 0,
         valor_financiamento: Number(body.valor_financiamento) || 0,
-        parcelas: Number(body.quantidade_parcelas) || 0,
-        prazo_financiamento: Number(body.prazo_financiamento) || 0,
-        instituicao_financeira: body.instituicao_financeira || '',
+        valor_recursos_proprios: Number(body.valor_recursos_proprios) || 0,
+        parcelamento: {
+          possui: (Number(body.quantidade_parcelas) || 0) > 0,
+          quantidade_parcelas: Number(body.quantidade_parcelas) || 0,
+          valor_parcela: Number(body.valor_parcela) || 0,
+        },
+        datas: {
+          pagamento_sinal: body.data_pagamento_sinal || '',
+          assinatura: body.data_assinatura || '',
+          escritura: body.prazo_escritura || '',
+          quitacao: body.data_quitacao || '',
+        },
+        multas: {
+          inadimplencia_percentual: Number(body.multa_inadimplencia) || 10,
+          multa_desocupacao: Number(body.multa_desocupacao) || 0,
+        },
       },
       posse: {
         imediata: !!body.posse_imediata,
         data_posse: body.data_posse || '',
         prazo_desocupacao: Number(body.prazo_desocupacao) || 0,
-        multa_desocupacao: Number(body.multa_desocupacao) || 0,
+        vistoria_obrigatoria: !!body.vistoria_obrigatoria,
       },
       comissao: {
-        percentual: Number(body.percentual_comissao) || 0,
+        percentual: Number(body.percentual_comissao) || 5,
         valor: Number(body.valor_comissao) || 0,
+        responsavel_pagamento: body.responsavel_comissao || 'vendedor',
         garantida: !!body.comissao_garantida,
+        imobiliaria: 'Godoy Prime Realty',
+      },
+      compliance: {
+        lgpd: !!body.clausula_lgpd,
+        assinatura_eletronica: !!body.assinatura_eletronica,
+        plataforma_assinatura: body.plataforma_assinatura || 'Clicksign',
+        foro: body.foro_comarca || 'Rio de Janeiro/RJ',
       },
     }
 
     // Hard Blocks (Compliance Validation)
+    if (!master_data.comprador.cpf && body.tipo_comprador !== 'pj') {
+      return e.badRequestError('Compliance Alert: CPF do comprador é obrigatório.')
+    }
+    if (!master_data.vendedor.cpf && !body.vendedor_pj) {
+      return e.badRequestError('Compliance Alert: CPF do vendedor é obrigatório.')
+    }
     if (
       master_data.vendedor.estado_civil.toLowerCase() === 'casado' &&
-      !master_data.vendedor.conjuge
+      !master_data.vendedor.conjuge.nome
     ) {
       return e.badRequestError(
-        'Marriage Rule Compliance Alert: Dados do cônjuge do vendedor são obrigatórios para casados.',
+        'Compliance Alert: Dados do cônjuge do vendedor são obrigatórios para casados.',
       )
     }
-
-    if (master_data.comprador.financiamento && !master_data.financeiro.instituicao_financeira) {
+    if (master_data.comprador.financeiro.financiamento && !master_data.comprador.financeiro.banco) {
       return e.badRequestError(
-        'Financing Rule Compliance Alert: Instituição Financeira é obrigatória para financiamentos.',
+        'Compliance Alert: Instituição Financeira é obrigatória para financiamentos.',
       )
     }
-
     if (
-      master_data.comprador.financiamento &&
-      (!master_data.financeiro.valor_financiamento ||
-        master_data.financeiro.valor_financiamento === 0)
+      master_data.comprador.financeiro.financiamento &&
+      master_data.financeiro.valor_financiamento === 0
     ) {
       return e.badRequestError(
-        'Financing Rule Compliance Alert: Informações de financiamento incompletas. Valor do financiamento é obrigatório.',
+        'Compliance Alert: Valor do financiamento é obrigatório quando há financiamento.',
+      )
+    }
+    if (master_data.comissao.garantida && !master_data.comissao.responsavel_pagamento) {
+      return e.badRequestError(
+        'Compliance Alert: Responsável pelo pagamento da comissão é obrigatório para comissões garantidas.',
       )
     }
 
@@ -96,37 +184,89 @@ routerAdd(
 
     let availableClauses = []
     clauses.forEach((m) => {
-      availableClauses.push({
-        id: m.id,
-        code: m.getString('code') || m.getString('title').split(' - ')[0] || m.getString('title'),
-        title: m.getString('title'),
-        type: m.getString('category'),
-        trigger: m.getString('trigger_logic') || 'Always include if applicable',
-        content: m.getString('content'),
-        version: m.getInt('version') || 1,
-      })
+      const cat = m.getString('category')
+      const trigger = m.getString('trigger_logic') || ''
+      const triggerLower = trigger.toLowerCase()
+
+      let include = true
+
+      if (cat === 'clausula_condicional') {
+        include = false
+        if (
+          master_data.financeiro.valor_financiamento > 0 &&
+          triggerLower.includes('financiamento')
+        )
+          include = true
+        if (master_data.financeiro.valor_fgts > 0 && triggerLower.includes('fgts')) include = true
+        if (master_data.imovel.situacao_juridica.ocupado && triggerLower.includes('ocupado'))
+          include = true
+        if (master_data.imovel.situacao_juridica.locado && triggerLower.includes('locado'))
+          include = true
+        if (
+          master_data.vendedor.estado_civil.toLowerCase() === 'casado' &&
+          triggerLower.includes('casado')
+        )
+          include = true
+        if (
+          !triggerLower.includes('financiamento') &&
+          !triggerLower.includes('fgts') &&
+          !triggerLower.includes('ocupado') &&
+          !triggerLower.includes('locado') &&
+          !triggerLower.includes('casado')
+        ) {
+          include = true // Let AI handle the rest
+        }
+      }
+
+      if (include) {
+        availableClauses.push({
+          id: m.id,
+          code: m.getString('code') || m.getString('title').split(' - ')[0] || m.getString('title'),
+          title: m.getString('title'),
+          type: cat,
+          trigger: trigger || 'Always include if applicable',
+          content: m.getString('content'),
+          version: m.getInt('version') || 1,
+        })
+      }
     })
 
-    const systemPrompt = `Sua função é montar contratos juridicamente consistentes utilizando exclusivamente as cláusulas fornecidas.
+    const systemPrompt = `Você é um Advogado Sênior Especialista em Direito Imobiliário.
+Sua função é montar contratos juridicamente consistentes utilizando EXCLUSIVAMENTE as cláusulas fornecidas na "Available Clauses Library".
 
-Rules:
-1. Never invent clauses; only use the ones provided in the library.
-2. Never alter the legal meaning of the provided clauses.
-3. Replace placeholders/variables like {{variable_name}} with the corresponding values from the Master JSON data. For example, {{comprador.nome}} should be replaced by the buyer's name. If a value is missing, leave the placeholder intact.
-4. Respect conditional logic based on the "trigger" of each clause and the provided Master JSON. Include conditional clauses only if their trigger logic evaluates to true against the Master JSON data.
-5. Maintain formal legal language.
-6. Organize the final contract in logical sequence: 1. Capa, 2. Dados das Partes, 3. Dados do Imóvel, 4. Cláusulas Fixas, 5. Cláusulas Condicionais (Posse, Financeiras, Bancárias, etc.), 6. Assinaturas.
-7. Ensure the final text forms a coherent, continuous legal document without internal clause code brackets (e.g., [FIN001]).
+Regras Obrigatórias (Hard Rules):
+1. NEVER invent clauses. Only use the ones provided in the library.
+2. NEVER alter the legal meaning of the provided clauses. You may adjust grammar to connect them.
+3. Replace placeholders/variables like {{variable_name}} with the corresponding values from the Master JSON data. Example: {{comprador.nome}}. If missing, leave intact.
+4. Respect conditional logic based on the Master JSON values. Include only relevant conditional clauses.
+5. Maintain formal legal language and formatting.
+6. The final generated contract MUST strictly follow the "Estrutura Obrigatória":
+   1. Cabeçalho (Título e Data)
+   2. Qualificação das Partes (Vendedor, Comprador, Cônjuges, Procuradores)
+   3. Objeto do Contrato (Descrição do Imóvel e Registro)
+   4. Condições de Pagamento e Preço
+   5. Financiamento Bancário (se houver)
+   6. Uso de FGTS (se houver)
+   7. Posse e Desocupação
+   8. Vistoria (se houver)
+   9. Tributos e Despesas
+   10. Penalidades e Multas
+   11. Comissão de Corretagem
+   12. Cláusulas de Proteção Comercial
+   13. Conformidade LGPD
+   14. Resolução de Conflitos / Foro
+   15. Disposições Gerais
+   16. Assinaturas
+   17. Testemunhas
 
 Process:
 1. Analyze Master JSON Data.
-2. Identify Triggers for each available clause.
-3. Select Clauses that are "clausula_fixa", "clausula_condicional" or "protecao_comercial" whose trigger evaluates to true.
-4. Assemble Contract replacing placeholders.
-5. Validate Consistency.
+2. Match it with the provided clauses.
+3. Assemble the contract following the 17-item structure.
+4. Do not output anything other than the final contract.
 
 Output:
-Provide ONLY the final assembled contract text in plain text or simple markdown format, starting directly with the document title and content. Do not include conversational text or explanations.`
+Provide ONLY the final assembled contract text in plain text or simple markdown format. Do not include conversational text or explanations.`
 
     const userPrompt = `Master JSON Data (Variables & Triggers):
 ${JSON.stringify(master_data, null, 2)}
@@ -159,7 +299,7 @@ Please assemble the contract.`
             Authorization: 'Bearer ' + apiKey,
           },
           body: JSON.stringify({
-            model: 'gpt-4o-mini',
+            model: 'gpt-4o',
             messages: [
               { role: 'system', content: systemPrompt },
               { role: 'user', content: userPrompt },
