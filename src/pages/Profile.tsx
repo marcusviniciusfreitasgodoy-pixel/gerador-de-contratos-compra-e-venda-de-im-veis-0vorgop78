@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { profileSchema, type ProfileFormValues } from '@/lib/schemas'
 import { useAuth } from '@/hooks/use-auth'
 import { updateUserProfile } from '@/services/users'
+import { extractFieldErrors } from '@/lib/pocketbase/errors'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -33,6 +34,9 @@ export default function Profile() {
       conta: user?.conta || '',
       chave_pix: user?.chave_pix || '',
       comissao_padrao_percentual: user?.comissao_padrao_percentual || 0,
+      openai_api_key: user?.openai_api_key || '',
+      anthropic_api_key: user?.anthropic_api_key || '',
+      gemini_api_key: user?.gemini_api_key || '',
     },
   })
 
@@ -40,10 +44,22 @@ export default function Profile() {
     if (!user) return
     setIsSaving(true)
     try {
-      await updateUserProfile(user.id, data)
+      const payload = {
+        ...data,
+        comissao_padrao_percentual: Number(data.comissao_padrao_percentual) || 0,
+      }
+      await updateUserProfile(user.id, payload)
       toast.success('Perfil atualizado com sucesso!')
-    } catch (err) {
-      toast.error('Erro ao atualizar perfil.')
+    } catch (err: any) {
+      const fieldErrors = extractFieldErrors(err)
+      if (Object.keys(fieldErrors).length > 0) {
+        for (const [field, message] of Object.entries(fieldErrors)) {
+          form.setError(field as keyof ProfileFormValues, { message })
+        }
+        toast.error('Verifique os erros no formulário.')
+      } else {
+        toast.error(err?.message || 'Erro ao atualizar perfil.')
+      }
     } finally {
       setIsSaving(false)
     }
@@ -54,7 +70,7 @@ export default function Profile() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-slate-800">Perfil e Configurações</h1>
         <p className="text-slate-600 mt-2">
-          Gerencie seus dados profissionais e bancários para automação de contratos.
+          Gerencie seus dados profissionais, bancários e chaves de API.
         </p>
       </div>
 
@@ -72,7 +88,7 @@ export default function Profile() {
                   <FormItem>
                     <FormLabel>Seu Nome Completo</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} value={field.value || ''} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -85,7 +101,7 @@ export default function Profile() {
                   <FormItem>
                     <FormLabel>Nome da Imobiliária ou Corretor</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} value={field.value || ''} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -98,7 +114,7 @@ export default function Profile() {
                   <FormItem>
                     <FormLabel>CPF ou CNPJ</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} value={field.value || ''} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -111,7 +127,7 @@ export default function Profile() {
                   <FormItem>
                     <FormLabel>CRECI</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} value={field.value || ''} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -132,7 +148,7 @@ export default function Profile() {
                   <FormItem>
                     <FormLabel>Banco</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Ex: Itaú" />
+                      <Input {...field} value={field.value || ''} placeholder="Ex: Itaú" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -145,7 +161,7 @@ export default function Profile() {
                   <FormItem>
                     <FormLabel>Agência</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Ex: 0001" />
+                      <Input {...field} value={field.value || ''} placeholder="Ex: 0001" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -158,7 +174,7 @@ export default function Profile() {
                   <FormItem>
                     <FormLabel>Conta Corrente/Poupança</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Ex: 12345-6" />
+                      <Input {...field} value={field.value || ''} placeholder="Ex: 12345-6" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -171,7 +187,11 @@ export default function Profile() {
                   <FormItem>
                     <FormLabel>Chave Pix</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="CPF, Email ou Celular" />
+                      <Input
+                        {...field}
+                        value={field.value || ''}
+                        placeholder="CPF, Email ou Celular"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -184,7 +204,16 @@ export default function Profile() {
                   <FormItem>
                     <FormLabel>Comissão Padrão (%)</FormLabel>
                     <FormControl>
-                      <Input type="number" step="0.1" {...field} />
+                      <Input
+                        type="number"
+                        step="0.1"
+                        {...field}
+                        value={field.value ?? ''}
+                        onChange={(e) => {
+                          const val = e.target.value
+                          field.onChange(val === '' ? '' : Number(val))
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -193,7 +222,69 @@ export default function Profile() {
             </div>
           </div>
 
-          <div className="flex justify-end">
+          <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-6">
+            <h2 className="text-xl font-semibold text-slate-800 border-b pb-2">
+              Chaves de API (Inteligência Artificial)
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="openai_api_key"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>OpenAI API Key</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        {...field}
+                        value={field.value || ''}
+                        placeholder="sk-..."
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="anthropic_api_key"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Anthropic API Key</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        {...field}
+                        value={field.value || ''}
+                        placeholder="sk-ant-..."
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="gemini_api_key"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Gemini API Key</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        {...field}
+                        value={field.value || ''}
+                        placeholder="AIza..."
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end pb-12">
             <Button
               type="submit"
               size="lg"

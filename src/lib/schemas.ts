@@ -116,6 +116,9 @@ export const profileSchema = z.object({
     .number()
     .min(0, 'Valor mínimo é 0')
     .max(100, 'Valor máximo é 100'),
+  openai_api_key: z.string().optional(),
+  anthropic_api_key: z.string().optional(),
+  gemini_api_key: z.string().optional(),
 })
 
 export type ProfileFormValues = z.infer<typeof profileSchema>
