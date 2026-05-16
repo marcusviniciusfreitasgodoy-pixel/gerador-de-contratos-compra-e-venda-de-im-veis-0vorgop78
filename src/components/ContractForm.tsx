@@ -12,7 +12,6 @@ import {
   Loader2,
   CheckCircle2,
   Bot,
-  Save,
   ShieldCheck,
   Download,
   ChevronRight,
@@ -21,7 +20,6 @@ import {
 import { createContract } from '@/services/contracts'
 import { FormInput, FormCurrencyInput, FormMaskedInput, FormSelect } from './FormInput'
 import { toast } from 'sonner'
-import { generateDraftText } from '@/lib/draft-template'
 import { useAuth } from '@/hooks/use-auth'
 import { parseCurrency, formatCurrency } from '@/lib/formatters'
 import {
@@ -39,142 +37,165 @@ import { cn } from '@/lib/utils'
 
 const ESTADO_CIVIL_OPTIONS = [
   { label: 'Solteiro(a)', value: 'Solteiro' },
-  { label: 'Casado(a)', value: 'Casado' },
+  { label: 'Casado', value: 'Casado' },
   { label: 'Divorciado(a)', value: 'Divorciado' },
   { label: 'Viúvo(a)', value: 'Viúvo' },
 ]
-const BANCO_OPTIONS = [
-  { label: 'Caixa Econômica', value: 'Caixa' },
-  { label: 'Itaú', value: 'Itaú' },
-  { label: 'Bradesco', value: 'Bradesco' },
-  { label: 'Santander', value: 'Santander' },
-  { label: 'Outro', value: 'Outro' },
+
+const REGIME_BENS_OPTIONS = [
+  { label: 'Comunhão Parcial', value: 'Comunhão Parcial' },
+  { label: 'Comunhão Universal', value: 'Comunhão Universal' },
+  { label: 'Separação Total', value: 'Separação Total' },
+  { label: 'Participação Final', value: 'Participação Final' },
 ]
+
+const PLATAFORMA_OPTIONS = [
+  { label: 'Clicksign', value: 'Clicksign' },
+  { label: 'ZapSign', value: 'ZapSign' },
+  { label: 'Docusign', value: 'Docusign' },
+  { label: 'Autentique', value: 'Autentique' },
+]
+
 const WIZARD_STEPS = [
-  { id: 1, title: 'Comprador' },
-  { id: 2, title: 'Vendedor' },
-  { id: 3, title: 'Imóvel' },
-  { id: 4, title: 'Negociação' },
+  { id: 1, title: 'Partes' },
+  { id: 2, title: 'Imóvel' },
+  { id: 3, title: 'Negociação' },
+  { id: 4, title: 'Jurídico' },
 ]
 
-function BuyerTab() {
+function PartiesTab() {
   const { watch, control } = useFormContext()
-  const tipoPessoa = watch('tipo_comprador')
+  const tipoComprador = watch('tipo_comprador')
+  const estadoCivilComprador = watch('estado_civil_comprador')
+  const possuiProcuradorComprador = watch('possui_procurador_comprador')
+
+  const vendedorPj = watch('vendedor_pj')
+  const estadoCivilVendedor = watch('estado_civil_vendedor')
+  const possuiProcuradorVendedor = watch('procurador_vendedor')
 
   return (
-    <div className="space-y-6 animate-in fade-in">
-      <h3 className="font-semibold text-lg text-slate-800">Dados do Comprador</h3>
-      <div className="mb-4 w-64">
-        <FormSelect
-          name="tipo_comprador"
-          label="Tipo de Pessoa"
-          options={[
-            { label: 'Pessoa Física (PF)', value: 'pf' },
-            { label: 'Pessoa Jurídica (PJ)', value: 'pj' },
-          ]}
-        />
-      </div>
-      <FormInput
-        name="nome_comprador"
-        label={tipoPessoa === 'pj' ? 'Razão Social' : 'Nome Completo'}
-      />
-
-      {tipoPessoa === 'pj' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormInput name="cnpj_comprador" label="CNPJ" placeholder="00.000.000/0000-00" />
-          <FormInput name="representante_comprador" label="Representante Legal" />
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormMaskedInput
-            name="cpf_comprador"
-            label="CPF"
-            placeholder="000.000.000-00"
-            maskType="cpf"
-          />
-          <FormInput name="rg_comprador" label="RG" />
-          <FormInput name="nacionalidade_comprador" label="Nacionalidade" />
+    <div className="space-y-8 animate-in fade-in">
+      <div className="space-y-4">
+        <h3 className="font-semibold text-lg text-slate-800 border-b pb-2">Dados do Comprador</h3>
+        <div className="w-64">
           <FormSelect
-            name="estado_civil_comprador"
-            label="Estado Civil"
-            options={ESTADO_CIVIL_OPTIONS}
-          />
-          <FormInput name="profissao_comprador" label="Profissão" />
-        </div>
-      )}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FormInput name="endereco_comprador" label="Endereço Completo" />
-        <FormInput name="email_comprador" label="Email" />
-        <FormMaskedInput name="telefone_comprador" label="Telefone" maskType="phone" />
-      </div>
-
-      <div className="mt-4 pt-4 border-t">
-        <h3 className="font-semibold text-sm text-slate-800 mb-4">Compliance (Comprador)</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField
-            control={control}
-            name="pep"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md">
-                <FormControl>
-                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>Pessoa Politicamente Exposta (PEP)</FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={control}
-            name="procurador"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md">
-                <FormControl>
-                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>Representado por Procurador</FormLabel>
-                </div>
-              </FormItem>
-            )}
+            name="tipo_comprador"
+            label="Tipo de Pessoa"
+            options={[
+              { label: 'Pessoa Física (PF)', value: 'pf' },
+              { label: 'Pessoa Jurídica (PJ)', value: 'pj' },
+            ]}
           />
         </div>
-      </div>
-    </div>
-  )
-}
 
-function SellerTab() {
-  const { watch, control } = useFormContext()
-  const tipoPessoa = watch('tipo_vendedor')
-  const casado = watch('vendedor_casado')
-
-  return (
-    <div className="space-y-6 animate-in fade-in">
-      <h3 className="font-semibold text-lg text-slate-800">Dados do Vendedor</h3>
-      <div className="mb-4 w-64">
-        <FormSelect
-          name="tipo_vendedor"
-          label="Tipo de Pessoa"
-          options={[
-            { label: 'Pessoa Física (PF)', value: 'pf' },
-            { label: 'Pessoa Jurídica (PJ)', value: 'pj' },
-          ]}
+        <FormInput
+          name="nome_comprador"
+          label={tipoComprador === 'pj' ? 'Razão Social' : 'Nome Completo'}
         />
-      </div>
-      <FormInput
-        name="nome_vendedor"
-        label={tipoPessoa === 'pj' ? 'Razão Social' : 'Nome Completo'}
-      />
 
-      {tipoPessoa === 'pj' ? (
+        {tipoComprador === 'pj' ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormInput name="cnpj_comprador" label="CNPJ" placeholder="00.000.000/0000-00" />
+            <FormInput name="representante_comprador" label="Representante Legal" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormMaskedInput
+              name="cpf_comprador"
+              label="CPF"
+              placeholder="000.000.000-00"
+              maskType="cpf"
+            />
+            <FormInput name="rg_comprador" label="RG" />
+            <FormInput name="nacionalidade_comprador" label="Nacionalidade" />
+            <FormInput name="profissao_comprador" label="Profissão" />
+            <FormSelect
+              name="estado_civil_comprador"
+              label="Estado Civil"
+              options={ESTADO_CIVIL_OPTIONS}
+            />
+            {estadoCivilComprador === 'Casado' && (
+              <FormSelect
+                name="regime_bens_comprador"
+                label="Regime de Bens"
+                options={REGIME_BENS_OPTIONS}
+              />
+            )}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormInput name="cnpj_vendedor" label="CNPJ" placeholder="00.000.000/0000-00" />
-          <FormInput name="representante_vendedor" label="Representante Legal" />
+          <FormInput name="endereco_comprador" label="Endereço Completo" />
+          <FormInput name="email_comprador" label="Email" />
+          <FormMaskedInput name="telefone_comprador" label="Telefone" maskType="phone" />
         </div>
-      ) : (
-        <>
+
+        <div className="flex flex-wrap gap-4 mt-2">
+          <FormField
+            control={control}
+            name="possui_procurador_comprador"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center space-x-2">
+                <FormControl>
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                </FormControl>
+                <FormLabel className="!mt-0 cursor-pointer">Representado por Procurador</FormLabel>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name="financiamento_comprador"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center space-x-2">
+                <FormControl>
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                </FormControl>
+                <FormLabel className="!mt-0 cursor-pointer">Necessita Financiamento</FormLabel>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name="fgts_comprador"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center space-x-2">
+                <FormControl>
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                </FormControl>
+                <FormLabel className="!mt-0 cursor-pointer">Uso de FGTS</FormLabel>
+              </FormItem>
+            )}
+          />
+        </div>
+        {possuiProcuradorComprador && (
+          <FormInput name="nome_procurador_comprador" label="Nome do Procurador (Comprador)" />
+        )}
+      </div>
+
+      <div className="space-y-4 pt-4 border-t">
+        <h3 className="font-semibold text-lg text-slate-800 border-b pb-2">Dados do Vendedor</h3>
+        <FormField
+          control={control}
+          name="vendedor_pj"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center space-x-2 mb-4">
+              <FormControl>
+                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+              </FormControl>
+              <FormLabel className="!mt-0 cursor-pointer">Vendedor é Pessoa Jurídica</FormLabel>
+            </FormItem>
+          )}
+        />
+
+        <FormInput name="nome_vendedor" label={vendedorPj ? 'Razão Social' : 'Nome Completo'} />
+
+        {vendedorPj ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormInput name="cnpj_vendedor" label="CNPJ" placeholder="00.000.000/0000-00" />
+            <FormInput name="representante_vendedor" label="Representante Legal" />
+          </div>
+        ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormMaskedInput
               name="cpf_vendedor"
@@ -183,109 +204,45 @@ function SellerTab() {
               maskType="cpf"
             />
             <FormInput name="rg_vendedor" label="RG" />
-            <FormInput name="nacionalidade_vendedor" label="Nacionalidade" />
             <FormSelect
               name="estado_civil_vendedor"
               label="Estado Civil"
               options={ESTADO_CIVIL_OPTIONS}
             />
-            <FormInput name="profissao_vendedor" label="Profissão" />
+            {estadoCivilVendedor === 'Casado' && (
+              <>
+                <FormSelect
+                  name="regime_bens_vendedor"
+                  label="Regime de Bens"
+                  options={REGIME_BENS_OPTIONS}
+                />
+                <FormInput name="conjuge_vendedor" label="Nome do Cônjuge" />
+              </>
+            )}
           </div>
+        )}
 
-          <FormField
-            control={control}
-            name="vendedor_casado"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center space-x-3 space-y-0 my-4">
-                <FormControl>
-                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                </FormControl>
-                <FormLabel>Vendedor é Casado?</FormLabel>
-              </FormItem>
-            )}
-          />
-
-          {casado && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-slate-50 border rounded-md">
-              <FormInput name="nome_conjuge" label="Nome do Cônjuge" />
-              <FormInput
-                name="regime_bens"
-                label="Regime de Bens"
-                placeholder="Ex: Comunhão Parcial"
-              />
-            </div>
-          )}
-        </>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FormInput name="endereco_vendedor" label="Endereço Completo" />
-        <FormInput name="email_vendedor" label="Email" />
-        <FormMaskedInput name="telefone_vendedor" label="Telefone" maskType="phone" />
-      </div>
-
-      <div className="mt-4 pt-4 border-t">
-        <h3 className="font-semibold text-sm text-slate-800 mb-4">
-          Situação do Imóvel no Momento (Riscos)
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField
-            control={control}
-            name="imovel_financiado"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md">
-                <FormControl>
-                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>Imóvel Alienado/Financiado</FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={control}
-            name="imovel_locado"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md">
-                <FormControl>
-                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>Imóvel Locado</FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={control}
-            name="imovel_inventario"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md">
-                <FormControl>
-                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>Processo de Inventário</FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={control}
-            name="imovel_ocupado"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md">
-                <FormControl>
-                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>Imóvel Ocupado</FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormInput name="endereco_vendedor" label="Endereço Completo" />
+          <FormInput name="email_vendedor" label="Email" />
+          <FormMaskedInput name="telefone_vendedor" label="Telefone" maskType="phone" />
         </div>
+
+        <FormField
+          control={control}
+          name="procurador_vendedor"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center space-x-2">
+              <FormControl>
+                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+              </FormControl>
+              <FormLabel className="!mt-0 cursor-pointer">Representado por Procurador</FormLabel>
+            </FormItem>
+          )}
+        />
+        {possuiProcuradorVendedor && (
+          <FormInput name="nome_procurador_vendedor" label="Nome do Procurador (Vendedor)" />
+        )}
       </div>
     </div>
   )
@@ -295,46 +252,93 @@ function PropertyTab() {
   const { control } = useFormContext()
   return (
     <div className="space-y-6 animate-in fade-in">
-      <h3 className="font-semibold text-lg text-slate-800">Dados do Imóvel e Registros</h3>
+      <h3 className="font-semibold text-lg text-slate-800 border-b pb-2">Dados do Imóvel</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormInput name="endereco_imovel" label="Endereço do Imóvel" />
+        <FormSelect
+          name="tipo_imovel"
+          label="Tipo de Imóvel"
+          options={[
+            { label: 'Apartamento', value: 'Apartamento' },
+            { label: 'Casa', value: 'Casa' },
+            { label: 'Terreno', value: 'Terreno' },
+            { label: 'Comercial', value: 'Comercial' },
+          ]}
+        />
         <FormInput name="matricula_imovel" label="Matrícula" />
-        <FormInput name="rgi_imovel" label="Cartório (RGI)" />
-        <FormInput name="inscricao_municipal" label="Inscrição Municipal (IPTU)" />
-        <FormInput name="area_total" label="Área Total (m²)" type="number" />
-        <FormInput name="vagas_garagem" label="Vagas de Garagem" type="number" />
+        <FormInput name="cartorio_imovel" label="Cartório (RGI)" />
+        <FormInput name="inscricao_iptu" label="Inscrição Municipal (IPTU)" />
+        <div className="grid grid-cols-2 gap-2">
+          <FormInput name="area_privativa" label="Área Priv. (m²)" type="number" />
+          <FormInput name="area_total" label="Área Total (m²)" type="number" />
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <FormInput name="vagas_garagem" label="Vagas" type="number" />
+          <div className="pt-8">
+            <FormField
+              control={control}
+              name="possui_box"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center space-x-2">
+                  <FormControl>
+                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                  </FormControl>
+                  <FormLabel className="!mt-0 cursor-pointer">Possui Box</FormLabel>
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
       </div>
 
       <div className="mt-4 pt-4 border-t">
-        <h3 className="font-semibold text-sm text-slate-800 mb-4">
-          Atestado de Conformidade Registral
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <h3 className="font-semibold text-sm text-slate-800 mb-4">Situação e Riscos (Flags)</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <FormField
             control={control}
-            name="matricula_atualizada"
+            name="imovel_ocupado"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md">
+              <FormItem className="flex items-center space-x-2 border p-3 rounded-md cursor-pointer">
                 <FormControl>
                   <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                 </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>Matrícula Vintenária Atualizada</FormLabel>
-                </div>
+                <FormLabel className="!mt-0 cursor-pointer">Ocupado</FormLabel>
               </FormItem>
             )}
           />
           <FormField
             control={control}
-            name="debitos_condominio"
+            name="imovel_locado"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md">
+              <FormItem className="flex items-center space-x-2 border p-3 rounded-md cursor-pointer">
                 <FormControl>
                   <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                 </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>Quitação Condominial Verificada</FormLabel>
-                </div>
+                <FormLabel className="!mt-0 cursor-pointer">Locado</FormLabel>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name="imovel_financiado"
+            render={({ field }) => (
+              <FormItem className="flex items-center space-x-2 border p-3 rounded-md cursor-pointer">
+                <FormControl>
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                </FormControl>
+                <FormLabel className="!mt-0 cursor-pointer">Financiado/Alienação</FormLabel>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name="imovel_inventario"
+            render={({ field }) => (
+              <FormItem className="flex items-center space-x-2 border p-3 rounded-md cursor-pointer">
+                <FormControl>
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                </FormControl>
+                <FormLabel className="!mt-0 cursor-pointer">Em Inventário</FormLabel>
               </FormItem>
             )}
           />
@@ -342,13 +346,23 @@ function PropertyTab() {
             control={control}
             name="possui_onus"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md">
+              <FormItem className="flex items-center space-x-2 border p-3 rounded-md cursor-pointer">
                 <FormControl>
                   <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                 </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>Possui outros Ônus/Penhoras</FormLabel>
-                </div>
+                <FormLabel className="!mt-0 cursor-pointer">Possui Ônus/Penhora</FormLabel>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name="possui_usufruto"
+            render={({ field }) => (
+              <FormItem className="flex items-center space-x-2 border p-3 rounded-md cursor-pointer">
+                <FormControl>
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                </FormControl>
+                <FormLabel className="!mt-0 cursor-pointer">Usufruto</FormLabel>
               </FormItem>
             )}
           />
@@ -358,93 +372,174 @@ function PropertyTab() {
   )
 }
 
-function NegotiationTab() {
-  const { watch, control } = useFormContext()
-  const type = watch('tipo')
+function FinancialTab() {
+  const { watch, control, setValue } = useFormContext()
   const total = watch('valor_total')
-  const usoFgts = watch('uso_fgts')
+
+  useEffect(() => {
+    const s = parseCurrency(String(watch('valor_sinal') || '0')),
+      fin = parseCurrency(String(watch('valor_financiamento') || '0')),
+      fgts = parseCurrency(String(watch('valor_fgts') || '0')),
+      rec = parseCurrency(String(watch('valor_recursos_proprios') || '0'))
+    setValue('valor_total', s + fin + fgts + rec, { shouldValidate: true })
+  }, [
+    watch('valor_sinal'),
+    watch('valor_financiamento'),
+    watch('valor_fgts'),
+    watch('valor_recursos_proprios'),
+    setValue,
+  ])
 
   return (
     <div className="space-y-6 animate-in fade-in">
-      <h3 className="font-semibold text-lg text-slate-800">Financeiro e Condições</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FormSelect
-          name="tipo"
-          label="Forma de Pagamento Base"
-          options={[
-            { label: 'À Vista', value: 'a_vista' },
-            { label: 'Financiado', value: 'financiado' },
-          ]}
-        />
-        <FormCurrencyInput name="valor_sinal" label="Sinal (Arras)" />
+      <h3 className="font-semibold text-lg text-slate-800 border-b pb-2">Negociação e Finanças</h3>
 
-        {type === 'a_vista' && (
-          <>
-            <FormCurrencyInput name="valor_saldo" label="Saldo Restante" />
-            <FormInput name="data_pagamento_saldo" label="Data p/ Pagamento" type="date" />
-          </>
-        )}
-        {type === 'financiado' && (
-          <>
-            <FormCurrencyInput name="valor_recursos_proprios" label="Recursos Próprios" />
-            <FormCurrencyInput name="valor_financiado" label="Valor a Financiar" />
-            <FormSelect
-              name="instituicao_financeira"
-              label="Banco do Financiamento"
-              options={BANCO_OPTIONS}
-            />
-            <FormInput name="prazo_meses" label="Prazo (Meses)" type="number" />
-          </>
-        )}
-        <FormCurrencyInput name="comissao" label="Comissão Imobiliária" />
-      </div>
-
-      <div className="p-4 bg-blue-50 border border-blue-100 rounded-lg flex justify-between items-center mt-2">
-        <span className="font-semibold text-slate-700">Valor Total:</span>
+      <div className="p-4 bg-blue-50 border border-blue-100 rounded-lg flex justify-between items-center">
+        <span className="font-semibold text-slate-700">Valor Total Estimado:</span>
         <span className="text-2xl font-bold text-blue-600">
           {total ? formatCurrency(total) : 'R$ 0,00'}
         </span>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
-        <FormField
-          control={control}
-          name="possui_financiamento"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md">
-              <FormControl>
-                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-              </FormControl>
-              <div className="space-y-1 leading-none">
-                <FormLabel>Exige Aprovação de Financiamento?</FormLabel>
-              </div>
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={control}
-          name="uso_fgts"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md">
-              <FormControl>
-                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-              </FormControl>
-              <div className="space-y-1 leading-none">
-                <FormLabel>Uso de FGTS?</FormLabel>
-              </div>
-            </FormItem>
-          )}
-        />
-        {usoFgts && <FormCurrencyInput name="valor_fgts" label="Valor do FGTS" />}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FormCurrencyInput name="valor_sinal" label="Sinal (Arras)" />
+        <FormInput name="data_pagamento_sinal" label="Data Pgto Sinal" type="date" />
+
+        <FormCurrencyInput name="valor_financiamento" label="Valor a Financiar" />
+        <FormInput name="prazo_financiamento" label="Prazo Financiamento (dias)" type="number" />
+
+        <FormCurrencyInput name="valor_fgts" label="Valor FGTS" />
+        <FormCurrencyInput name="valor_recursos_proprios" label="Recursos Próprios / Saldo" />
+
+        <FormInput name="quantidade_parcelas" label="Qtd. Parcelas (se houver)" type="number" />
+        <FormCurrencyInput name="valor_parcela" label="Valor da Parcela" />
+
+        <FormInput name="prazo_escritura" label="Data Limite p/ Escritura" type="date" />
+        <FormInput name="multa_inadimplencia" label="Multa Inadimplência (%)" type="number" />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
-        <FormInput name="cidade" label="Foro (Cidade/Estado)" />
-        <FormInput name="prazo_acordo" label="Prazo Geral do Acordo" />
-        <FormInput name="prazo_escritura" label="Data Limite p/ Escritura" type="date" />
-        <FormInput name="data_posse" label="Data Limite p/ Posse" type="date" />
-        <FormInput name="prazo_desocupacao" label="Prazo p/ Desocupação" type="date" />
-        <FormInput name="percentual_multa" label="Multa Rescisão (%)" type="number" />
+      <div className="mt-4 pt-4 border-t">
+        <h3 className="font-semibold text-sm text-slate-800 mb-4">Posse do Imóvel</h3>
+        <FormField
+          control={control}
+          name="posse_imediata"
+          render={({ field }) => (
+            <FormItem className="flex items-center space-x-2 mb-4">
+              <FormControl>
+                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+              </FormControl>
+              <FormLabel className="!mt-0 cursor-pointer">Posse Imediata</FormLabel>
+            </FormItem>
+          )}
+        />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <FormInput name="data_posse" label="Data da Posse" type="date" />
+          <FormInput name="prazo_desocupacao" label="Prazo Desocupação (dias)" type="number" />
+          <FormCurrencyInput name="multa_desocupacao" label="Multa Diária (Atraso)" />
+          <FormInput name="entrega_chaves" label="Data Entrega das Chaves" type="date" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function LegalTab() {
+  const { control } = useFormContext()
+  return (
+    <div className="space-y-6 animate-in fade-in">
+      <h3 className="font-semibold text-lg text-slate-800 border-b pb-2">
+        Cláusulas e Finalização
+      </h3>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FormCurrencyInput name="valor_comissao" label="Valor Comissão" />
+        <FormInput name="percentual_comissao" label="Percentual (%)" type="number" />
+        <FormSelect
+          name="responsavel_comissao"
+          label="Responsável Pgto"
+          options={[
+            { label: 'Vendedor', value: 'Vendedor' },
+            { label: 'Comprador', value: 'Comprador' },
+            { label: 'Ambos (Meio a Meio)', value: 'Ambos' },
+          ]}
+        />
+        <FormInput name="data_pagamento_comissao" label="Data Pgto Comissão" type="date" />
+      </div>
+
+      <FormField
+        control={control}
+        name="comissao_garantida"
+        render={({ field }) => (
+          <FormItem className="flex items-center space-x-2">
+            <FormControl>
+              <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+            </FormControl>
+            <FormLabel className="!mt-0 cursor-pointer">Comissão Garantida</FormLabel>
+          </FormItem>
+        )}
+      />
+
+      <div className="mt-4 pt-4 border-t grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-4">
+          <h4 className="font-semibold text-sm">Assinatura e Validação</h4>
+          <FormField
+            control={control}
+            name="assinatura_eletronica"
+            render={({ field }) => (
+              <FormItem className="flex items-center space-x-2">
+                <FormControl>
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                </FormControl>
+                <FormLabel className="!mt-0 cursor-pointer">Assinatura Eletrônica</FormLabel>
+              </FormItem>
+            )}
+          />
+          <FormSelect
+            name="plataforma_assinatura"
+            label="Plataforma"
+            options={PLATAFORMA_OPTIONS}
+          />
+          <FormField
+            control={control}
+            name="clausula_lgpd"
+            render={({ field }) => (
+              <FormItem className="flex items-center space-x-2">
+                <FormControl>
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                </FormControl>
+                <FormLabel className="!mt-0 cursor-pointer">Incluir Cláusula LGPD</FormLabel>
+              </FormItem>
+            )}
+          />
+        </div>
+        <div className="space-y-4">
+          <h4 className="font-semibold text-sm">Resolução de Conflitos</h4>
+          <FormInput name="foro_comarca" label="Foro (Comarca/UF)" placeholder="Ex: São Paulo/SP" />
+          <FormField
+            control={control}
+            name="arbitragem"
+            render={({ field }) => (
+              <FormItem className="flex items-center space-x-2">
+                <FormControl>
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                </FormControl>
+                <FormLabel className="!mt-0 cursor-pointer">Câmara de Arbitragem</FormLabel>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name="mediacao"
+            render={({ field }) => (
+              <FormItem className="flex items-center space-x-2">
+                <FormControl>
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                </FormControl>
+                <FormLabel className="!mt-0 cursor-pointer">Mediação Prévia</FormLabel>
+              </FormItem>
+            )}
+          />
+        </div>
       </div>
     </div>
   )
@@ -461,57 +556,50 @@ export function ContractForm({
   const [isGenerating, setIsGenerating] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [showChecklist, setShowChecklist] = useState(false)
-  const [generateIntent, setGenerateIntent] = useState<'standard' | 'ai' | null>(null)
   const [draftText, setDraftText] = useState('')
   const [checklist, setChecklist] = useState({
     matricula_atualizada: false,
-    vendedor_casado_ok: false,
-    imovel_financiado_ok: false,
     debitos_quitados: false,
-    inventario_verificado: false,
   })
 
   const { user } = useAuth()
   const form = useForm<ContractFormValues>({
     resolver: zodResolver(contractSchema),
     defaultValues: {
-      tipo: 'a_vista',
-      tipo_vendedor: 'pf',
       tipo_comprador: 'pf',
+      vendedor_pj: false,
       tipo_documento: tipoDocumento,
-      tipo_negociacao: 'a_vista',
       status: 'em_elaboracao',
       user: user?.id,
-      clausula_arrependimento: false,
-      possui_financiamento: false,
-      uso_fgts: false,
+      possui_procurador_comprador: false,
+      financiamento_comprador: false,
+      fgts_comprador: false,
+      procurador_vendedor: false,
       imovel_ocupado: false,
-      vendedor_casado: false,
-      pep: false,
-      procurador: false,
-      matricula_atualizada: false,
-      debitos_condominio: false,
-      imovel_financiado: false,
       imovel_locado: false,
+      imovel_financiado: false,
       imovel_inventario: false,
       possui_onus: false,
+      possui_usufruto: false,
+      possui_box: false,
+      posse_imediata: false,
+      comissao_garantida: false,
+      assinatura_eletronica: false,
+      clausula_lgpd: false,
+      arbitragem: false,
+      mediacao: false,
     } as any,
     mode: 'onChange',
   })
 
-  const {
-    watch,
-    setValue,
-    formState: { isValid },
-  } = form
+  const { setValue } = form
 
   const handleNext = () => setCurrentStep((s) => Math.min(s + 1, 4))
   const handlePrev = () => setCurrentStep((s) => Math.max(s - 1, 1))
 
-  const initiateGeneration = async (intent: 'standard' | 'ai') => {
+  const initiateGeneration = async () => {
     const valid = await form.trigger()
     if (!valid) return toast.error('Preencha os campos obrigatórios primeiro.')
-    setGenerateIntent(intent)
     setShowChecklist(true)
   }
 
@@ -521,19 +609,14 @@ export function ContractForm({
     setIsGenerating(true)
     try {
       const payload = { ...form.getValues(), user: user?.id }
-      let txt = ''
-      if (generateIntent === 'ai') {
-        const res = await pb.send('/backend/v1/gerar-minuta-compliance', {
-          method: 'POST',
-          body: JSON.stringify(payload),
-        })
-        txt = res.minuta
-        toast.success('Minuta gerada por IA com sucesso!')
-      } else {
-        txt = generateDraftText(payload, user)
-      }
+      const res = await pb.send('/backend/v1/assemble-contract', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      })
+      const txt = res.minuta_texto
       setDraftText(txt)
       await createContract(payload, txt)
+      toast.success('Master Contract gerado pelo Motor Jurídico!')
       setIsSuccess(true)
     } catch (err) {
       toast.error('Erro na geração', { description: getErrorMessage(err) })
@@ -542,33 +625,15 @@ export function ContractForm({
     }
   }
 
-  // Value auto-calc effect
-  useEffect(() => {
-    const s = parseCurrency(String(watch('valor_sinal') || '0')),
-      fin = parseCurrency(String(watch('valor_financiado') || '0')),
-      rec = parseCurrency(String(watch('valor_recursos_proprios') || '0')),
-      sal = parseCurrency(String(watch('valor_saldo') || '0'))
-    setValue('valor_total', watch('tipo') === 'a_vista' ? s + sal : s + fin + rec, {
-      shouldValidate: true,
-    })
-  }, [
-    watch('valor_sinal'),
-    watch('valor_financiado'),
-    watch('valor_recursos_proprios'),
-    watch('valor_saldo'),
-    watch('tipo'),
-    setValue,
-  ])
-
   if (isSuccess) {
     return (
       <div className="text-center space-y-6 py-12 animate-in fade-in slide-in-from-bottom-4 bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
         <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto shadow-sm">
           <CheckCircle2 size={40} />
         </div>
-        <h2 className="text-3xl font-bold text-slate-800">Master Contract Gerado!</h2>
+        <h2 className="text-3xl font-bold text-slate-800">Master Contract Montado!</h2>
         <p className="text-slate-600 text-lg">
-          As cláusulas condicionais, proteção LGPD e Assinatura Eletrônica foram injetadas
+          O Motor Jurídico injetou as cláusulas condicionais, proteção LGPD e demais regras
           perfeitamente.
         </p>
         <div className="flex justify-center gap-3 mt-8">
@@ -621,10 +686,10 @@ export function ContractForm({
           <Form {...form}>
             <form className="space-y-6">
               <div className="min-h-[400px]">
-                {currentStep === 1 && <BuyerTab />}
-                {currentStep === 2 && <SellerTab />}
-                {currentStep === 3 && <PropertyTab />}
-                {currentStep === 4 && <NegotiationTab />}
+                {currentStep === 1 && <PartiesTab />}
+                {currentStep === 2 && <PropertyTab />}
+                {currentStep === 3 && <FinancialTab />}
+                {currentStep === 4 && <LegalTab />}
               </div>
               <div className="flex justify-between pt-6 border-t">
                 <Button
@@ -641,23 +706,13 @@ export function ContractForm({
                     Próximo <ChevronRight className="ml-2 h-4 w-4" />
                   </Button>
                 ) : (
-                  <div className="flex gap-3">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="text-purple-700 border-purple-200"
-                      onClick={() => initiateGeneration('ai')}
-                    >
-                      <Bot className="mr-2 h-4 w-4" /> IA + Compliance
-                    </Button>
-                    <Button
-                      type="button"
-                      className="bg-blue-600"
-                      onClick={() => initiateGeneration('standard')}
-                    >
-                      <Save className="mr-2 h-4 w-4" /> Finalizar
-                    </Button>
-                  </div>
+                  <Button
+                    type="button"
+                    className="bg-blue-600 hover:bg-blue-700"
+                    onClick={initiateGeneration}
+                  >
+                    <Bot className="mr-2 h-4 w-4" /> Finalizar e Gerar Master Contract
+                  </Button>
                 )}
               </div>
             </form>
@@ -669,10 +724,10 @@ export function ContractForm({
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center">
-              <ShieldCheck className="w-5 h-5 mr-2 text-blue-600" /> Compliance e Riscos
+              <ShieldCheck className="w-5 h-5 mr-2 text-blue-600" /> Confirmação de Compliance
             </DialogTitle>
             <DialogDescription>
-              Para a geração do Master Contract, valide os itens de segurança obrigatórios.
+              Para a montagem final do Master Contract, valide os itens documentais obrigatórios.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -697,10 +752,10 @@ export function ContractForm({
             >
               {isGenerating ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Gerando...
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Processando Motor Jurídico...
                 </>
               ) : (
-                'Confirmar e Gerar Documento'
+                'Confirmar e Montar Documento'
               )}
             </Button>
           </DialogFooter>

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-16T16:05:17.792Z",
+  "generatedAt": "2026-05-16T16:13:52.653Z",
   "collections": [
     {
       "name": "users",
@@ -657,6 +657,226 @@
         },
         {
           "name": "debitos_condominio",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "regime_bens_comprador",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": [
+            "Comunhão Parcial",
+            "Comunhão Universal",
+            "Separação Total",
+            "Participação Final",
+            "Não se aplica"
+          ]
+        },
+        {
+          "name": "possui_procurador_comprador",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "nome_procurador_comprador",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "financiamento_comprador",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "fgts_comprador",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "regime_bens_vendedor",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": [
+            "Comunhão Parcial",
+            "Comunhão Universal",
+            "Separação Total",
+            "Participação Final",
+            "Não se aplica"
+          ]
+        },
+        {
+          "name": "conjuge_vendedor",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "procurador_vendedor",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "vendedor_pj",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cartorio_imovel",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "inscricao_iptu",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "area_privativa",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "possui_box",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "tipo_imovel",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["Apartamento", "Casa", "Terreno", "Comercial"]
+        },
+        {
+          "name": "possui_usufruto",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_financiamento",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "quantidade_parcelas",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_parcela",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "data_pagamento_sinal",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "prazo_financiamento",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "multa_inadimplencia",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "posse_imediata",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "multa_desocupacao",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "entrega_chaves",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "percentual_comissao",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_comissao",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "data_pagamento_comissao",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "comissao_garantida",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "assinatura_eletronica",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "plataforma_assinatura",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["Clicksign", "ZapSign", "Docusign", "Autentique"]
+        },
+        {
+          "name": "clausula_lgpd",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "foro_comarca",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "arbitragem",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "mediacao",
           "type": "bool",
           "required": false,
           "system": false
