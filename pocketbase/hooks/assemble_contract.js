@@ -8,23 +8,34 @@ routerAdd(
       'legal_knowledge',
       "category = 'clausula_fixa' || category = 'clausula_condicional'",
       'title',
-      100,
+      1000,
       0,
     )
 
     let finalBlocks = []
+    let usedClauses = []
+
     const addClause = (codePrefix) => {
       const matched = clauses.filter((c) => c.getString('title').startsWith(codePrefix))
-      matched.forEach((m) =>
-        finalBlocks.push('### ' + m.getString('title') + '\n\n' + m.getString('content')),
-      )
+      matched.forEach((m) => {
+        let content = m.getString('content')
+        content = content.replace(/\{\{(.*?)\}\}/g, (match, p1) => {
+          const key = p1.trim()
+          if (body[key] !== undefined && body[key] !== null && body[key] !== '') {
+            return String(body[key])
+          }
+          return match
+        })
+        finalBlocks.push(`### ${m.getString('title')}\n\n${content}`)
+        usedClauses.push({
+          code: m.getString('title').split(' - ')[0],
+          title: m.getString('title'),
+          version: m.getInt('version') || 1,
+        })
+      })
     }
 
-    addClause('FIX001')
-    addClause('FIX002')
-    addClause('FIX003')
-    addClause('FIX004')
-    addClause('FIX005')
+    addClause('FIX')
 
     if (body.clausula_lgpd) addClause('FIX006')
     if (body.assinatura_eletronica) addClause('FIX007')
@@ -38,15 +49,54 @@ routerAdd(
 
     let minuta = finalBlocks.join('\n\n')
 
-    minuta = minuta.replace(/{{(.*?)}}/g, (match, p1) => {
-      const key = p1.trim()
-      if (body[key] !== undefined && body[key] !== null && body[key] !== '') {
-        return String(body[key])
-      }
-      return match
-    })
+    const block1Role =
+      'You are a Specialist in Brazilian real estate law. You must use the authorized clauses provided only. Do not invent new legal frameworks.'
+    const block2Rules =
+      'Use formal, clear, and unambiguous language. Never omit mandatory clauses. Respect conditional logic. Integrate the selected clauses seamlessly into a professional contract structure: 1. Qualification of Parties, 2. Object, 3. Price and Payment, 4. Specific Conditions (Financing, Possession, etc.), 5. General Provisions.'
+    const block3Input = `Contract Variables:\n${JSON.stringify(body, null, 2)}\n\nSelected Pre-approved Clauses:\n${minuta}`
+    const block4Decision =
+      'Map the triggers to specific clause codes and ensure the final text forms a coherent, continuous legal document without brackets like [FIX001]. Output ONLY the final contract text in plain text or simple markdown. Start directly with the contract content.'
 
-    return e.json(200, { minuta_texto: minuta })
+    const prompt = `${block1Role}\n\n${block2Rules}\n\n${block3Input}\n\n${block4Decision}`
+
+    const url = $secrets.get('SKIP_AI_GATEWAY_URL')
+    const apiKey = $secrets.get('SKIP_AI_GATEWAY_API_KEY')
+
+    let generatedText = minuta
+
+    if (url && apiKey) {
+      try {
+        const completionUrl = url.endsWith('/')
+          ? url + 'v1/chat/completions'
+          : url + '/v1/chat/completions'
+        const res = $http.send({
+          url: completionUrl,
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer ' + apiKey,
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [
+              { role: 'system', content: 'You are an expert real estate lawyer in Brazil.' },
+              { role: 'user', content: prompt },
+            ],
+          }),
+          timeout: 30,
+        })
+
+        if (res.statusCode === 200 && res.json && res.json.choices && res.json.choices.length > 0) {
+          generatedText = res.json.choices[0].message.content
+        } else {
+          $app.logger().warn('AI Gateway returned non-200', 'status', res.statusCode)
+        }
+      } catch (err) {
+        $app.logger().error('AI Gateway call failed', 'error', err)
+      }
+    }
+
+    return e.json(200, { minuta_texto: generatedText, used_clauses: usedClauses })
   },
   $apis.requireAuth(),
 )

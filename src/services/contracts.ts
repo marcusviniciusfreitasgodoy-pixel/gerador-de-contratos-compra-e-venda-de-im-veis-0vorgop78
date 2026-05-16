@@ -19,7 +19,10 @@ export const generateContractDocx = async (data: any) => {
   })
 }
 
-export const createContract = async (data: ContractFormValues, minutaTexto?: string) => {
+export const createContract = async (
+  data: ContractFormValues & { used_clauses?: any },
+  minutaTexto?: string,
+) => {
   const payload = {
     ...data,
     minuta_texto: minutaTexto,

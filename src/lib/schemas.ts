@@ -55,6 +55,7 @@ export const contractSchema = z.object({
   // Property
   endereco_imovel: z.string().min(1, 'Obrigatório'),
   matricula_imovel: z.string().optional(),
+  data_matricula: z.string().optional(),
   cartorio_imovel: z.string().optional(),
   inscricao_iptu: z.string().optional(),
   area_privativa: z.coerce.number().optional(),
@@ -73,6 +74,7 @@ export const contractSchema = z.object({
   valor_total: currencyToNumber.optional(),
   valor_sinal: currencyToNumber.optional(),
   valor_financiamento: currencyToNumber.optional(),
+  instituicao_financeira: z.string().optional(),
   valor_fgts: currencyToNumber.optional(),
   valor_recursos_proprios: currencyToNumber.optional(),
   quantidade_parcelas: z.coerce.number().optional(),

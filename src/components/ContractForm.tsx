@@ -34,6 +34,7 @@ import pb from '@/lib/pocketbase/client'
 import { getErrorMessage } from '@/lib/pocketbase/errors'
 import { generateContractPDF } from '@/lib/pdf-contract'
 import { cn } from '@/lib/utils'
+import { differenceInDays } from 'date-fns'
 
 const ESTADO_CIVIL_OPTIONS = [
   { label: 'Solteiro(a)', value: 'Solteiro' },
@@ -216,7 +217,7 @@ function PartiesTab() {
                   label="Regime de Bens"
                   options={REGIME_BENS_OPTIONS}
                 />
-                <FormInput name="conjuge_vendedor" label="Nome do Cônjuge" />
+                <FormInput name="conjuge_vendedor" label="Nome do Cônjuge (Obrigatório)" />
               </>
             )}
           </div>
@@ -265,7 +266,10 @@ function PropertyTab() {
             { label: 'Comercial', value: 'Comercial' },
           ]}
         />
-        <FormInput name="matricula_imovel" label="Matrícula" />
+        <div className="grid grid-cols-2 gap-2">
+          <FormInput name="matricula_imovel" label="Matrícula" />
+          <FormInput name="data_matricula" label="Data Matrícula" type="date" />
+        </div>
         <FormInput name="cartorio_imovel" label="Cartório (RGI)" />
         <FormInput name="inscricao_iptu" label="Inscrição Municipal (IPTU)" />
         <div className="grid grid-cols-2 gap-2">
@@ -405,7 +409,12 @@ function FinancialTab() {
         <FormCurrencyInput name="valor_sinal" label="Sinal (Arras)" />
         <FormInput name="data_pagamento_sinal" label="Data Pgto Sinal" type="date" />
 
-        <FormCurrencyInput name="valor_financiamento" label="Valor a Financiar" />
+        <div className="space-y-4">
+          <FormCurrencyInput name="valor_financiamento" label="Valor a Financiar" />
+          {watch('financiamento_comprador') && (
+            <FormInput name="instituicao_financeira" label="Instituição Financeira" />
+          )}
+        </div>
         <FormInput name="prazo_financiamento" label="Prazo Financiamento (dias)" type="number" />
 
         <FormCurrencyInput name="valor_fgts" label="Valor FGTS" />
@@ -600,6 +609,30 @@ export function ContractForm({
   const initiateGeneration = async () => {
     const valid = await form.trigger()
     if (!valid) return toast.error('Preencha os campos obrigatórios primeiro.')
+
+    const values = form.getValues()
+
+    if (values.estado_civil_vendedor === 'Casado' && !values.conjuge_vendedor) {
+      return toast.error(
+        'Compliance Alert: Dados do cônjuge do vendedor são obrigatórios para casados.',
+      )
+    }
+
+    if (values.financiamento_comprador && !values.instituicao_financeira) {
+      return toast.error(
+        'Compliance Alert: Instituição Financeira é obrigatória para financiamentos.',
+      )
+    }
+
+    if (values.data_matricula) {
+      const days = differenceInDays(new Date(), new Date(values.data_matricula))
+      if (days > 30) {
+        toast.warning(
+          'Alerta Jurídico: A matrícula do imóvel tem mais de 30 dias. Recomendamos solicitar uma certidão atualizada.',
+        )
+      }
+    }
+
     setShowChecklist(true)
   }
 
@@ -614,8 +647,9 @@ export function ContractForm({
         body: JSON.stringify(payload),
       })
       const txt = res.minuta_texto
+      const usedClauses = res.used_clauses
       setDraftText(txt)
-      await createContract(payload, txt)
+      await createContract({ ...payload, used_clauses: usedClauses }, txt)
       toast.success('Master Contract gerado pelo Motor Jurídico!')
       setIsSuccess(true)
     } catch (err) {
