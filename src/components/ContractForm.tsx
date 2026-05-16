@@ -6,7 +6,16 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent } from '@/components/ui/card'
 import { contractSchema, type ContractFormValues } from '@/lib/schemas'
-import { ArrowLeft, Loader2, CheckCircle2, Bot, Save, Wand2, ShieldCheck } from 'lucide-react'
+import {
+  ArrowLeft,
+  Loader2,
+  CheckCircle2,
+  Bot,
+  Save,
+  Wand2,
+  ShieldCheck,
+  Download,
+} from 'lucide-react'
 import { createContract } from '@/services/contracts'
 import { FormInput, FormCurrencyInput, FormMaskedInput, FormSelect } from './FormInput'
 import { toast } from 'sonner'
@@ -23,6 +32,7 @@ import {
 import { AnalysisReportView, type AnalysisReport } from './AnalysisReportView'
 import pb from '@/lib/pocketbase/client'
 import { getErrorMessage } from '@/lib/pocketbase/errors'
+import { generateContractPDF } from '@/lib/pdf-contract'
 
 const ESTADO_CIVIL_OPTIONS = [
   { label: 'Solteiro(a)', value: 'Solteiro' },
@@ -106,32 +116,52 @@ function PropertyTab() {
   )
 }
 
-function ValuesTab({ type }: { type: 'a_vista' | 'financiado' }) {
+function ValuesTab() {
   const { watch } = useFormContext()
   const total = watch('valor_total')
+  const type = watch('tipo')
 
   return (
     <div className="space-y-6 animate-in fade-in">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FormCurrencyInput name="valor_sinal" label="Sinal" />
+        <div className="col-span-1 md:col-span-2 mb-2">
+          <FormSelect
+            name="tipo"
+            label="Forma de Pagamento Base"
+            options={[
+              { label: 'À Vista', value: 'a_vista' },
+              { label: 'Financiado', value: 'financiado' },
+            ]}
+          />
+        </div>
+
+        <FormCurrencyInput name="valor_sinal" label="Sinal (Arras)" />
+        <FormCurrencyInput name="comissao" label="Comissão Imobiliária" />
+
         {type === 'a_vista' && (
           <>
-            <FormCurrencyInput name="valor_saldo" label="Saldo" />
-            <FormInput name="data_pagamento_saldo" label="Data de Pagamento do Saldo" type="date" />
+            <FormCurrencyInput name="valor_saldo" label="Saldo Restante" />
+            <FormInput name="data_pagamento_saldo" label="Data Limite p/ Pagamento" type="date" />
           </>
         )}
+
         {type === 'financiado' && (
           <>
-            <FormCurrencyInput name="valor_reforco" label="Reforço" />
-            <FormCurrencyInput name="valor_complemento" label="Complemento" />
-            <FormCurrencyInput name="valor_financiado" label="Valor Financiado" />
-            <FormSelect name="instituicao_financeira" label="Banco" options={BANCO_OPTIONS} />
+            <FormCurrencyInput
+              name="valor_recursos_proprios"
+              label="Recursos Próprios (FGTS/Poupança)"
+            />
+            <FormCurrencyInput name="valor_financiado" label="Valor a Financiar" />
+            <FormSelect
+              name="instituicao_financeira"
+              label="Banco do Financiamento"
+              options={BANCO_OPTIONS}
+            />
             <FormInput name="taxa_juros" label="Taxa de Juros (%)" type="number" />
             <FormInput name="prazo_meses" label="Prazo em Meses" type="number" />
             <FormInput name="data_liberacao_credito" label="Previsão de Liberação" type="date" />
           </>
         )}
-        <FormCurrencyInput name="comissao" label="Comissão Imobiliária" />
       </div>
 
       <div className="p-4 bg-slate-50 border rounded-lg flex justify-between items-center mt-6">
@@ -144,11 +174,66 @@ function ValuesTab({ type }: { type: 'a_vista' | 'financiado' }) {
   )
 }
 
+function ConditionsTab() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in">
+      <FormSelect
+        name="tipo_negociacao"
+        label="Estratégia de Negociação"
+        options={[
+          { label: 'À Vista (Padrão)', value: 'a_vista' },
+          { label: 'Financiamento Padrão', value: 'financiamento' },
+          { label: 'Investidor (Flip / Revenda)', value: 'investidor' },
+          { label: 'Alto Padrão (Premium)', value: 'alto_padrao' },
+          { label: 'Permuta', value: 'permuta' },
+        ]}
+      />
+      <FormInput name="cidade" label="Cidade e Estado (Foro)" placeholder="Ex: São Paulo - SP" />
+      <FormInput
+        name="cartorio"
+        label="Cartório de Registro"
+        placeholder="Ex: 1º Cartório de Imóveis"
+      />
+      <FormInput
+        name="prazo_acordo"
+        label="Prazo de Validade do Acordo"
+        placeholder="Ex: 30 dias"
+      />
+      <FormInput name="prazo_escritura" label="Data Limite p/ Escritura" type="date" />
+      <FormInput name="data_posse" label="Data Prevista p/ Posse" type="date" />
+      <FormInput name="percentual_multa" label="Multa de Rescisão (%)" type="number" />
+      <FormInput
+        name="responsavel_comissao"
+        label="Responsável pela Comissão"
+        placeholder="Ex: Vendedor"
+      />
+
+      <div className="col-span-1 md:col-span-2 mt-4 pt-4 border-t">
+        <h3 className="font-semibold text-lg text-slate-800 mb-2">Cláusulas Especiais</h3>
+      </div>
+      <div className="col-span-1 md:col-span-2">
+        <FormInput
+          name="situacao_juridica_imovel"
+          label="Situação Jurídica do Imóvel (Ônus/Hipotecas)"
+          placeholder="Livre e desembaraçado de quaisquer ônus..."
+        />
+      </div>
+      <div className="col-span-1 md:col-span-2">
+        <FormInput
+          name="condicao_suspensiva"
+          label="Condição Suspensiva"
+          placeholder="Ex: Negócio condicionado à aprovação do crédito habitacional..."
+        />
+      </div>
+    </div>
+  )
+}
+
 export function ContractForm({
-  type,
+  tipoDocumento,
   onBack,
 }: {
-  type: 'a_vista' | 'financiado'
+  tipoDocumento: string
   onBack: () => void
 }) {
   const [isGenerating, setIsGenerating] = useState(false)
@@ -165,7 +250,9 @@ export function ContractForm({
   const form = useForm<ContractFormValues>({
     resolver: zodResolver(contractSchema),
     defaultValues: {
-      tipo: type,
+      tipo: 'a_vista',
+      tipo_documento: tipoDocumento,
+      tipo_negociacao: 'a_vista',
       status: 'em_elaboracao',
       user: user?.id,
     } as any,
@@ -179,7 +266,6 @@ export function ContractForm({
   } = form
 
   const handleFillDummyData = () => {
-    // Vendedor
     setValue('nome_vendedor', 'João da Silva', { shouldValidate: true })
     setValue('cpf_vendedor', '111.111.111-11', { shouldValidate: true })
     setValue('rg_vendedor', '11.111.111-1', { shouldValidate: true })
@@ -193,12 +279,6 @@ export function ContractForm({
     setValue('email_vendedor', 'joao.vendedor@exemplo.com', { shouldValidate: true })
     setValue('telefone_vendedor', '(11) 98888-8888', { shouldValidate: true })
 
-    setValue('vendedor_banco', 'Itaú', { shouldValidate: true })
-    setValue('vendedor_agencia', '1234', { shouldValidate: true })
-    setValue('vendedor_conta', '12345-6', { shouldValidate: true })
-    setValue('vendedor_pix', 'joao.vendedor@exemplo.com', { shouldValidate: true })
-
-    // Comprador
     setValue('nome_comprador', 'Maria Oliveira', { shouldValidate: true })
     setValue('cpf_comprador', '222.222.222-22', { shouldValidate: true })
     setValue('rg_comprador', '22.222.222-2', { shouldValidate: true })
@@ -212,7 +292,6 @@ export function ContractForm({
     setValue('email_comprador', 'maria.compradora@exemplo.com', { shouldValidate: true })
     setValue('telefone_comprador', '(11) 97777-7777', { shouldValidate: true })
 
-    // Imóvel
     setValue('endereco_imovel', 'Rua do Imóvel, 456, Apto 12, Jardins, São Paulo - SP', {
       shouldValidate: true,
     })
@@ -222,39 +301,15 @@ export function ContractForm({
     setValue('area_total', 120, { shouldValidate: true })
     setValue('vagas_garagem', 2, { shouldValidate: true })
 
-    // Valores
+    setValue('cidade', 'São Paulo - SP', { shouldValidate: true })
+    setValue('cartorio', '1º Cartório de Registro de Imóveis de SP', { shouldValidate: true })
+    setValue('prazo_acordo', '30 dias', { shouldValidate: true })
+    setValue('percentual_multa', 10, { shouldValidate: true })
+    setValue('responsavel_comissao', 'Vendedor', { shouldValidate: true })
+
     setValue('valor_sinal', 50000, { shouldValidate: true })
     setValue('comissao', 25000, { shouldValidate: true })
-
-    const nextMonth = new Date()
-    nextMonth.setMonth(nextMonth.getMonth() + 1)
-    const dateStr = nextMonth.toISOString().split('T')[0]
-
-    if (type === 'a_vista') {
-      setValue('valor_saldo', 450000, { shouldValidate: true })
-      setValue('data_pagamento_saldo', dateStr, { shouldValidate: true })
-
-      // Clear financiado fields
-      setValue('valor_reforco', 0, { shouldValidate: true })
-      setValue('valor_complemento', 0, { shouldValidate: true })
-      setValue('valor_financiado', 0, { shouldValidate: true })
-      setValue('taxa_juros', 0, { shouldValidate: true })
-      setValue('prazo_meses', 0, { shouldValidate: true })
-      setValue('instituicao_financeira', '', { shouldValidate: true })
-      setValue('data_liberacao_credito', '', { shouldValidate: true })
-    } else {
-      setValue('valor_reforco', 50000, { shouldValidate: true })
-      setValue('valor_complemento', 50000, { shouldValidate: true })
-      setValue('valor_financiado', 350000, { shouldValidate: true })
-      setValue('instituicao_financeira', 'Caixa Econômica Federal', { shouldValidate: true })
-      setValue('taxa_juros', 9.5, { shouldValidate: true })
-      setValue('prazo_meses', 360, { shouldValidate: true })
-      setValue('data_liberacao_credito', dateStr, { shouldValidate: true })
-
-      // Clear a_vista fields
-      setValue('valor_saldo', 0, { shouldValidate: true })
-      setValue('data_pagamento_saldo', '', { shouldValidate: true })
-    }
+    setValue('valor_saldo', 450000, { shouldValidate: true })
 
     form.trigger()
     toast.success('Campos preenchidos com dados fictícios!')
@@ -269,38 +324,33 @@ export function ContractForm({
         body: JSON.stringify({
           arquivo: encodedText,
           tipo: 'txt',
-          tipoContrato: type,
+          tipoContrato: form.getValues('tipo'),
           contractId: generatedContractId,
         }),
       })
 
-      if (res.error) {
-        toast.error(res.error)
-      } else {
+      if (res.error) toast.error(res.error)
+      else {
         setAnalysisReport(res)
         setShowAnalysisModal(true)
       }
     } catch (err: any) {
-      toast.error('Erro ao analisar contrato.', {
-        description: getErrorMessage(err) || 'Verifique suas configurações de API de IA.',
-      })
+      toast.error('Erro ao analisar contrato.', { description: getErrorMessage(err) })
     } finally {
       setIsAnalyzing(false)
     }
   }
 
   useEffect(() => {
-    if (user?.id) {
-      setValue('user', user.id)
-    }
+    if (user?.id) setValue('user', user.id)
   }, [user?.id, setValue])
 
   const sinal = watch('valor_sinal')
   const saldo = watch('valor_saldo')
-  const reforco = watch('valor_reforco')
-  const complemento = watch('valor_complemento')
   const financiado = watch('valor_financiado')
+  const recursProp = watch('valor_recursos_proprios')
   const comissao = watch('comissao')
+  const formType = watch('tipo')
 
   useEffect(() => {
     let total = 0
@@ -308,34 +358,48 @@ export function ContractForm({
       typeof val === 'number' ? val : parseCurrency(String(val || '')) || 0
 
     total += parseSafe(sinal)
-    if (type === 'a_vista') {
+    if (formType === 'a_vista') {
       total += parseSafe(saldo)
     } else {
-      total += parseSafe(reforco)
-      total += parseSafe(complemento)
       total += parseSafe(financiado)
+      total += parseSafe(recursProp)
     }
     setValue('valor_total', total, { shouldValidate: true })
 
-    // Auto-calculate comissao if user has a default percentage and comissao is empty
     if (user?.comissao_padrao_percentual && total > 0 && !comissao) {
       const perc = Number(user.comissao_padrao_percentual) / 100
       setValue('comissao', total * perc, { shouldValidate: true })
     }
-  }, [sinal, saldo, reforco, complemento, financiado, type, setValue, user, comissao])
+  }, [sinal, saldo, financiado, recursProp, formType, setValue, user, comissao])
+
+  const preCheckRisks = (data: ContractFormValues) => {
+    if (data.valor_total && data.valor_total > 1000000) {
+      toast.warning('Aviso de Risco', {
+        description:
+          'Transação de alto valor detectada. Recomendada análise profunda de Compliance/PLD-FT.',
+      })
+    }
+    if (data.tipo_negociacao === 'permuta') {
+      toast.warning('Aviso de Risco', {
+        description:
+          'Operação de permuta. Atenção redobrada às regras de valoração de bens e tributação.',
+      })
+    }
+  }
 
   const onSubmit = async (data: ContractFormValues) => {
     setIsGenerating(true)
+    preCheckRisks(data)
     try {
       const submitData = { ...data, user: user?.id }
       const txt = generateDraftText(submitData, user)
       setDraftText(txt)
       const saved = await createContract(submitData, txt)
       setGeneratedContractId(saved.id)
-      toast.success('Contrato gerado com sucesso!')
+      toast.success('Documento gerado com sucesso!')
       setIsSuccess(true)
     } catch (err: any) {
-      toast.error('Erro ao gerar contrato.', { description: 'Tente novamente mais tarde.' })
+      toast.error('Erro ao gerar documento.', { description: getErrorMessage(err) })
     } finally {
       setIsGenerating(false)
     }
@@ -348,9 +412,11 @@ export function ContractForm({
       if (!isValidForm) return
 
       const payload = form.getValues()
+      preCheckRisks(payload)
+
       const res = await pb.send('/backend/v1/gerar-minuta-compliance', {
         method: 'POST',
-        body: JSON.stringify({ ...payload, tipo: type }),
+        body: JSON.stringify({ ...payload }),
       })
 
       const txt = res.minuta
@@ -371,15 +437,25 @@ export function ContractForm({
 
   if (isSuccess) {
     return (
-      <div className="text-center space-y-6 py-20 animate-in fade-in slide-in-from-bottom-4 bg-white rounded-2xl shadow-sm border border-slate-100 max-w-2xl mx-auto p-8">
-        <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
-          <CheckCircle2 size={48} />
+      <div className="text-center space-y-6 py-12 animate-in fade-in slide-in-from-bottom-4 bg-white rounded-2xl shadow-sm border border-slate-100 max-w-2xl mx-auto p-8">
+        <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+          <CheckCircle2 size={40} />
         </div>
-        <h2 className="text-3xl font-bold text-slate-800">Contrato gerado com sucesso!</h2>
-        <p className="text-slate-600 text-lg">O contrato foi salvo no sistema.</p>
-        <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8">
+        <h2 className="text-3xl font-bold text-slate-800">Documento gerado com sucesso!</h2>
+        <p className="text-slate-600 text-lg">
+          As cláusulas de LGPD, Assinatura Eletrônica e PLD-FT foram injetadas.
+        </p>
+
+        <div className="flex flex-col sm:flex-row justify-center gap-3 mt-8">
           <Button variant="outline" size="lg" onClick={onBack}>
-            Novo Contrato
+            Novo Documento
+          </Button>
+          <Button
+            size="lg"
+            className="bg-emerald-600 hover:bg-emerald-700"
+            onClick={() => generateContractPDF(draftText, `${tipoDocumento || 'Documento'}.pdf`)}
+          >
+            <Download className="w-5 h-5 mr-2" /> Baixar PDF
           </Button>
           <Button
             size="lg"
@@ -393,7 +469,7 @@ export function ContractForm({
               </>
             ) : (
               <>
-                <Bot className="w-5 h-5 mr-2" /> Analisar com IA Jurídica
+                <Bot className="w-5 h-5 mr-2" /> Auditar IA
               </>
             )}
           </Button>
@@ -403,11 +479,10 @@ export function ContractForm({
           <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto p-0">
             <div className="p-6 border-b sticky top-0 bg-white z-10">
               <DialogTitle className="text-2xl flex items-center gap-2">
-                <Bot className="w-7 h-7 text-purple-600" />
-                Relatório de Análise Jurídica
+                <Bot className="w-7 h-7 text-purple-600" /> Relatório de Análise Jurídica
               </DialogTitle>
               <DialogDescription className="text-base mt-2">
-                Análise baseada em jurisprudência e legislação aplicável ao contrato elaborado.
+                Análise baseada em jurisprudência e legislação aplicável ao documento elaborado.
               </DialogDescription>
             </div>
             <div className="p-6">
@@ -430,7 +505,7 @@ export function ContractForm({
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid grid-cols-4 w-full h-auto p-1 mb-6 bg-slate-100 overflow-x-auto justify-start sm:justify-center">
+                <TabsList className="grid grid-cols-2 md:grid-cols-5 w-full h-auto p-1 mb-6 bg-slate-100 overflow-x-auto justify-start sm:justify-center">
                   <TabsTrigger value="vendedor" className="py-2.5 text-sm md:text-base">
                     Vendedor
                   </TabsTrigger>
@@ -442,6 +517,9 @@ export function ContractForm({
                   </TabsTrigger>
                   <TabsTrigger value="valores" className="py-2.5 text-sm md:text-base">
                     Valores
+                  </TabsTrigger>
+                  <TabsTrigger value="condicoes" className="py-2.5 text-sm md:text-base">
+                    Condições
                   </TabsTrigger>
                 </TabsList>
 
@@ -455,7 +533,10 @@ export function ContractForm({
                   <PropertyTab />
                 </TabsContent>
                 <TabsContent value="valores" className="mt-0 outline-none">
-                  <ValuesTab type={type} />
+                  <ValuesTab />
+                </TabsContent>
+                <TabsContent value="condicoes" className="mt-0 outline-none">
+                  <ConditionsTab />
                 </TabsContent>
               </Tabs>
 
@@ -467,7 +548,7 @@ export function ContractForm({
                     </p>
                   ) : (
                     <div className="text-sm text-slate-500">
-                      Formulário pronto para gerar contrato.
+                      Formulário pronto para gerar documento.
                     </div>
                   )}
                 </div>
@@ -475,16 +556,14 @@ export function ContractForm({
                   <Button
                     type="button"
                     variant="outline"
-                    size="lg"
                     onClick={handleFillDummyData}
-                    className="w-full sm:w-auto text-slate-600 border-slate-200"
+                    className="w-full sm:w-auto text-slate-600"
                   >
-                    <Wand2 className="w-4 h-4 mr-2" /> Preencher com dados fictícios
+                    <Wand2 className="w-4 h-4 mr-2" /> Preencher Fictício
                   </Button>
                   <Button
                     type="button"
                     variant="outline"
-                    size="lg"
                     onClick={handleGenerateComplianceDraft}
                     disabled={!isValid || isGeneratingCompliance || isGenerating}
                     className="w-full sm:w-auto text-purple-700 border-purple-200 hover:bg-purple-50"
@@ -494,21 +573,20 @@ export function ContractForm({
                     ) : (
                       <ShieldCheck className="w-4 h-4 mr-2" />
                     )}
-                    Gerar Minuta Compliance
+                    Gerar via IA (+ PLD/FT)
                   </Button>
                   <Button
                     type="submit"
-                    size="lg"
                     disabled={!isValid || isGenerating || isGeneratingCompliance}
                     className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
                   >
                     {isGenerating ? (
                       <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Gerando minuta...
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Gerando...
                       </>
                     ) : (
                       <>
-                        <Save className="w-4 h-4 mr-2" /> Gerar Contrato Básico
+                        <Save className="w-4 h-4 mr-2" /> Gerar Padrão
                       </>
                     )}
                   </Button>

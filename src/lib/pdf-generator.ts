@@ -1,6 +1,33 @@
 import { jsPDF } from 'jspdf'
 import { format } from 'date-fns'
 
+export async function generateMinutaPDF(minutaText: string, fileName: string): Promise<void> {
+  return new Promise((resolve) => {
+    const doc = new jsPDF()
+    let y = 20
+    const margin = 20
+    const pageWidth = 210
+    const contentWidth = pageWidth - margin * 2
+    const pageHeight = 297
+
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(11)
+    const lines = doc.splitTextToSize(minutaText, contentWidth)
+
+    for (let i = 0; i < lines.length; i++) {
+      if (y > pageHeight - 20) {
+        doc.addPage()
+        y = 20
+      }
+      doc.text(lines[i], margin, y)
+      y += 6
+    }
+
+    doc.save(`${fileName}_${format(new Date(), 'yyyy-MM-dd')}.pdf`)
+    resolve()
+  })
+}
+
 export async function generateAnalysisPDF(report: any, contract: any): Promise<void> {
   return new Promise((resolve, reject) => {
     try {

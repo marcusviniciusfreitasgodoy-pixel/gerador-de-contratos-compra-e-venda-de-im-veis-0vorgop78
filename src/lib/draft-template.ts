@@ -37,7 +37,22 @@ export function generateDraftText(data: any, user: any) {
     vendedor_agencia,
     vendedor_conta,
     vendedor_pix,
+    tipo_documento,
+    tipo_negociacao,
+    situacao_juridica_imovel,
+    condicao_suspensiva,
+    cartorio,
+    prazo_acordo,
+    responsavel_comissao,
+    comissao,
+    prazo_escritura,
+    data_posse,
+    percentual_multa,
+    cidade,
   } = data
+
+  const dateNow = new Date().toLocaleDateString('pt-BR')
+  const foro = cidade || '[Cidade/Estado]'
 
   let pgtoText = ''
   if (tipo === 'a_vista') {
@@ -46,19 +61,30 @@ export function generateDraftText(data: any, user: any) {
     pgtoText = `Sinal: ${formatCurrency(valor_sinal || 0)}.\nReforço: ${formatCurrency(valor_reforco || 0)}.\nComplemento: ${formatCurrency(valor_complemento || 0)}.\nValor Financiado: ${formatCurrency(valor_financiado || 0)}${instituicao_financeira ? ` no banco ${instituicao_financeira}` : ''}.`
   }
 
-  const financiamentoClause =
-    tipo === 'financiado' && valor_financiado > 0
-      ? `
-CLÁUSULA TERCEIRA - DO FINANCIAMENTO BANCÁRIO
-Sendo parte do pagamento realizada através de financiamento bancário, estabelece-se que:
-a) O COMPRADOR é o único e exclusivo responsável pela obtenção, aprovação e liberação do crédito junto à instituição financeira.
-b) Em caso de negativa de crédito por restrições no CPF/nome do COMPRADOR ou por insuficiência de renda, este deverá quitar o saldo devedor com recursos próprios no prazo máximo de 30 (trinta) dias, sob pena de rescisão contratual por sua culpa exclusiva, com a retenção do sinal pago.
-c) Eventuais atrasos no repasse dos valores decorrentes de entraves burocráticos no banco não isentam o COMPRADOR das responsabilidades assumidas, salvo se o atraso for comprovadamente causado por pendências na documentação do VENDEDOR ou do imóvel.
-d) O VENDEDOR obriga-se a fornecer toda a documentação pessoal e do imóvel exigida pelo agente financeiro no prazo assinalado pelo banco.
-`
-      : ''
+  let baseText = ''
 
-  return `INSTRUMENTO PARTICULAR DE PROMESSA DE COMPRA E VENDA DE IMÓVEL
+  if (tipo_documento === 'recibo_sinal') {
+    baseText = `RECIBO DE SINAL E PRINCÍPIO DE PAGAMENTO
+
+VENDEDOR: ${nome_vendedor || '[Nome]'}, portador do CPF nº ${cpf_vendedor || '[CPF]'}.
+COMPRADOR: ${nome_comprador || '[Nome]'}, portador do CPF nº ${cpf_comprador || '[CPF]'}.
+
+Referente ao imóvel situado em ${endereco_imovel || '[Endereço do Imóvel]'}, Matrícula nº ${matricula_imovel || '[Matrícula]'}, Cartório: ${cartorio || '[Cartório]'}.
+
+1. O VENDEDOR declara ter recebido do COMPRADOR a quantia de ${formatCurrency(valor_sinal || 0)} a título de sinal e princípio de pagamento (Arras).
+2. O valor total acordado para a futura negociação é de ${formatCurrency(valor_total || 0)}.
+3. ARRAS (Art. 417 ao 420 do Código Civil): Fica estipulado que, em caso de desistência por parte do COMPRADOR, este perderá o valor do sinal em favor do VENDEDOR. Caso a desistência ocorra por parte do VENDEDOR, este deverá restituir o valor recebido em dobro.
+4. As partes concordam em assinar o contrato principal (Promessa de Compra e Venda ou Contrato Definitivo) até a data de ${prazo_acordo || '[Data do Acordo]'}.
+5. A responsabilidade pelo pagamento da comissão de corretagem, no valor de ${formatCurrency(comissao || 0)}, caberá ao ${responsavel_comissao || '[Responsável]'}.
+
+Elegem o foro da Comarca de ${foro} para dirimir quaisquer dúvidas.`
+  } else if (tipo_documento === 'promessa_cv' || tipo_documento === 'contrato_particular') {
+    const titulo =
+      tipo_documento === 'promessa_cv'
+        ? 'INSTRUMENTO PARTICULAR DE PROMESSA DE COMPRA E VENDA DE IMÓVEL'
+        : 'INSTRUMENTO PARTICULAR DE COMPRA E VENDA DE IMÓVEL'
+
+    baseText = `${titulo}
 
 Pelo presente instrumento particular, as partes abaixo qualificadas:
 
@@ -69,30 +95,71 @@ COMPRADOR: ${nome_comprador || '[Nome]'}, nacionalidade: ${nacionalidade_comprad
 Resolvem celebrar o presente contrato mediante as seguintes cláusulas:
 
 CLÁUSULA PRIMEIRA - DO OBJETO
-O objeto do presente contrato é o imóvel situado em ${endereco_imovel || '[Endereço do Imóvel]'}, Matrícula nº ${matricula_imovel || '[Matrícula]'}, registrado no RGI de ${rgi_imovel || '[RGI]'}, Inscrição Municipal nº ${inscricao_municipal || '[IPTU]'}, possuindo área total de ${area_total || '[Área]'} m² e ${vagas_garagem || '[Vagas]'} vaga(s) de garagem.
+O objeto do presente contrato é o imóvel situado em ${endereco_imovel || '[Endereço do Imóvel]'}, Matrícula nº ${matricula_imovel || '[Matrícula]'}, registrado no ${cartorio || rgi_imovel || '[RGI]'}, Inscrição Municipal nº ${inscricao_municipal || '[IPTU]'}, possuindo área total de ${area_total || '[Área]'} m² e ${vagas_garagem || '[Vagas]'} vaga(s) de garagem.
+${situacao_juridica_imovel ? `\nParágrafo Único: O imóvel é prometido à venda na seguinte situação jurídica: ${situacao_juridica_imovel}.\n` : ''}
 
 CLÁUSULA SEGUNDA - DO PREÇO E CONDIÇÕES DE PAGAMENTO
 O preço certo e ajustado é de ${formatCurrency(valor_total || 0)}, a ser pago da seguinte forma:
 ${pgtoText}
 Os pagamentos devidos ao VENDEDOR deverão ser efetuados na seguinte conta bancária: Banco ${vendedor_banco || '[Banco]'}, Ag. ${vendedor_agencia || '[Agência]'}, Conta ${vendedor_conta || '[Conta]'}, PIX: ${vendedor_pix || '[PIX]'}.
-${financiamentoClause}
-CLÁUSULA QUARTA - DA DOCUMENTAÇÃO
-As partes obrigam-se a apresentar as seguintes certidões e documentos no prazo de 10 (dez) dias corridos:
-I - VENDEDOR: CNDT, Feitos Ajuizados (Justiça Federal, Estadual Cível/Criminal, Trabalho), Protestos, Objeto e Pé (se houver apontamento).
-II - IMÓVEL: Certidão de Ônus Reais atualizada, Quitação Fiscal/IPTU, Quitação Condominial.
+`
+    if (tipo === 'financiado' && valor_financiado > 0) {
+      baseText += `
+CLÁUSULA TERCEIRA - DO FINANCIAMENTO BANCÁRIO
+Sendo parte do pagamento realizada através de financiamento bancário, estabelece-se que o COMPRADOR é o único e exclusivo responsável pela obtenção, aprovação e liberação do crédito.
+`
+    }
 
-CLÁUSULA QUINTA - DA PREVENÇÃO À LAVAGEM DE DINHEIRO E FINANCIAMENTO AO TERRORISMO (PLD-FT)
-Em estrito atendimento ao Provimento CNJ nº 88/2019, o COMPRADOR declara expressamente, sob as penas da lei civil e penal, que os recursos utilizados para o pagamento do preço ajustado neste instrumento têm origem lícita e não são provenientes de qualquer infração penal. As partes declaram-se cientes de que a presente operação poderá ser comunicada ao Conselho de Controle de Atividades Financeiras (COAF) pelos notários e registradores caso se enquadre nas hipóteses de obrigatoriedade legal relativas à prevenção da lavagem de dinheiro e do financiamento do terrorismo.
+    if (condicao_suspensiva) {
+      baseText += `
+CLÁUSULA - DA CONDIÇÃO SUSPENSIVA
+O presente negócio jurídico fica condicionado ao seguinte evento: ${condicao_suspensiva}.
+`
+    }
 
-CLÁUSULA SEXTA - DA POSSE E DAS OBRIGAÇÕES
-A posse direta do imóvel será transferida ao COMPRADOR com a efetiva entrega das chaves, o que ocorrerá no ato da assinatura da escritura pública definitiva e quitação integral do preço.
+    baseText += `
+CLÁUSULA - DA POSSE E DA ESCRITURA
+A posse direta do imóvel será transferida ao COMPRADOR na data de ${data_posse ? new Date(data_posse).toLocaleDateString('pt-BR') : '[Data Posse]'}, condicionada à quitação das obrigações correntes. 
+A escritura definitiva deverá ser lavrada até ${prazo_escritura ? new Date(prazo_escritura).toLocaleDateString('pt-BR') : '[Data Escritura]'}.
 
-CLÁUSULA SÉTIMA - DAS PENALIDADES E RESCISÃO
-Em caso de arrependimento ou rescisão por culpa exclusiva do COMPRADOR, este perderá o sinal (arras) em favor do VENDEDOR. Sendo a culpa do VENDEDOR, este deverá devolver o sinal recebido em dobro.
+CLÁUSULA - DAS PENALIDADES E RESCISÃO
+Em caso de inadimplemento das obrigações assumidas, estipula-se multa penal correspondente a ${percentual_multa || 10}% sobre o valor total do contrato, além da aplicação da regra das arras (Art. 417-420 CC).
+`
+  } else {
+    baseText = `DOCUMENTO - ${tipo_documento?.toUpperCase()?.replace(/_/g, ' ') || 'CONTRATO'}
 
-E, por estarem justos e contratados, assinam o presente em 2 (duas) vias de igual teor e forma.
+VENDEDOR: ${nome_vendedor || '[Nome]'}
+COMPRADOR: ${nome_comprador || '[Nome]'}
+IMÓVEL: ${endereco_imovel || '[Endereço do Imóvel]'}
 
-Rio de Janeiro, ${new Date().toLocaleDateString('pt-BR')}.
+Declaram as partes cientes de seus direitos e deveres para o prosseguimento da negociação.
+`
+  }
+
+  // Modern Legal Clauses Integration: Specific Negotiation Types
+  let negClause = ''
+  if (tipo_negociacao === 'investidor') {
+    negClause = `CLÁUSULA - DA CESSÃO DE DIREITOS (FLIP/RENDA)\nFica expressamente autorizada a cessão de direitos deste contrato a terceiros, sem a necessidade de anuência prévia do VENDEDOR, preservando-se todas as condições originais pactuadas, visando conferir liquidez ao COMPRADOR investidor.`
+  } else if (tipo_negociacao === 'alto_padrao') {
+    negClause = `CLÁUSULA - DOS MÓVEIS PLANEJADOS E ACABAMENTOS PREMIUM\nDeclara o VENDEDOR que os móveis planejados, eletrodomésticos embutidos, itens de decoração fixos e acabamentos de alto padrão descritos em memorial descritivo anexo fazem parte integrante do negócio e serão entregues em perfeito estado de conservação.`
+  } else if (tipo_negociacao === 'permuta') {
+    negClause = `CLÁUSULA - DA PERMUTA DE BENS\nA presente negociação envolve a dação em pagamento (permuta) de bem(ns) descrito(s) em anexo, pelo valor equivalente a parte do preço ajustado. As partes garantem a propriedade, a liquidez e a ausência de ônus sobre os bens permutados.`
+  }
+
+  // Modern Legal Clauses Integration: Global Clauses
+  const globais = `
+CLÁUSULA - PREVENÇÃO À LAVAGEM DE DINHEIRO E FINANCIAMENTO AO TERRORISMO (PLD-FT)
+Em atendimento ao Provimento CNJ nº 88/2019, o COMPRADOR declara expressamente que os recursos utilizados para o pagamento do preço têm origem lícita. As partes estão cientes de que a operação poderá ser comunicada ao COAF, isentando os intermediadores de responsabilidade civil decorrente deste dever legal.
+
+CLÁUSULA - DA PROTEÇÃO DE DADOS (LGPD)
+As partes autorizam o tratamento de dados pessoais exclusivamente para execução deste contrato.
+
+CLÁUSULA - DA ASSINATURA ELETRÔNICA
+As partes reconhecem como válida a assinatura eletrônica deste instrumento.
+
+E, por estarem justos e contratados, assinam o presente.
+
+${foro}, ${dateNow}.
 
 _________________________________________________
 VENDEDOR: ${nome_vendedor || '[Nome Vendedor]'}
@@ -100,4 +167,6 @@ VENDEDOR: ${nome_vendedor || '[Nome Vendedor]'}
 _________________________________________________
 COMPRADOR: ${nome_comprador || '[Nome Comprador]'}
 `
+
+  return baseText + (negClause ? '\n\n' + negClause : '') + '\n' + globais
 }

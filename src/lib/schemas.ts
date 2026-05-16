@@ -20,6 +20,8 @@ export const contractSchema = z
   .object({
     tipo: z.enum(['a_vista', 'financiado']),
     status: z.string().default('pendente'),
+    tipo_documento: z.string().optional(),
+    tipo_negociacao: z.string().optional(),
 
     nome_vendedor: z.string().min(1, 'Obrigatório'),
     cpf_vendedor: z.string().regex(cpfRegex, 'CPF inválido. Use o formato 000.000.000-00'),
@@ -58,6 +60,7 @@ export const contractSchema = z
     valor_saldo: currencyToNumber.optional(),
     valor_financiado: currencyToNumber.optional(),
     valor_total: currencyToNumber.optional(),
+    valor_recursos_proprios: currencyToNumber.optional(),
 
     instituicao_financeira: z.string().optional(),
     taxa_juros: z.coerce.number().optional(),
@@ -71,6 +74,17 @@ export const contractSchema = z
     vendedor_conta: z.string().optional(),
     vendedor_pix: z.string().optional(),
     user: z.string().optional(),
+
+    // Advanced fields
+    cartorio: z.string().optional(),
+    prazo_acordo: z.string().optional(),
+    responsavel_comissao: z.string().optional(),
+    prazo_escritura: z.string().optional(),
+    data_posse: z.string().optional(),
+    percentual_multa: z.coerce.number().optional(),
+    cidade: z.string().optional(),
+    situacao_juridica_imovel: z.string().optional(),
+    condicao_suspensiva: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.tipo === 'financiado') {

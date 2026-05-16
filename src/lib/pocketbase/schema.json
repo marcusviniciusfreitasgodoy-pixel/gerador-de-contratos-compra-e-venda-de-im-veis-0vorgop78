@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-16T15:18:07.157Z",
+  "generatedAt": "2026-05-16T15:39:25.358Z",
   "collections": [
     {
       "name": "users",
@@ -411,6 +411,79 @@
           "type": "text",
           "required": false,
           "system": false
+        },
+        {
+          "name": "cartorio",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "prazo_acordo",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "responsavel_comissao",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "prazo_escritura",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "data_posse",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "percentual_multa",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cidade",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_recursos_proprios",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "tipo_negociacao",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["a_vista", "financiamento", "investidor", "alto_padrao", "permuta"]
+        },
+        {
+          "name": "tipo_documento",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": [
+            "ficha_cadastral",
+            "checklist_documental",
+            "recibo_sinal",
+            "promessa_compra_venda",
+            "contrato_particular",
+            "termo_entrega_chaves",
+            "termo_posse",
+            "declaracoes_complementares",
+            "autorizacao_intermediacao",
+            "distrato"
+          ]
         }
       ],
       "indexes": []

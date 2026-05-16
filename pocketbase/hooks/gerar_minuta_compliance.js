@@ -68,16 +68,20 @@ routerAdd(
     }
 
     const systemPrompt = `Você é um advogado especialista em Direito Imobiliário e Compliance (Provimento CNJ 88/2019).
-Gere uma minuta de contrato de compra e venda rigorosamente baseada nas informações fornecidas.
+Gere um(a) ${resto.tipo_documento || 'contrato'} rigorosamente baseado nas informações fornecidas.
 É MANDATÓRIO incluir cláusulas específicas de Prevenção à Lavagem de Dinheiro (PLD-FT):
 - Declaração de origem lícita dos recursos.
 - Qualificação completa e detalhada das partes e beneficiários finais.
 - Ciência de que a operação pode e será reportada ao COAF caso suspeita, isentando corretores/imobiliárias de responsabilidade por este reporte legal.
 
+É MANDATÓRIO incluir também, explicitamente, o seguinte texto para LGPD e Assinatura Eletrônica:
+"As partes autorizam o tratamento de dados pessoais exclusivamente para execução deste contrato."
+"As partes reconhecem como válida a assinatura eletrônica deste instrumento."
+
 Contexto Legal a ser respeitado:
 ${contextText}
 
-Retorne APENAS o texto do contrato. Sem introduções, sem formatação JSON, apenas o texto claro do contrato em formato legível.`
+Retorne APENAS o texto do documento. Sem introduções, sem formatação JSON, apenas o texto claro em formato legível.`
 
     const userPrompt = `Dados do Contrato preenchidos pelo usuário:\n${JSON.stringify(resto, null, 2)}\n\nEscreva a minuta completa.`
 
