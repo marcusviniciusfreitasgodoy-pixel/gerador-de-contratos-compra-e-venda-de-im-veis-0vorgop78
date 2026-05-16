@@ -112,10 +112,13 @@ export const profileSchema = z.object({
   agencia: z.string().min(1, 'Obrigatório'),
   conta: z.string().min(1, 'Obrigatório'),
   chave_pix: z.string().min(1, 'Obrigatório'),
-  comissao_padrao_percentual: z.coerce
-    .number()
-    .min(0, 'Valor mínimo é 0')
-    .max(100, 'Valor máximo é 100'),
+  comissao_padrao_percentual: z.preprocess(
+    (val) => {
+      if (val === '' || val === null || val === undefined) return 0
+      return Number(val)
+    },
+    z.number().min(0, 'Valor mínimo é 0').max(100, 'Valor máximo é 100'),
+  ),
   openai_api_key: z.string().optional(),
   anthropic_api_key: z.string().optional(),
   gemini_api_key: z.string().optional(),

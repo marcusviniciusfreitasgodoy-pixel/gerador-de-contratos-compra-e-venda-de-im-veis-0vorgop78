@@ -41,7 +41,10 @@ export default function Profile() {
   })
 
   const onSubmit = async (data: ProfileFormValues) => {
-    if (!user) return
+    if (!user || !user.id) {
+      toast.error('Usuário não identificado.')
+      return
+    }
     setIsSaving(true)
     try {
       const payload = {
@@ -51,6 +54,13 @@ export default function Profile() {
       await updateUserProfile(user.id, payload)
       toast.success('Perfil atualizado com sucesso!')
     } catch (err: any) {
+      if (err?.status === 404) {
+        console.error(`Attempted to update user at: /api/collections/users/records/${user.id}`)
+        toast.error('Recurso não encontrado (404). Verifique sua sessão.')
+        setIsSaving(false)
+        return
+      }
+
       const fieldErrors = extractFieldErrors(err)
       if (Object.keys(fieldErrors).length > 0) {
         for (const [field, message] of Object.entries(fieldErrors)) {
