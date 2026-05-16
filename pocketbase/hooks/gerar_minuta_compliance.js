@@ -1,0 +1,155 @@
+routerAdd(
+  'POST',
+  '/backend/v1/gerar-minuta-compliance',
+  (e) => {
+    const body = e.requestInfo().body || {}
+    const { tipo, ...resto } = body
+
+    let anthropicKey = ''
+    let openaiKey = ''
+    let geminiKey = ''
+
+    if (e.auth?.id) {
+      try {
+        const userRecord = $app.findRecordById('users', e.auth.id)
+        anthropicKey = userRecord.getString('anthropic_api_key')
+        openaiKey = userRecord.getString('openai_api_key')
+        geminiKey = userRecord.getString('gemini_api_key')
+      } catch (_) {}
+    }
+
+    if (!anthropicKey) anthropicKey = $secrets.get('ANTHROPIC_API_KEY') || ''
+    if (!openaiKey) openaiKey = $secrets.get('OPENAI_API_KEY') || ''
+    if (!geminiKey) geminiKey = $secrets.get('GEMINI_API_KEY') || ''
+
+    if (!anthropicKey && !openaiKey && !geminiKey) {
+      return e.badRequestError(
+        'Configure pelo menos uma chave de API para habilitar a geração por IA.',
+      )
+    }
+
+    let contextText = ''
+    let ragSources = []
+    try {
+      if (openaiKey) {
+        const embedText = `Diretrizes CNJ 88, PLD-FT, lavagem de dinheiro, compliance imobiliário para contrato de ${tipo}`
+        const embedRes = $http.send({
+          url: 'https://api.openai.com/v1/embeddings',
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + openaiKey },
+          body: JSON.stringify({ model: 'text-embedding-3-small', input: embedText }),
+          timeout: 15,
+        })
+        if (embedRes.statusCode === 200) {
+          const results = $vectors.search(e, 'legal_knowledge', {
+            field: 'embedding',
+            query: embedRes.json.data[0].embedding,
+            k: 5,
+          })
+          ragSources = results.items || []
+        }
+      }
+
+      if (ragSources.length === 0) {
+        ragSources = $app.findRecordsByFilter(
+          'legal_knowledge',
+          "category='boas_praticas' || category='legislacao'",
+          '-updated',
+          5,
+          0,
+        )
+      }
+
+      contextText = ragSources
+        .map((r) => r.getString('title') + ': ' + r.getString('content'))
+        .join('\n\n')
+    } catch (err) {
+      $app.logger().warn('RAG error in gerar-minuta-compliance', 'error', err.message)
+    }
+
+    const systemPrompt = `Você é um advogado especialista em Direito Imobiliário e Compliance (Provimento CNJ 88/2019).
+Gere uma minuta de contrato de compra e venda rigorosamente baseada nas informações fornecidas.
+É MANDATÓRIO incluir cláusulas específicas de Prevenção à Lavagem de Dinheiro (PLD-FT):
+- Declaração de origem lícita dos recursos.
+- Qualificação completa e detalhada das partes e beneficiários finais.
+- Ciência de que a operação pode e será reportada ao COAF caso suspeita, isentando corretores/imobiliárias de responsabilidade por este reporte legal.
+
+Contexto Legal a ser respeitado:
+${contextText}
+
+Retorne APENAS o texto do contrato. Sem introduções, sem formatação JSON, apenas o texto claro do contrato em formato legível.`
+
+    const userPrompt = `Dados do Contrato preenchidos pelo usuário:\n${JSON.stringify(resto, null, 2)}\n\nEscreva a minuta completa.`
+
+    let generatedText = ''
+    let success = false
+    let lastErrorMsg = ''
+
+    if (anthropicKey && !success) {
+      const aiBody = {
+        model: 'claude-3-5-sonnet-latest',
+        max_tokens: 4096,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }],
+      }
+      const chatRes = $http.send({
+        url: 'https://api.anthropic.com/v1/messages',
+        method: 'POST',
+        headers: {
+          'x-api-key': anthropicKey,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify(aiBody),
+        timeout: 120,
+      })
+      if (chatRes.statusCode === 200) {
+        generatedText = chatRes.json.content[0].text
+        success = true
+      } else {
+        lastErrorMsg = chatRes.json?.error?.message || `Anthropic: ${chatRes.statusCode}`
+      }
+    }
+
+    if (openaiKey && !success) {
+      const aiBody = {
+        model: 'gpt-4o',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+      }
+      const chatRes = $http.send({
+        url: 'https://api.openai.com/v1/chat/completions',
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer ' + openaiKey,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(aiBody),
+        timeout: 120,
+      })
+      if (chatRes.statusCode === 200) {
+        generatedText = chatRes.json.choices[0].message.content
+        success = true
+      } else {
+        lastErrorMsg = chatRes.json?.error?.message || `OpenAI: ${chatRes.statusCode}`
+      }
+    }
+
+    if (!success) {
+      return e.badRequestError('Falha ao gerar minuta por IA. ' + lastErrorMsg)
+    }
+
+    const sourcesMapped = ragSources.map((r) => ({
+      titulo: r.getString('title'),
+      categoria: r.getString('category'),
+    }))
+
+    return e.json(200, {
+      minuta: generatedText,
+      fontes_utilizadas: sourcesMapped,
+    })
+  },
+  $apis.requireAuth(),
+)

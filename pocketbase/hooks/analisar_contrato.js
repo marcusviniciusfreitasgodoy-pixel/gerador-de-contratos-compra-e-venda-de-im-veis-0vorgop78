@@ -50,9 +50,10 @@ routerAdd(
       }
 
       let contextText = ''
+      let ragSources = []
       try {
         if (openaiKey) {
-          const embedText = `Contrato do tipo: ${tipoContrato}`
+          const embedText = `Contrato do tipo: ${tipoContrato}. Diretrizes CNJ 88, PLD-FT, lavagem de dinheiro, compliance imobiliário.`
           const embedRes = $http.send({
             url: 'https://api.openai.com/v1/embeddings',
             method: 'POST',
@@ -70,19 +71,17 @@ routerAdd(
               query: embedRes.json.data[0].embedding,
               k: 5,
             })
-            const items = results.items || []
-            contextText = items
-              .map((r) => r.getString('title') + ': ' + r.getString('content'))
-              .join('\n\n')
+            ragSources = results.items || []
           }
         }
 
-        if (!contextText) {
-          const records = $app.findRecordsByFilter('legal_knowledge', '', '-updated', 10, 0)
-          contextText = records
-            .map((r) => r.getString('title') + ': ' + r.getString('content'))
-            .join('\n\n')
+        if (ragSources.length === 0) {
+          ragSources = $app.findRecordsByFilter('legal_knowledge', '', '-updated', 10, 0)
         }
+
+        contextText = ragSources
+          .map((r) => r.getString('title') + ': ' + r.getString('content'))
+          .join('\n\n')
       } catch (err) {
         $app.logger().warn('Falha ao buscar base de conhecimento', 'error', err.message)
       }
@@ -96,6 +95,7 @@ INSTRUÇÕES CRÍTICAS DE AVALIAÇÃO:
 3. PREVENÇÃO À LAVAGEM DE DINHEIRO (PLD-FT): Verifique rigorosamente se há cláusulas que declarem a licitude da origem dos recursos e a ciência das partes sobre possíveis comunicações ao COAF (conforme Provimento CNJ 88/2019). A ausência dessa cláusula é considerada uma OMISSÃO CRÍTICA (status "critico" ou "risco"). Avalie também se há indícios de operações suspeitas (ex: pagamento de altos valores em espécie sem justificativa) que elevem o risco da operação para "critico".
 4. NÃO ABREVIES CLÁUSULAS: A integridade legal exige precisão. Cláusulas de posse, obrigações, penalidades e rescisão devem ser robustas. Se o contrato apresentar o texto padrão da Godoy Prime Realty, considere-o 100% em conformidade.
 5. IMPORTANTE: Não retorne "crítico" ou "risco" para contratos que sigam rigorosamente as instruções 1, 2 e 3. Se o texto gerado estiver de acordo com o padrão estabelecido, o status deve ser "conforme" sem falsos positivos.
+6. ALERTA COAF: Se identificar indícios de "Operação Suspeita" conforme regras de PLD-FT, defina "alerta_coaf": true.
 
 Contexto Jurídico (RAG):
 ${contextText}
@@ -131,6 +131,7 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
     "imediatas": ["string"],
     "recomendadas": ["string"]
   },
+  "alerta_coaf": false,
   "relatorio_completo": "string"
 }`
 
@@ -466,6 +467,12 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
       if (!analysisResult) {
         return e.internalServerError('Falha no processamento do resultado da análise.')
       }
+
+      // Inject RAG sources into the result
+      analysisResult.rag_sources = ragSources.map((r) => ({
+        titulo: r.getString('title'),
+        categoria: r.getString('category'),
+      }))
 
       try {
         const reportsCol = $app.findCollectionByNameOrId('analysis_reports')

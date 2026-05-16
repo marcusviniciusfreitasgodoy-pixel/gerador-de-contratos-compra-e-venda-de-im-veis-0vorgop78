@@ -7,9 +7,12 @@ import {
   AlertOctagon,
   Copy,
   Download,
+  ShieldCheck,
+  Scale,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
   Accordion,
@@ -50,6 +53,8 @@ export interface AnalysisReport {
     imediatas: string[]
     recomendadas: string[]
   }
+  rag_sources?: Array<{ titulo: string; categoria: string }>
+  alerta_coaf?: boolean
   reportId?: string
 }
 
@@ -111,7 +116,9 @@ export function AnalysisReportView({
           </h2>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <Badge className={cn('text-sm px-4 py-1.5 shadow-sm', getRiskColor(generalStatus))}>
+          <Badge
+            className={cn('text-sm px-4 py-1.5 shadow-sm uppercase', getRiskColor(generalStatus))}
+          >
             Status: {generalStatus}
           </Badge>
           <Button
@@ -132,11 +139,108 @@ export function AnalysisReportView({
         </div>
       </div>
 
+      {report.alerta_coaf && (
+        <Alert variant="destructive" className="mb-6 bg-red-50 border-red-200">
+          <AlertTriangle className="h-5 w-5 text-red-600" />
+          <AlertTitle className="text-red-800 font-bold">
+            Atenção: Indício de Operação Suspeita (PLD-FT)
+          </AlertTitle>
+          <AlertDescription className="text-red-700">
+            A análise identificou características de uma operação suspeita. De acordo com o
+            Provimento CNJ 88/2019 e manuais de PLD-FT, é obrigatória a comunicação ao COAF/SISCOAF.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {(generalStatus === 'RISCO' ||
+        generalStatus === 'CRÍTICO' ||
+        generalStatus === 'CRITICO' ||
+        generalStatus === 'ALTO') && (
+        <Alert className="mb-6 border-orange-500 bg-orange-50">
+          <ShieldAlert className="h-5 w-5 text-orange-600" />
+          <AlertTitle className="text-orange-800 font-bold">
+            Red Flags de Compliance Detectadas
+          </AlertTitle>
+          <AlertDescription className="text-orange-800">
+            Atenção aos seguintes riscos de severidade alta:
+            <ul className="list-disc ml-5 mt-2 space-y-1">
+              {report.riscos
+                ?.filter(
+                  (r) =>
+                    r.severidade?.toUpperCase() === 'ALTO' ||
+                    r.severidade?.toUpperCase() === 'CRÍTICO' ||
+                    r.severidade?.toUpperCase() === 'CRITICO',
+                )
+                .map((r, i) => (
+                  <li key={i}>
+                    <span className="font-semibold">{r.titulo}</span>: {r.descricao}
+                  </li>
+                ))}
+              {(!report.riscos ||
+                report.riscos.filter(
+                  (r) =>
+                    r.severidade?.toUpperCase() === 'ALTO' ||
+                    r.severidade?.toUpperCase() === 'CRÍTICO' ||
+                    r.severidade?.toUpperCase() === 'CRITICO',
+                ).length === 0) && (
+                <li>Verifique a seção de Omissões ou Cláusulas Abusivas para mais detalhes.</li>
+              )}
+            </ul>
+          </AlertDescription>
+        </Alert>
+      )}
+
       <Accordion
         type="multiple"
-        defaultValue={['conformidade', 'riscos', 'omissoes', 'abusivas', 'recomendacoes']}
+        defaultValue={[
+          'auditoria',
+          'conformidade',
+          'riscos',
+          'omissoes',
+          'abusivas',
+          'recomendacoes',
+        ]}
         className="w-full space-y-4"
       >
+        {/* AUDITORIA */}
+        <AccordionItem
+          value="auditoria"
+          className="bg-white border border-slate-200 rounded-lg shadow-sm px-4"
+        >
+          <AccordionTrigger className="hover:no-underline font-semibold text-lg text-slate-800">
+            <div className="flex items-center gap-2">
+              <Scale className="w-5 h-5 text-indigo-600" /> Auditoria de Conformidade (Base Legal)
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="pt-2 pb-6">
+            <div className="bg-indigo-50/50 p-4 rounded-lg border border-indigo-100">
+              <h4 className="font-semibold text-indigo-800 mb-3 flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4" /> Diretrizes e Normas Utilizadas (CNJ 88 / PLD-FT)
+              </h4>
+              <p className="text-sm text-indigo-700 mb-4">
+                Esta análise foi embasada nos seguintes documentos da base de conhecimento jurídico:
+              </p>
+              <ul className="space-y-2">
+                {report.rag_sources?.map((source, i) => (
+                  <li
+                    key={i}
+                    className="text-sm text-slate-700 flex items-center gap-3 bg-white p-3 rounded shadow-sm border border-slate-100"
+                  >
+                    <Badge variant="outline" className="bg-slate-50 text-xs shrink-0 capitalize">
+                      {source.categoria.replace('_', ' ')}
+                    </Badge>
+                    <span className="font-medium">{source.titulo}</span>
+                  </li>
+                ))}
+                {(!report.rag_sources || report.rag_sources.length === 0) && (
+                  <li className="text-sm text-slate-500 italic">
+                    Normas gerais de compliance aplicadas. Nenhuma fonte específica listada.
+                  </li>
+                )}
+              </ul>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
         {/* CONFORMIDADE */}
         <AccordionItem
           value="conformidade"

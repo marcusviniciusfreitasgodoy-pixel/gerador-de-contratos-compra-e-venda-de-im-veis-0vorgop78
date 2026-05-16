@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent } from '@/components/ui/card'
 import { contractSchema, type ContractFormValues } from '@/lib/schemas'
-import { ArrowLeft, Loader2, CheckCircle2, Bot, Save, Wand2 } from 'lucide-react'
+import { ArrowLeft, Loader2, CheckCircle2, Bot, Save, Wand2, ShieldCheck } from 'lucide-react'
 import { createContract } from '@/services/contracts'
 import { FormInput, FormCurrencyInput, FormMaskedInput, FormSelect } from './FormInput'
 import { toast } from 'sonner'
@@ -152,6 +152,7 @@ export function ContractForm({
   onBack: () => void
 }) {
   const [isGenerating, setIsGenerating] = useState(false)
+  const [isGeneratingCompliance, setIsGeneratingCompliance] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [activeTab, setActiveTab] = useState('vendedor')
   const [isAnalyzing, setIsAnalyzing] = useState(false)
@@ -340,6 +341,34 @@ export function ContractForm({
     }
   }
 
+  const handleGenerateComplianceDraft = async () => {
+    setIsGeneratingCompliance(true)
+    try {
+      const isValidForm = await form.trigger()
+      if (!isValidForm) return
+
+      const payload = form.getValues()
+      const res = await pb.send('/backend/v1/gerar-minuta-compliance', {
+        method: 'POST',
+        body: JSON.stringify({ ...payload, tipo: type }),
+      })
+
+      const txt = res.minuta
+      setDraftText(txt)
+      const submitData = { ...payload, user: user?.id }
+      const saved = await createContract(submitData, txt)
+      setGeneratedContractId(saved.id)
+      toast.success('Minuta de compliance (CNJ 88) gerada com sucesso!', {
+        description: `Fontes utilizadas: ${res.fontes_utilizadas?.length || 0}`,
+      })
+      setIsSuccess(true)
+    } catch (err: any) {
+      toast.error('Erro ao gerar minuta de compliance.', { description: getErrorMessage(err) })
+    } finally {
+      setIsGeneratingCompliance(false)
+    }
+  }
+
   if (isSuccess) {
     return (
       <div className="text-center space-y-6 py-20 animate-in fade-in slide-in-from-bottom-4 bg-white rounded-2xl shadow-sm border border-slate-100 max-w-2xl mx-auto p-8">
@@ -453,9 +482,24 @@ export function ContractForm({
                     <Wand2 className="w-4 h-4 mr-2" /> Preencher com dados fictícios
                   </Button>
                   <Button
+                    type="button"
+                    variant="outline"
+                    size="lg"
+                    onClick={handleGenerateComplianceDraft}
+                    disabled={!isValid || isGeneratingCompliance || isGenerating}
+                    className="w-full sm:w-auto text-purple-700 border-purple-200 hover:bg-purple-50"
+                  >
+                    {isGeneratingCompliance ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <ShieldCheck className="w-4 h-4 mr-2" />
+                    )}
+                    Gerar Minuta Compliance
+                  </Button>
+                  <Button
                     type="submit"
                     size="lg"
-                    disabled={!isValid || isGenerating}
+                    disabled={!isValid || isGenerating || isGeneratingCompliance}
                     className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
                   >
                     {isGenerating ? (
@@ -464,7 +508,7 @@ export function ContractForm({
                       </>
                     ) : (
                       <>
-                        <Save className="w-4 h-4 mr-2" /> Gerar Contrato
+                        <Save className="w-4 h-4 mr-2" /> Gerar Contrato Básico
                       </>
                     )}
                   </Button>
