@@ -46,6 +46,19 @@ export const createContract = async (data: ContractFormValues, minutaTexto?: str
     vendedor_agencia: data.vendedor_agencia,
     vendedor_conta: data.vendedor_conta,
     vendedor_pix: data.vendedor_pix,
+    tipo_vendedor: data.tipo_vendedor,
+    tipo_comprador: data.tipo_comprador,
+    cnpj_vendedor: data.cnpj_vendedor,
+    cnpj_comprador: data.cnpj_comprador,
+    representante_vendedor: data.representante_vendedor,
+    representante_comprador: data.representante_comprador,
+    clausula_arrependimento: data.clausula_arrependimento,
+    possui_financiamento: data.possui_financiamento,
+    uso_fgts: data.uso_fgts,
+    imovel_ocupado: data.imovel_ocupado,
+    possui_torna: data.possui_torna,
+    vendedor_casado: data.vendedor_casado,
+    checklist_compliance: data.checklist_compliance,
   }
 
   return await pb.collection('contracts').create(payload)

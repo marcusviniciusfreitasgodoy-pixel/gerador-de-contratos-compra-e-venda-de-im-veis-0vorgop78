@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-16T15:39:25.358Z",
+  "generatedAt": "2026-05-16T15:56:56.315Z",
   "collections": [
     {
       "name": "users",
@@ -484,6 +484,92 @@
             "autorizacao_intermediacao",
             "distrato"
           ]
+        },
+        {
+          "name": "tipo_vendedor",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["pf", "pj"]
+        },
+        {
+          "name": "tipo_comprador",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["pf", "pj"]
+        },
+        {
+          "name": "cnpj_vendedor",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cnpj_comprador",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "representante_vendedor",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "representante_comprador",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "clausula_arrependimento",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "possui_financiamento",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "uso_fgts",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "imovel_ocupado",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "possui_torna",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "vendedor_casado",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "checklist_compliance",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "compliance_checklist",
+          "type": "json",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": []
@@ -516,7 +602,14 @@
           "type": "select",
           "required": true,
           "system": false,
-          "selectValues": ["legislacao", "jurisprudencia", "boas_praticas"]
+          "selectValues": [
+            "legislacao",
+            "jurisprudencia",
+            "boas_praticas",
+            "clausula_fixa",
+            "clausula_condicional",
+            "protecao_comercial"
+          ]
         },
         {
           "name": "embedding",
