@@ -96,7 +96,12 @@ function PartiesTab() {
 
         {tipoComprador === 'pj' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormInput name="cnpj_comprador" label="CNPJ" placeholder="00.000.000/0000-00" />
+            <FormMaskedInput
+              name="cnpj_comprador"
+              label="CNPJ"
+              placeholder="00.000.000/0000-00"
+              maskType="cnpj"
+            />
             <FormInput name="representante_comprador" label="Representante Legal" />
           </div>
         ) : (
@@ -193,7 +198,12 @@ function PartiesTab() {
 
         {vendedorPj ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormInput name="cnpj_vendedor" label="CNPJ" placeholder="00.000.000/0000-00" />
+            <FormMaskedInput
+              name="cnpj_vendedor"
+              label="CNPJ"
+              placeholder="00.000.000/0000-00"
+              maskType="cnpj"
+            />
             <FormInput name="representante_vendedor" label="Representante Legal" />
           </div>
         ) : (
@@ -621,6 +631,15 @@ export function ContractForm({
     if (values.financiamento_comprador && !values.instituicao_financeira) {
       return toast.error(
         'Compliance Alert: Instituição Financeira é obrigatória para financiamentos.',
+      )
+    }
+
+    if (
+      values.financiamento_comprador &&
+      (!values.valor_financiamento || values.valor_financiamento === 0)
+    ) {
+      return toast.error(
+        'Compliance Alert: Informações de financiamento incompletas. Valor de financiamento é obrigatório.',
       )
     }
 

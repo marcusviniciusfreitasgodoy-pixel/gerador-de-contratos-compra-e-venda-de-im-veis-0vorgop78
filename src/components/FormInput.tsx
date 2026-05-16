@@ -90,7 +90,7 @@ export function FormMaskedInput({
   name: string
   label: string
   placeholder?: string
-  maskType: 'cpf' | 'phone'
+  maskType: 'cpf' | 'cnpj' | 'phone'
 }) {
   const { control } = useFormContext()
 
@@ -105,6 +105,11 @@ export function FormMaskedInput({
             val = val.replace(/(\d{3})(\d)/, '$1.$2')
             val = val.replace(/(\d{3})(\d)/, '$1.$2')
             val = val.replace(/(\d{3})(\d{1,2})$/, '$1-$2')
+          } else if (maskType === 'cnpj') {
+            val = val.replace(/(\d{2})(\d)/, '$1.$2')
+            val = val.replace(/(\d{3})(\d)/, '$1.$2')
+            val = val.replace(/(\d{3})(\d)/, '$1/$2')
+            val = val.replace(/(\d{4})(\d{1,2})$/, '$1-$2')
           } else if (maskType === 'phone') {
             val = val.replace(/(\d{2})(\d)/, '($1) $2')
             val = val.replace(/(\d{4,5})(\d{4})$/, '$1-$2')
@@ -120,7 +125,7 @@ export function FormMaskedInput({
                 value={field.value || ''}
                 onChange={handleChange}
                 placeholder={placeholder}
-                maxLength={maskType === 'cpf' ? 14 : 15}
+                maxLength={maskType === 'cpf' ? 14 : maskType === 'cnpj' ? 18 : 15}
               />
             </FormControl>
             <FormMessage />

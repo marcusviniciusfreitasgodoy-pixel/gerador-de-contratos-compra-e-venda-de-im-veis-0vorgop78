@@ -50,6 +50,8 @@ routerAdd(
       posse: {
         imediata: !!body.posse_imediata,
         data_posse: body.data_posse || '',
+        prazo_desocupacao: Number(body.prazo_desocupacao) || 0,
+        multa_desocupacao: Number(body.multa_desocupacao) || 0,
       },
       comissao: {
         percentual: Number(body.percentual_comissao) || 0,
@@ -74,9 +76,19 @@ routerAdd(
       )
     }
 
+    if (
+      master_data.comprador.financiamento &&
+      (!master_data.financeiro.valor_financiamento ||
+        master_data.financeiro.valor_financiamento === 0)
+    ) {
+      return e.badRequestError(
+        'Financing Rule Compliance Alert: Informações de financiamento incompletas. Valor do financiamento é obrigatório.',
+      )
+    }
+
     const clauses = $app.findRecordsByFilter(
       'legal_knowledge',
-      "category = 'clausula_fixa' || category = 'clausula_condicional'",
+      "category = 'clausula_fixa' || category = 'clausula_condicional' || category = 'protecao_comercial'",
       'priority',
       1000,
       0,
@@ -95,7 +107,7 @@ routerAdd(
       })
     })
 
-    const systemPrompt = `You are a Specialist in Brazilian real estate contracts.
+    const systemPrompt = `Sua função é montar contratos juridicamente consistentes utilizando exclusivamente as cláusulas fornecidas.
 
 Rules:
 1. Never invent clauses; only use the ones provided in the library.
@@ -103,13 +115,13 @@ Rules:
 3. Replace placeholders/variables like {{variable_name}} with the corresponding values from the Master JSON data. For example, {{comprador.nome}} should be replaced by the buyer's name. If a value is missing, leave the placeholder intact.
 4. Respect conditional logic based on the "trigger" of each clause and the provided Master JSON. Include conditional clauses only if their trigger logic evaluates to true against the Master JSON data.
 5. Maintain formal legal language.
-6. Organize the final contract in logical sequence: 1. Qualification of Parties, 2. Object, 3. Price and Payment, 4. Specific Conditions (Financing, Possession, etc.), 5. General Provisions.
+6. Organize the final contract in logical sequence: 1. Capa, 2. Dados das Partes, 3. Dados do Imóvel, 4. Cláusulas Fixas, 5. Cláusulas Condicionais (Posse, Financeiras, Bancárias, etc.), 6. Assinaturas.
 7. Ensure the final text forms a coherent, continuous legal document without internal clause code brackets (e.g., [FIN001]).
 
 Process:
 1. Analyze Master JSON Data.
 2. Identify Triggers for each available clause.
-3. Select Clauses that are "clausula_fixa" or "clausula_condicional" whose trigger evaluates to true.
+3. Select Clauses that are "clausula_fixa", "clausula_condicional" or "protecao_comercial" whose trigger evaluates to true.
 4. Assemble Contract replacing placeholders.
 5. Validate Consistency.
 
