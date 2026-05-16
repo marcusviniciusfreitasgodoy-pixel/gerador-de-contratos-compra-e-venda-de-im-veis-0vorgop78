@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { parseCurrency } from './formatters'
 
-const parseCurrencySafe = (val: string | number | undefined | null) => {
+export const parseCurrencySafe = (val: string | number | undefined | null) => {
   if (!val) return 0
   if (typeof val === 'number') return val
   return parseCurrency(String(val)) || 0
@@ -18,6 +18,7 @@ export const contractSchema = z.object({
   tipo_documento: z.string().optional(),
   user: z.string().optional(),
 
+  id: z.string().optional(),
   // Parties - Comprador
   tipo_comprador: z.enum(['pf', 'pj']).default('pf'),
   nome_comprador: z.string().min(1, 'Obrigatório'),
@@ -67,6 +68,16 @@ export const contractSchema = z.object({
   cnpj_comprador: z.string().optional(),
   representante_vendedor: z.string().optional(),
   representante_comprador: z.string().optional(),
+
+  havera_parcelas: z.boolean().default(false),
+  numero_processo_inventario: z.string().optional(),
+  inventariante: z.string().optional(),
+  alvara_inventario: z.string().optional(),
+  detalhes_locacao: z.string().optional(),
+  prazo_locacao: z.string().optional(),
+  preferencia_locatario: z.boolean().default(false),
+  matricula_file: z.any().optional(),
+  iptu_file: z.any().optional(),
 
   // Property
   endereco_imovel: z.string().min(1, 'Obrigatório'),

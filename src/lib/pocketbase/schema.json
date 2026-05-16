@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-16T16:43:45.713Z",
+  "generatedAt": "2026-05-16T16:52:37.064Z",
   "collections": [
     {
       "name": "users",
@@ -1034,6 +1034,60 @@
         {
           "name": "data_quitacao",
           "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "matricula_file",
+          "type": "file",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "iptu_file",
+          "type": "file",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "numero_processo_inventario",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "inventariante",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "alvara_inventario",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "detalhes_locacao",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "prazo_locacao",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "preferencia_locatario",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "havera_parcelas",
+          "type": "bool",
           "required": false,
           "system": false
         }

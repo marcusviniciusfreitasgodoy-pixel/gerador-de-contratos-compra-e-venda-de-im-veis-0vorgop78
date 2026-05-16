@@ -136,6 +136,42 @@ export function FormMaskedInput({
   )
 }
 
+export function FormFileInput({
+  name,
+  label,
+  accept,
+}: {
+  name: string
+  label: string
+  accept?: string
+}) {
+  const { control } = useFormContext()
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field: { value, onChange, ...field } }) => (
+        <FormItem>
+          <FormLabel>{label}</FormLabel>
+          <FormControl>
+            <Input
+              type="file"
+              accept={accept}
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                onChange(file)
+              }}
+              {...field}
+              value={undefined}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  )
+}
+
 export function FormSelect({
   name,
   label,
