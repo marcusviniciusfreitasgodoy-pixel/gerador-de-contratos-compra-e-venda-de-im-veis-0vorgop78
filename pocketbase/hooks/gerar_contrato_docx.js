@@ -156,6 +156,12 @@ routerAdd(
         <br>
       `
 
+      const pldftClause = `
+        <h3>Cláusula ${clauseNum++}ª - Da Prevenção à Lavagem de Dinheiro (PLD-FT)</h3>
+        <p>Em estrito atendimento ao Provimento CNJ nº 88/2019, o COMPRADOR declara expressamente, sob as penas da lei civil e penal, que os recursos utilizados para o pagamento do preço ajustado neste instrumento têm origem lícita e não são provenientes de qualquer infração penal. As partes declaram-se cientes de que a presente operação poderá ser comunicada ao Conselho de Controle de Atividades Financeiras (COAF) pelos notários e registradores caso se enquadre nas hipóteses de obrigatoriedade legal.</p>
+        <br>
+      `
+
       const obrigacoesClause = `
         <h3>Cláusula ${clauseNum++}ª - Das Obrigações</h3>
         <p>O VENDEDOR obriga-se a transferir o domínio, garantir a habitabilidade e quitar impostos e taxas que recaiam sobre o imóvel até a data da imissão na posse. O COMPRADOR obriga-se ao pagamento integral do preço ajustado, suportar os custos com a lavratura da escritura pública, registro imobiliário, imposto de transmissão (ITBI) e demais encargos exigíveis para a transferência da propriedade.</p>
@@ -218,6 +224,7 @@ routerAdd(
         
         ${financiamentoClause}
         ${documentacaoClause}
+        ${pldftClause}
         ${obrigacoesClause}
         ${posseClause}
         ${penalidadesClause}

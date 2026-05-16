@@ -41,22 +41,28 @@ export default function Profile() {
   })
 
   const onSubmit = async (data: ProfileFormValues) => {
-    if (!user || !user.id) {
-      toast.error('Usuário não identificado.')
+    const currentUserId = user?.id || pb.authStore.record?.id
+
+    if (!currentUserId) {
+      toast.error('Sessão inválida ou expirada. Faça login novamente.')
       return
     }
+
     setIsSaving(true)
     try {
       const payload = {
         ...data,
         comissao_padrao_percentual: Number(data.comissao_padrao_percentual) || 0,
       }
-      await updateUserProfile(user.id, payload)
+
+      await updateUserProfile(currentUserId, payload)
       toast.success('Perfil atualizado com sucesso!')
     } catch (err: any) {
       if (err?.status === 404) {
-        console.error(`Attempted to update user at: /api/collections/users/records/${user.id}`)
-        toast.error('Recurso não encontrado (404). Verifique sua sessão.')
+        console.error(
+          `Attempted to update user at: /api/collections/users/records/${currentUserId}`,
+        )
+        toast.error('Erro de permissão ou registro não encontrado. A sessão pode ser inválida.')
         setIsSaving(false)
         return
       }

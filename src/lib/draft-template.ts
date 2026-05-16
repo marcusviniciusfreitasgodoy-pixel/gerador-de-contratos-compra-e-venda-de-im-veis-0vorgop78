@@ -1,163 +1,103 @@
-import type { ContractFormValues } from './schemas'
-import { parseCurrency } from './formatters'
+import { formatCurrency } from './formatters'
 
-const parseCurrencySafe = (val: string | undefined | null) => {
-  if (!val) return 0
-  return parseCurrency(val) || 0
-}
-
-const formatCurrency = (val: string | undefined | null) => {
-  if (!val) return 'R$ 0,00'
-  return val
-}
-
-const formatDate = (dateStr?: string) => {
-  if (!dateStr) return '[data]'
-  const [y, m, d] = dateStr.split('-')
-  if (!y || !m || !d) return '[data]'
-  return `${d}/${m}/${y}`
-}
-
-export const generateDraftText = (data: ContractFormValues, user?: any): string => {
-  const hojeDate = new Date()
-  const hoje = `${String(hojeDate.getDate()).padStart(2, '0')}/${String(hojeDate.getMonth() + 1).padStart(2, '0')}/${hojeDate.getFullYear()}`
+export function generateDraftText(data: any, user: any) {
+  const {
+    nome_vendedor,
+    cpf_vendedor,
+    rg_vendedor,
+    orgao_emissor_vendedor,
+    nacionalidade_vendedor,
+    estado_civil_vendedor,
+    profissao_vendedor,
+    endereco_vendedor,
+    nome_comprador,
+    cpf_comprador,
+    rg_comprador,
+    orgao_emissor_comprador,
+    nacionalidade_comprador,
+    estado_civil_comprador,
+    profissao_comprador,
+    endereco_comprador,
+    endereco_imovel,
+    matricula_imovel,
+    rgi_imovel,
+    inscricao_municipal,
+    area_total,
+    vagas_garagem,
+    valor_total,
+    valor_sinal,
+    valor_reforco,
+    valor_complemento,
+    valor_saldo,
+    valor_financiado,
+    instituicao_financeira,
+    data_pagamento_saldo,
+    tipo,
+    vendedor_banco,
+    vendedor_agencia,
+    vendedor_conta,
+    vendedor_pix,
+  } = data
 
   let pgtoText = ''
-  if (data.tipo === 'a_vista') {
-    const reforcoText =
-      data.valor_reforco && parseCurrencySafe(data.valor_reforco) > 0
-        ? `\n- Reforço de Sinal: ${formatCurrency(data.valor_reforco)} (por extenso).`
-        : ''
-    const complementoText =
-      data.valor_complemento && parseCurrencySafe(data.valor_complemento) > 0
-        ? `\n- Complemento: ${formatCurrency(data.valor_complemento)} (por extenso).`
-        : ''
-    const saldoText =
-      data.valor_saldo && parseCurrencySafe(data.valor_saldo) > 0
-        ? `\n- Saldo: ${formatCurrency(data.valor_saldo)} (por extenso), com vencimento em ${formatDate(data.data_pagamento_saldo)}.`
-        : ''
-
-    pgtoText = `- Sinal: ${formatCurrency(data.valor_sinal)} (por extenso).${reforcoText}${complementoText}${saldoText}
-- Comissão: ${formatCurrency(data.comissao)} (por extenso).`
+  if (tipo === 'a_vista') {
+    pgtoText = `Sinal: ${formatCurrency(valor_sinal || 0)}.\nSaldo: ${formatCurrency(valor_saldo || 0)}, com vencimento em ${data_pagamento_saldo ? new Date(data_pagamento_saldo).toLocaleDateString('pt-BR') : '[data]'}.`
   } else {
-    pgtoText = `- Sinal: ${formatCurrency(data.valor_sinal)} (por extenso).
-- Reforço de Sinal: ${formatCurrency(data.valor_reforco)} (por extenso).
-- Complemento: ${formatCurrency(data.valor_complemento)} (por extenso).
-- Valor Financiado: ${formatCurrency(data.valor_financiado)} (por extenso)${data.instituicao_financeira ? `, através da instituição financeira ${data.instituicao_financeira}` : ''}.
-- Comissão: ${formatCurrency(data.comissao)} (por extenso).`
+    pgtoText = `Sinal: ${formatCurrency(valor_sinal || 0)}.\nReforço: ${formatCurrency(valor_reforco || 0)}.\nComplemento: ${formatCurrency(valor_complemento || 0)}.\nValor Financiado: ${formatCurrency(valor_financiado || 0)}${instituicao_financeira ? ` no banco ${instituicao_financeira}` : ''}.`
   }
 
-  const brokerBankInfo = user?.banco_nome
-    ? `
-O pagamento da comissão de corretagem deverá ser depositado na conta bancária de titularidade de ${user.imobiliaria_nome || user.name}, CPF/CNPJ: ${user.imobiliaria_documento || ''}, CRECI: ${user.creci || ''}.
-Banco: ${user.banco_nome}, Agência: ${user.agencia}, Conta: ${user.conta}, Chave Pix: ${user.chave_pix}.`
-    : ''
-
-  const sellerBankInfo = data.vendedor_banco
-    ? `
-Os pagamentos devidos ao VENDEDOR deverão ser efetuados na seguinte conta bancária:
-Banco: ${data.vendedor_banco}, Agência: ${data.vendedor_agencia}, Conta: ${data.vendedor_conta}, Chave Pix: ${data.vendedor_pix}.`
-    : ''
-
-  let clauseNum = 4
   const financiamentoClause =
-    data.tipo === 'financiado'
+    tipo === 'financiado' && valor_financiado > 0
       ? `
-Cláusula ${clauseNum++}ª - Do Financiamento Bancário
-Sendo parte do pagamento realizada através de financiamento bancário aprovado pela instituição financeira ${data.instituicao_financeira}, estabelece-se que:
-a) O COMPRADOR é o único e exclusivo responsável pela obtenção, aprovação e liberação do crédito no valor de ${formatCurrency(data.valor_financiado)};
-b) Em caso de negativa de crédito, o COMPRADOR deverá quitar o saldo devedor com recursos próprios no prazo máximo de 30 (trinta) dias, sob pena de rescisão contratual com a retenção do sinal pago;
-c) Eventuais atrasos no repasse não isentam o COMPRADOR das responsabilidades assumidas;
-d) O VENDEDOR obriga-se a fornecer toda a documentação pessoal e do imóvel exigida pelo agente financeiro.
+CLÁUSULA TERCEIRA - DO FINANCIAMENTO BANCÁRIO
+Sendo parte do pagamento realizada através de financiamento bancário, estabelece-se que:
+a) O COMPRADOR é o único e exclusivo responsável pela obtenção, aprovação e liberação do crédito junto à instituição financeira.
+b) Em caso de negativa de crédito por restrições no CPF/nome do COMPRADOR ou por insuficiência de renda, este deverá quitar o saldo devedor com recursos próprios no prazo máximo de 30 (trinta) dias, sob pena de rescisão contratual por sua culpa exclusiva, com a retenção do sinal pago.
+c) Eventuais atrasos no repasse dos valores decorrentes de entraves burocráticos no banco não isentam o COMPRADOR das responsabilidades assumidas, salvo se o atraso for comprovadamente causado por pendências na documentação do VENDEDOR ou do imóvel.
+d) O VENDEDOR obriga-se a fornecer toda a documentação pessoal e do imóvel exigida pelo agente financeiro no prazo assinalado pelo banco.
 `
       : ''
 
-  const documentacaoClause = `Cláusula ${clauseNum++}ª - Da Documentação
-As partes obrigam-se a apresentar as seguintes certidões e documentos no prazo de 10 (dez) dias corridos:
-I - VENDEDOR:
-a) Cópia do RG e CPF;
-b) Certidão de Casamento/Nascimento atualizada;
-c) Comprovante de residência atualizado;
-d) Certidão Negativa de Débitos Trabalhistas (CNDT);
-e) Certidões de Feitos Ajuizados (Justiça Federal, Justiça Estadual Cível e Criminal, Justiça do Trabalho);
-f) Certidão de Objeto e Pé (caso haja apontamentos nas certidões anteriores);
-g) Certidão de Protestos da comarca de domicílio do VENDEDOR e da localização do imóvel;
+  return `INSTRUMENTO PARTICULAR DE PROMESSA DE COMPRA E VENDA DE IMÓVEL
 
-II - IMÓVEL:
-a) Certidão de Ônus Reais atualizada (com validade de 30 dias);
-b) Certidão de Quitação Fiscal/IPTU;
-c) Certidão de Quitação Condominial assinada pelo síndico, com cópia da ata de eleição;
-d) Certidão Negativa de Débitos de Taxa de Incêndio (se aplicável).`
+Pelo presente instrumento particular, as partes abaixo qualificadas:
 
-  const obrigacoesClause = `Cláusula ${clauseNum++}ª - Das Obrigações
-O VENDEDOR obriga-se a transferir o domínio, garantir a habitabilidade e quitar impostos e taxas que recaiam sobre o imóvel até a data da imissão na posse. O COMPRADOR obriga-se ao pagamento integral do preço ajustado, suportar os custos com a lavratura da escritura pública, registro imobiliário, imposto de transmissão (ITBI) e demais encargos exigíveis para a transferência da propriedade.`
+VENDEDOR: ${nome_vendedor || '[Nome]'}, nacionalidade: ${nacionalidade_vendedor || '[Nacionalidade]'}, estado civil: ${estado_civil_vendedor || '[Estado Civil]'}, profissão: ${profissao_vendedor || '[Profissão]'}, portador do RG nº ${rg_vendedor || '[RG]'} expedido por ${orgao_emissor_vendedor || '[Órgão]'}, inscrito no CPF sob o nº ${cpf_vendedor || '[CPF]'}, residente e domiciliado em ${endereco_vendedor || '[Endereço]'}.
 
-  const posseClause = `Cláusula ${clauseNum++}ª - Da Posse
-A posse direta do imóvel será transferida ao COMPRADOR com a efetiva entrega das chaves, o que ocorrerá no ato da assinatura da escritura pública definitiva e quitação integral do preço. Em caso de atraso na desocupação ou na entrega das chaves por culpa do VENDEDOR, este ficará sujeito ao pagamento de multa diária de R$ 300,00 (trezentos reais).`
+COMPRADOR: ${nome_comprador || '[Nome]'}, nacionalidade: ${nacionalidade_comprador || '[Nacionalidade]'}, estado civil: ${estado_civil_comprador || '[Estado Civil]'}, profissão: ${profissao_comprador || '[Profissão]'}, portador do RG nº ${rg_comprador || '[RG]'} expedido por ${orgao_emissor_comprador || '[Órgão]'}, inscrito no CPF sob o nº ${cpf_comprador || '[CPF]'}, residente e domiciliado em ${endereco_comprador || '[Endereço]'}.
 
-  const penalidadesClause = `Cláusula ${clauseNum++}ª - Das Penalidades
-Em caso de arrependimento ou rescisão por culpa exclusiva do COMPRADOR, este perderá em favor do VENDEDOR o valor dado a título de sinal (arras). Caso a culpa seja do VENDEDOR, este deverá devolver o sinal recebido em dobro, acrescido de atualização monetária. Em caso de mora ou atraso no pagamento de qualquer parcela, incidirá multa moratória de 2% (dois por cento) e juros de mora de 1% (um por cento) ao mês, pro rata die.`
+Resolvem celebrar o presente contrato mediante as seguintes cláusulas:
 
-  const rescisaoClause = `Cláusula ${clauseNum++}ª - Da Rescisão
-Caso qualquer das partes descumpra o estipulado neste instrumento, a parte inocente poderá notificar a infratora, concedendo prazo de 15 (quinze) dias para sanar a falha, sob pena de rescisão de pleno direito, arcando a parte culpada com as perdas e danos e multas contratuais.`
+CLÁUSULA PRIMEIRA - DO OBJETO
+O objeto do presente contrato é o imóvel situado em ${endereco_imovel || '[Endereço do Imóvel]'}, Matrícula nº ${matricula_imovel || '[Matrícula]'}, registrado no RGI de ${rgi_imovel || '[RGI]'}, Inscrição Municipal nº ${inscricao_municipal || '[IPTU]'}, possuindo área total de ${area_total || '[Área]'} m² e ${vagas_garagem || '[Vagas]'} vaga(s) de garagem.
 
-  const legislacaoClause = `Cláusula ${clauseNum++}ª - Da Legislação
-Este contrato é regido pelo Código Civil Brasileiro e demais legislações aplicáveis à espécie, declarando as partes que compreendem e aceitam seus termos, os quais refletem a real expressão de suas vontades.`
-
-  const foroClause = `Cláusula ${clauseNum++}ª - Do Foro
-Fica eleito o Foro da Comarca do Rio de Janeiro para dirimir quaisquer dúvidas oriundas deste contrato, renunciando a qualquer outro por mais privilegiado que seja.`
-
-  return `${user?.imobiliaria_nome || 'GODOY PRIME REALTY'}
-═══════════════════════════════════════════════════════════════════════════
-
-INSTRUMENTO PARTICULAR DE PROMESSA DE COMPRA E VENDA
-
-Por este instrumento particular, as partes abaixo qualificadas celebram o presente Contrato de Promessa de Compra e Venda, mediante as cláusulas e condições a seguir estabelecidas:
-
-Cláusula 1ª - Das Partes
-VENDEDOR: ${data.nome_vendedor || ''}, nacionalidade: ${data.nacionalidade_vendedor || ''}, estado civil: ${data.estado_civil_vendedor || ''}, profissão: ${data.profissao_vendedor || ''}, portador do RG nº ${data.rg_vendedor || ''} expedido por ${data.orgao_emissor_vendedor || ''}, inscrito no CPF sob o nº ${data.cpf_vendedor || ''}, residente e domiciliado em ${data.endereco_vendedor || ''}. E-mail: ${data.email_vendedor || ''}, Telefone: ${data.telefone_vendedor || ''}.
-
-COMPRADOR: ${data.nome_comprador || ''}, nacionalidade: ${data.nacionalidade_comprador || ''}, estado civil: ${data.estado_civil_comprador || ''}, profissão: ${data.profissao_comprador || ''}, portador do RG nº ${data.rg_comprador || ''} expedido por ${data.orgao_emissor_comprador || ''}, inscrito no CPF sob o nº ${data.cpf_comprador || ''}, residente e domiciliado em ${data.endereco_comprador || ''}. E-mail: ${data.email_comprador || ''}, Telefone: ${data.telefone_comprador || ''}.
-
-Cláusula 2ª - Do Objeto
-O objeto do presente contrato é o imóvel (tipo: padrão), situado em ${data.endereco_imovel || ''}, bairro não informado, CEP não informado, Matrícula nº ${data.matricula_imovel || ''}, registrado no RGI de ${data.rgi_imovel || ''}, Inscrição Municipal nº ${data.inscricao_municipal || ''}, possuindo área total de ${data.area_total || ''} m², área construída não informada e ${data.vagas_garagem || ''} vaga(s) de garagem.
-
-Cláusula 3ª - Do Preço e Condições de Pagamento
-O preço certo e ajustado para a presente compra e venda é de ${formatCurrency(data.valor_total)} (por extenso), que será pago da seguinte forma:
-${pgtoText}${sellerBankInfo}${brokerBankInfo}
+CLÁUSULA SEGUNDA - DO PREÇO E CONDIÇÕES DE PAGAMENTO
+O preço certo e ajustado é de ${formatCurrency(valor_total || 0)}, a ser pago da seguinte forma:
+${pgtoText}
+Os pagamentos devidos ao VENDEDOR deverão ser efetuados na seguinte conta bancária: Banco ${vendedor_banco || '[Banco]'}, Ag. ${vendedor_agencia || '[Agência]'}, Conta ${vendedor_conta || '[Conta]'}, PIX: ${vendedor_pix || '[PIX]'}.
 ${financiamentoClause}
-${documentacaoClause}
+CLÁUSULA QUARTA - DA DOCUMENTAÇÃO
+As partes obrigam-se a apresentar as seguintes certidões e documentos no prazo de 10 (dez) dias corridos:
+I - VENDEDOR: CNDT, Feitos Ajuizados (Justiça Federal, Estadual Cível/Criminal, Trabalho), Protestos, Objeto e Pé (se houver apontamento).
+II - IMÓVEL: Certidão de Ônus Reais atualizada, Quitação Fiscal/IPTU, Quitação Condominial.
 
-${obrigacoesClause}
+CLÁUSULA QUINTA - DA PREVENÇÃO À LAVAGEM DE DINHEIRO E FINANCIAMENTO AO TERRORISMO (PLD-FT)
+Em estrito atendimento ao Provimento CNJ nº 88/2019, o COMPRADOR declara expressamente, sob as penas da lei civil e penal, que os recursos utilizados para o pagamento do preço ajustado neste instrumento têm origem lícita e não são provenientes de qualquer infração penal. As partes declaram-se cientes de que a presente operação poderá ser comunicada ao Conselho de Controle de Atividades Financeiras (COAF) pelos notários e registradores caso se enquadre nas hipóteses de obrigatoriedade legal relativas à prevenção da lavagem de dinheiro e do financiamento do terrorismo.
 
-${posseClause}
+CLÁUSULA SEXTA - DA POSSE E DAS OBRIGAÇÕES
+A posse direta do imóvel será transferida ao COMPRADOR com a efetiva entrega das chaves, o que ocorrerá no ato da assinatura da escritura pública definitiva e quitação integral do preço.
 
-${penalidadesClause}
+CLÁUSULA SÉTIMA - DAS PENALIDADES E RESCISÃO
+Em caso de arrependimento ou rescisão por culpa exclusiva do COMPRADOR, este perderá o sinal (arras) em favor do VENDEDOR. Sendo a culpa do VENDEDOR, este deverá devolver o sinal recebido em dobro.
 
-${rescisaoClause}
+E, por estarem justos e contratados, assinam o presente em 2 (duas) vias de igual teor e forma.
 
-${legislacaoClause}
-
-${foroClause}
-
-═══════════════════════════════════════════════════════════════════════════
-
-Rio de Janeiro, ${hoje}
-Foro: Comarca do Rio de Janeiro
-
+Rio de Janeiro, ${new Date().toLocaleDateString('pt-BR')}.
 
 _________________________________________________
-VENDEDOR: ${data.nome_vendedor || ''}
-
-
-_________________________________________________
-COMPRADOR: ${data.nome_comprador || ''}
-
+VENDEDOR: ${nome_vendedor || '[Nome Vendedor]'}
 
 _________________________________________________
-TESTEMUNHA 1 (Nome e CPF):
-
-
-_________________________________________________
-TESTEMUNHA 2 (Nome e CPF):`
+COMPRADOR: ${nome_comprador || '[Nome Comprador]'}
+`
 }
