@@ -258,12 +258,18 @@ Regras Obrigatórias (Hard Rules):
 1. NEVER invent clauses. Only use the ones provided in the library. As variáveis interpoladas já foram preenchidas nos textos das cláusulas.
 2. NEVER alter the legal meaning of the provided clauses. You may adjust grammar to connect them smoothly.
 3. Replace any remaining placeholders like {{variable_name}} with the corresponding values from the Master JSON data.
-4. Maintain formal legal language and formatting.
-5. The final generated contract MUST strictly follow the "Estrutura Obrigatória" sequence:
-   -> Header (Título e Data)
+4. Geração em TEXTO PURO (Plain Text). É ESTRITAMENTE PROIBIDO o uso de Markdown (como #, ##, **, _, etc). Não use formatação em markdown em NENHUMA parte do texto.
+5. Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 3 linhas:
+GODOY PRIME REALTY
+Assessoria Jurídica Imobiliária
+MINUTA DE CONTRATO
+
+6. Numeração Formal de Cláusulas: Estruture as cláusulas sequencialmente utilizando numeração ordinal em caixa alta (ex: CLÁUSULA PRIMEIRA - [TÍTULO], CLÁUSULA SEGUNDA - [TÍTULO]). As seções "Objeto do Contrato" e "Descrição do Imóvel" devem seguir esta mesma sequência numérica formal.
+7. Qualificação das Partes: Os rótulos VENDEDOR e COMPRADOR devem estar em caixa alta como texto puro, seguidos dos respectivos dados, sem símbolos de negrito.
+8. The final generated contract MUST strictly follow the "Estrutura Obrigatória" sequence:
+   -> Cabeçalho (GODOY PRIME REALTY...)
    -> Qualifications (Qualificação das Partes: Vendedor, Comprador, Cônjuges, Procuradores)
-   -> Object (Objeto do Contrato)
-   -> Description (Descrição do Imóvel e Registro)
+   -> Object & Description (Objeto do Contrato e Descrição do Imóvel e Registro)
    -> Price/Payment (Condições de Pagamento e Preço)
    -> Financing (Financiamento Bancário - se aplicável)
    -> Possession (Posse e Desocupação)
@@ -284,7 +290,7 @@ Process:
 3. Do not output anything other than the final contract.
 
 Output:
-Provide ONLY the final assembled contract text in simple markdown format (## for sections). Do not include conversational text ou explicações.`
+Provide ONLY the final assembled contract text in PLAIN TEXT format, without ANY markdown symbols, with appropriate line breaks. Do not include conversational text ou explicações.`
 
     const userPrompt = `Master JSON Data (Variables & Triggers):
 ${JSON.stringify(master_data, null, 2)}

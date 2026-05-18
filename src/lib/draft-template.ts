@@ -103,14 +103,15 @@ export function generateDraftText(data: any, user: any) {
         ? 'RECIBO DE SINAL E PRINCÍPIO DE PAGAMENTO'
         : 'INSTRUMENTO PARTICULAR DE COMPRA E VENDA DE IMÓVEL'
 
-  baseText = `${titulo}\n\n`
-  baseText += `VENDEDOR(ES): ${vendedorQualificacao}\n\n`
+  baseText = `GODOY PRIME REALTY\nAssessoria Jurídica Imobiliária\nMINUTA DE CONTRATO\n\n`
+  baseText += `${titulo}\n\n`
+  baseText += `VENDEDOR: ${vendedorQualificacao}\n\n`
   if (vendedor_casado && tipo_vendedor === 'pf') {
-    baseText += `ANUENTE (Cônjuge do Vendedor): ${nome_conjuge || '[Nome do Cônjuge]'}, qualificando-se e declarando expressa concordância com a presente venda, casados sob o regime de ${regime_bens || '[Regime de Bens]'}.\n\n`
+    baseText += `ANUENTE: ${nome_conjuge || '[Nome do Cônjuge]'}, qualificando-se e declarando expressa concordância com a presente venda, casados sob o regime de ${regime_bens || '[Regime de Bens]'}.\n\n`
   }
-  baseText += `COMPRADOR(ES): ${compradorQualificacao}\n\n`
+  baseText += `COMPRADOR: ${compradorQualificacao}\n\n`
 
-  baseText += `CLÁUSULA PRIMEIRA - DO OBJETO\nO objeto do presente contrato é o imóvel situado em ${endereco_imovel || '[Endereço do Imóvel]'}, Matrícula nº ${matricula_imovel || '[Matrícula]'}, registrado no ${cartorio || rgi_imovel || '[RGI]'}, Inscrição Municipal nº ${inscricao_municipal || '[IPTU]'}, possuindo área total de ${area_total || '[Área]'} m² e ${vagas_garagem || '[Vagas]'} vaga(s) de garagem.\n`
+  baseText += `CLÁUSULA PRIMEIRA - DO OBJETO DO CONTRATO E DESCRIÇÃO DO IMÓVEL\nO objeto do presente contrato é o imóvel situado em ${endereco_imovel || '[Endereço do Imóvel]'}, Matrícula nº ${matricula_imovel || '[Matrícula]'}, registrado no ${cartorio || rgi_imovel || '[RGI]'}, Inscrição Municipal nº ${inscricao_municipal || '[IPTU]'}, possuindo área total de ${area_total || '[Área]'} m² e ${vagas_garagem || '[Vagas]'} vaga(s) de garagem.\n\n`
 
   let onusText = ''
   if (
@@ -134,51 +135,79 @@ export function generateDraftText(data: any, user: any) {
   }
   baseText += `Parágrafo Único: ${onusText}`
 
-  baseText += `CLÁUSULA SEGUNDA - DO PREÇO E PAGAMENTO\n${pgtoText}\n`
+  baseText += `CLÁUSULA SEGUNDA - DAS CONDIÇÕES DE PAGAMENTO E PREÇO\n${pgtoText}\n`
+
+  let clauseCounter = 3
+  const nextOrdinal = () => {
+    const ordinals = [
+      'TERCEIRA',
+      'QUARTA',
+      'QUINTA',
+      'SEXTA',
+      'SÉTIMA',
+      'OITAVA',
+      'NONA',
+      'DÉCIMA',
+      'DÉCIMA PRIMEIRA',
+      'DÉCIMA SEGUNDA',
+      'DÉCIMA TERCEIRA',
+      'DÉCIMA QUARTA',
+      'DÉCIMA QUINTA',
+      'DÉCIMA SEXTA',
+      'DÉCIMA SÉTIMA',
+      'DÉCIMA OITAVA',
+      'DÉCIMA NONA',
+      'VIGÉSIMA',
+    ]
+    return ordinals[clauseCounter++ - 3] || `${clauseCounter}ª`
+  }
 
   // Master Logic Engine
   if (tipo_documento === 'recibo_sinal' || tipo_documento === 'promessa_cv') {
-    baseText += `CLÁUSULA - DAS ARRAS\nFica estipulado que o valor pago a título de sinal constitui Arras, regendo-se pelos artigos 417 ao 420 do Código Civil Brasileiro. Em caso de desistência imotivada do COMPRADOR, este perderá o valor integral do sinal em favor do VENDEDOR. Caso a desistência ocorra por parte do VENDEDOR, este deverá restituir o valor recebido em dobro.\n\n`
+    baseText += `CLÁUSULA ${nextOrdinal()} - DAS ARRAS E SINAL\nFica estipulado que o valor pago a título de sinal constitui Arras, regendo-se pelos artigos 417 ao 420 do Código Civil Brasileiro. Em caso de desistência imotivada do COMPRADOR, este perderá o valor integral do sinal em favor do VENDEDOR. Caso a desistência ocorra por parte do VENDEDOR, este deverá restituir o valor recebido em dobro.\n\n`
   }
 
   if (possui_financiamento || tipo === 'financiado' || tipo_negociacao === 'financiamento') {
-    baseText += `CLÁUSULA - DO FINANCIAMENTO BANCÁRIO E PRAZOS\nO COMPRADOR obriga-se a obter a aprovação e liberação do financiamento bancário no prazo máximo de 60 (sessenta) dias. Em caso de negativa de crédito exclusivamente por restrições cadastrais (SPC/Serasa) no nome do COMPRADOR, o presente contrato poderá ser rescindido de pleno direito pelo VENDEDOR.\n\n`
+    baseText += `CLÁUSULA ${nextOrdinal()} - DO FINANCIAMENTO BANCÁRIO E PRAZOS\nO COMPRADOR obriga-se a obter a aprovação e liberação do financiamento bancário no prazo máximo de 60 (sessenta) dias. Em caso de negativa de crédito exclusivamente por restrições cadastrais (SPC/Serasa) no nome do COMPRADOR, o presente contrato poderá ser rescindido de pleno direito pelo VENDEDOR.\n\n`
   }
 
   if (uso_fgts) {
-    baseText += `CLÁUSULA - DA UTILIZAÇÃO DO FGTS\nFica expressamente autorizada e pactuada a utilização de recursos vinculados à conta do FGTS do COMPRADOR no valor de ${valor_fgts ? formatCurrency(valor_fgts) : '[Valor]'} para composição do pagamento, responsabilizando-se o mesmo pela regularidade e preenchimento dos requisitos da Caixa Econômica Federal.\n\n`
+    baseText += `CLÁUSULA ${nextOrdinal()} - DA UTILIZAÇÃO DO FGTS\nFica expressamente autorizada e pactuada a utilização de recursos vinculados à conta do FGTS do COMPRADOR no valor de ${valor_fgts ? formatCurrency(valor_fgts) : '[Valor]'} para composição do pagamento, responsabilizando-se o mesmo pela regularidade e preenchimento dos requisitos da Caixa Econômica Federal.\n\n`
   }
 
   if (imovel_ocupado) {
-    baseText += `CLÁUSULA - DA DESOCUPAÇÃO DO IMÓVEL\nO VENDEDOR declara que o imóvel encontra-se atualmente ocupado por ${ocupacao_imovel || 'si ou terceiros'} e compromete-se, de forma irrevogável, a desocupá-lo e entregá-lo totalmente livre de pessoas e coisas até ${prazo_desocupacao ? new Date(prazo_desocupacao).toLocaleDateString('pt-BR') : 'a data da posse'}, sob pena de multa diária.\n\n`
+    baseText += `CLÁUSULA ${nextOrdinal()} - DA DESOCUPAÇÃO DO IMÓVEL\nO VENDEDOR declara que o imóvel encontra-se atualmente ocupado por ${ocupacao_imovel || 'si ou terceiros'} e compromete-se, de forma irrevogável, a desocupá-lo e entregá-lo totalmente livre de pessoas e coisas até ${prazo_desocupacao ? new Date(prazo_desocupacao).toLocaleDateString('pt-BR') : 'a data da posse'}, sob pena de multa diária.\n\n`
   }
 
   if (imovel_locado) {
-    baseText += `CLÁUSULA - DA LOCAÇÃO E PREFERÊNCIA\nO VENDEDOR declara que o imóvel encontra-se locado a terceiros, garantindo ter concedido o direito de preferência ao locatário nos moldes da Lei do Inquilinato (Lei 8.245/91), e que houve renúncia expressa a este direito. A desocupação ocorrerá nos termos acordados com o locatário.\n\n`
+    baseText += `CLÁUSULA ${nextOrdinal()} - DA LOCAÇÃO E PREFERÊNCIA\nO VENDEDOR declara que o imóvel encontra-se locado a terceiros, garantindo ter concedido o direito de preferência ao locatário nos moldes da Lei do Inquilinato (Lei 8.245/91), e que houve renúncia expressa a este direito. A desocupação ocorrerá nos termos acordados com o locatário.\n\n`
   }
 
   if (imovel_inventario) {
-    baseText += `CLÁUSULA - DO INVENTÁRIO\nAs partes declaram ciência de que o imóvel é objeto de partilha em processo de inventário. A lavratura da escritura pública definitiva de compra e venda fica condicionada à expedição do formal de partilha e respectivo registro.\n\n`
+    baseText += `CLÁUSULA ${nextOrdinal()} - DO INVENTÁRIO\nAs partes declaram ciência de que o imóvel é objeto de partilha em processo de inventário. A lavratura da escritura pública definitiva de compra e venda fica condicionada à expedição do formal de partilha e respectivo registro.\n\n`
   }
 
   if (clausula_arrependimento) {
-    baseText += `CLÁUSULA - DO DIREITO DE ARREPENDIMENTO\nAs partes estipulam expressamente o direito de arrependimento pelo prazo improrrogável de 7 (sete) dias a contar da assinatura, garantindo a devolução integral e imediata dos valores pagos, sem a incidência de multas ou retenções.\n\n`
+    baseText += `CLÁUSULA ${nextOrdinal()} - DO DIREITO DE ARREPENDIMENTO\nAs partes estipulam expressamente o direito de arrependimento pelo prazo improrrogável de 7 (sete) dias a contar da assinatura, garantindo a devolução integral e imediata dos valores pagos, sem a incidência de multas ou retenções.\n\n`
   } else {
-    baseText += `CLÁUSULA - DA IRREVOGABILIDADE E IRRETRATABILIDADE\nRessalvadas as hipóteses de inadimplemento previstas neste instrumento, o presente negócio é celebrado em caráter irrevogável e irretratável, não comportando direito de arrependimento, obrigando as partes e seus herdeiros.\n\n`
+    baseText += `CLÁUSULA ${nextOrdinal()} - DA IRREVOGABILIDADE E IRRETRATABILIDADE\nRessalvadas as hipóteses de inadimplemento previstas neste instrumento, o presente negócio é celebrado em caráter irrevogável e irretratável, não comportando direito de arrependimento, obrigando as partes e seus herdeiros.\n\n`
   }
 
   if (tipo_negociacao === 'permuta') {
-    baseText += `CLÁUSULA - DA DAÇÃO EM PAGAMENTO (PERMUTA)\nA presente negociação envolve, como parte do pagamento, a dação em pagamento (permuta) do(s) seguinte(s) bem(ns): [Descrever bem da permuta]. As partes garantem reciprocamente a propriedade e evicção dos bens permutados.\n\n`
+    baseText += `CLÁUSULA ${nextOrdinal()} - DA DAÇÃO EM PAGAMENTO (PERMUTA)\nA presente negociação envolve, como parte do pagamento, a dação em pagamento (permuta) do(s) seguinte(s) bem(ns): [Descrever bem da permuta]. As partes garantem reciprocamente a propriedade e evicção dos bens permutados.\n\n`
   }
 
-  baseText += `CLÁUSULA - DA POSSE, ESCRITURA E MULTA\nA posse direta será transferida ao COMPRADOR na data de ${data_posse ? new Date(data_posse).toLocaleDateString('pt-BR') : '[Data Posse]'}. A escritura definitiva deverá ser outorgada até ${prazo_escritura ? new Date(prazo_escritura).toLocaleDateString('pt-BR') : '[Data Escritura]'}. Fica estipulada multa penal de ${percentual_multa || 10}% sobre o valor do contrato para a parte que infringir qualquer cláusula.\n\n`
+  baseText += `CLÁUSULA ${nextOrdinal()} - DA POSSE E ESCRITURA DEFINITIVA\nA posse direta será transferida ao COMPRADOR na data de ${data_posse ? new Date(data_posse).toLocaleDateString('pt-BR') : '[Data Posse]'}. A escritura definitiva deverá ser outorgada até ${prazo_escritura ? new Date(prazo_escritura).toLocaleDateString('pt-BR') : '[Data Escritura]'}.\n\n`
 
-  baseText += `CLÁUSULA - DA COMISSÃO DE CORRETAGEM (PROTEÇÃO COMERCIAL)\nFica estipulado que, em caso de desistência imotivada de qualquer das partes após a assinatura deste instrumento, os honorários de intermediação (comissão de corretagem) serão devidos integralmente pela parte que der causa à rescisão, não cabendo restituição dos valores pagos à imobiliária ou corretores intervenientes.\n\n`
+  baseText += `CLÁUSULA ${nextOrdinal()} - DAS PENALIDADES E MULTAS\nFica estipulada multa penal de ${percentual_multa || 10}% sobre o valor do contrato para a parte que infringir qualquer cláusula.\n\n`
+
+  baseText += `CLÁUSULA ${nextOrdinal()} - DA COMISSÃO DE CORRETAGEM\nFica estipulado que, em caso de desistência imotivada de qualquer das partes após a assinatura deste instrumento, os honorários de intermediação (comissão de corretagem) serão devidos integralmente pela parte que der causa à rescisão, não cabendo restituição dos valores pagos à imobiliária ou corretores intervenientes.\n\n`
 
   // Mandatory Compliance Clauses
-  baseText += `CLÁUSULA - PREVENÇÃO À LAVAGEM DE DINHEIRO E FINANCIAMENTO AO TERRORISMO (PLD-FT)\nEm estrito atendimento ao Provimento CNJ nº 88/2019, o COMPRADOR declara expressamente que os recursos utilizados para o pagamento do preço têm origem lícita. As partes declaram ciência de que a presente operação poderá ser comunicada ao COAF, isentando os intermediadores de qualquer responsabilidade decorrente deste reporte legal.\n\n`
-  baseText += `CLÁUSULA - DA PROTEÇÃO DE DADOS (LGPD)\nAs partes autorizam o tratamento de dados pessoais (coleta, armazenamento e compartilhamento com cartórios e correspondentes) exclusivamente para execução e formalização deste contrato, nos termos da Lei nº 13.709/2018.\n\n`
-  baseText += `CLÁUSULA - DA ASSINATURA ELETRÔNICA\nAs partes reconhecem como válida, plenamente eficaz e com força de título executivo extrajudicial a assinatura eletrônica do presente instrumento, independentemente de certificação digital ICP-Brasil, nos termos do art. 10, § 2º, da MP 2.200-2/2001.\n\n`
+  baseText += `CLÁUSULA ${nextOrdinal()} - DA PREVENÇÃO À LAVAGEM DE DINHEIRO E FINANCIAMENTO AO TERRORISMO (PLD-FT)\nEm estrito atendimento ao Provimento CNJ nº 88/2019, o COMPRADOR declara expressamente que os recursos utilizados para o pagamento do preço têm origem lícita. As partes declaram ciência de que a presente operação poderá ser comunicada ao COAF, isentando os intermediadores de qualquer responsabilidade decorrente deste reporte legal.\n\n`
+  baseText += `CLÁUSULA ${nextOrdinal()} - DA CONFORMIDADE COM A LGPD\nAs partes autorizam o tratamento de dados pessoais (coleta, armazenamento e compartilhamento com cartórios e correspondentes) exclusivamente para execução e formalização deste contrato, nos termos da Lei nº 13.709/2018.\n\n`
+  baseText += `CLÁUSULA ${nextOrdinal()} - DA ASSINATURA ELETRÔNICA\nAs partes reconhecem como válida, plenamente eficaz e com força de título executivo extrajudicial a assinatura eletrônica do presente instrumento, independentemente de certificação digital ICP-Brasil, nos termos do art. 10, § 2º, da MP 2.200-2/2001.\n\n`
+  baseText += `CLÁUSULA ${nextOrdinal()} - DO FORO DE ELEIÇÃO\nFica eleito o foro de ${foro} para dirimir quaisquer dúvidas.\n\n`
 
   baseText += `E, por estarem justos e contratados, assinam o presente em obediência às normas legais.\n\n${foro}, ${dateNow}.\n\n_________________________________________________\nVENDEDOR(ES)\n\n_________________________________________________\nCOMPRADOR(ES)\n`
 

@@ -34,7 +34,15 @@ export async function generateMinutaPDF(minutaText: string, fileName: string): P
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(11)
     doc.setTextColor(51, 65, 85)
-    const lines = doc.splitTextToSize(minutaText, contentWidth)
+    const cleanText = minutaText
+      .replace(/<br\s*[/]?>/gi, '\n')
+      .replace(/<\/div>/gi, '\n')
+      .replace(/<\/p>/gi, '\n')
+      .replace(/<[^>]+>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/\n\s*\n/g, '\n\n')
+
+    const lines = doc.splitTextToSize(cleanText, contentWidth)
 
     for (let i = 0; i < lines.length; i++) {
       if (y > pageHeight - 35) {

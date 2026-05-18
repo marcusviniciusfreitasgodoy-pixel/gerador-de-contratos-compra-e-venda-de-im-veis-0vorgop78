@@ -110,8 +110,15 @@ export function generateContractPDF(text: string, fileName: string) {
     doc.setTextColor(12, 35, 64) // Navy for text base
     const lineHeight = 6
 
-    const safeText = String(text || '').replace(/•/g, '-')
-    const lines = doc.splitTextToSize(safeText, contentWidth)
+    const cleanText = String(text || '')
+      .replace(/<br\s*[/]?>/gi, '\n')
+      .replace(/<\/div>/gi, '\n')
+      .replace(/<\/p>/gi, '\n')
+      .replace(/<[^>]+>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/•/g, '-')
+
+    const lines = doc.splitTextToSize(cleanText, contentWidth)
 
     let y = 40
     addHeader(doc)

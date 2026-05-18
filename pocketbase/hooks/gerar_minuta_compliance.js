@@ -81,7 +81,16 @@ Gere um(a) ${resto.tipo_documento || 'contrato'} rigorosamente baseado nas infor
 Contexto Legal a ser respeitado:
 ${contextText}
 
-Retorne APENAS o texto do documento. Sem introduções, sem formatação JSON, apenas o texto claro em formato legível.`
+Regras de Formatação Obrigatórias:
+1. Geração em TEXTO PURO (Plain Text). É ESTRITAMENTE PROIBIDO o uso de Markdown (como #, ##, **, _, etc). Não use formatação em markdown.
+2. Cabeçalho Obrigatório: Inicie com as exatas 3 linhas:
+GODOY PRIME REALTY
+Assessoria Jurídica Imobiliária
+MINUTA DE CONTRATO
+3. Numeração Formal: Use numeração ordinal em caixa alta para cláusulas (ex: CLÁUSULA PRIMEIRA - [TÍTULO]).
+4. Qualificação das Partes: Rótulos VENDEDOR e COMPRADOR em caixa alta como texto puro.
+
+Retorne APENAS o texto do documento. Sem introduções, sem formatação JSON, apenas o texto puro (plain text) com as quebras de linha necessárias.`
 
     const userPrompt = `Dados do Contrato preenchidos pelo usuário:\n${JSON.stringify(resto, null, 2)}\n\nEscreva a minuta completa.`
 
