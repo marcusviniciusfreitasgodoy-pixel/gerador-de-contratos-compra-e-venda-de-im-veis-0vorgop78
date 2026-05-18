@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useForm, useFormContext } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form'
@@ -510,6 +511,7 @@ export function ContractForm({
   const [isSuccess, setIsSuccess] = useState(false)
   const [draftId, setDraftId] = useState<string | undefined>()
 
+  const navigate = useNavigate()
   const { user } = useAuth()
   const form = useForm<ContractFormValues>({
     resolver: zodResolver(contractSchema),
@@ -814,6 +816,12 @@ export function ContractForm({
         <div className="flex justify-center gap-3 mt-8">
           <Button variant="outline" onClick={onBack}>
             Novo Documento
+          </Button>
+          <Button
+            onClick={() => navigate('/contratos')}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg"
+          >
+            Acessar Meus Contratos
           </Button>
         </div>
       </div>
