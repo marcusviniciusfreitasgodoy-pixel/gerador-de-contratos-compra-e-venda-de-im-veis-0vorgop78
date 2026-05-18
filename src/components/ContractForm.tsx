@@ -689,21 +689,29 @@ export function ContractForm({
         },
       }
 
+      const payloadForAi = { ...values, json_mestre: jsonMestre }
+      delete payloadForAi.matricula_file
+      delete payloadForAi.iptu_file
+
       const res = await pb.send('/backend/v1/assemble-contract', {
         method: 'POST',
-        body: JSON.stringify({ ...values, json_mestre }),
+        body: JSON.stringify(payloadForAi),
       })
 
       await saveContractDraft(
-        { ...values, used_clauses: res.used_clauses, status: 'concluido' },
+        { ...values, used_clauses: res?.used_clauses, status: 'concluido' },
         draftId,
-        res.minuta_texto,
+        res?.minuta_texto,
       )
 
       toast.success('Contrato gerado com sucesso!')
       setIsSuccess(true)
     } catch (err) {
-      toast.error('Erro na geração', { description: getErrorMessage(err) })
+      toast.error('Erro na geração do documento', {
+        description:
+          getErrorMessage(err) || 'Verifique as informações preenchidas e tente novamente.',
+        style: { backgroundColor: '#0C2340', color: '#D4AF37', borderColor: '#D4AF37' },
+      })
     } finally {
       setIsGenerating(false)
     }

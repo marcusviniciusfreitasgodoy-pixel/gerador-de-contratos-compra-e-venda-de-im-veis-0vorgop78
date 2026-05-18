@@ -63,8 +63,23 @@ export const saveContractDraft = async (
   }
 
   // Add files
-  if (data.matricula_file instanceof File) formData.append('matricula_file', data.matricula_file)
-  if (data.iptu_file instanceof File) formData.append('iptu_file', data.iptu_file)
+  const appendFile = (field: string, fileData: any) => {
+    if (!fileData) return
+    if (fileData instanceof File) {
+      formData.append(field, fileData)
+    } else if (
+      typeof FileList !== 'undefined' &&
+      fileData instanceof FileList &&
+      fileData.length > 0
+    ) {
+      formData.append(field, fileData[0])
+    } else if (Array.isArray(fileData) && fileData.length > 0 && fileData[0] instanceof File) {
+      formData.append(field, fileData[0])
+    }
+  }
+
+  appendFile('matricula_file', data.matricula_file)
+  appendFile('iptu_file', data.iptu_file)
 
   // Omit file fields from payload before iterating
   delete payload.matricula_file
@@ -74,9 +89,17 @@ export const saveContractDraft = async (
     if (v === undefined || v === null || v === '') return
     if (typeof v === 'boolean') {
       formData.append(k, String(v))
-    } else if (typeof v === 'object' && !(v instanceof File)) {
-      formData.append(k, JSON.stringify(v))
-    } else {
+    } else if (
+      typeof v === 'object' &&
+      !(v instanceof File) &&
+      !(typeof FileList !== 'undefined' && v instanceof FileList)
+    ) {
+      try {
+        formData.append(k, JSON.stringify(v))
+      } catch (e) {
+        // Skip on circular or non-serializable objects
+      }
+    } else if (typeof v !== 'object') {
       formData.append(k, String(v))
     }
   })
