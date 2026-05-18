@@ -11,13 +11,14 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import { Home, FileText, History, Bot, UserCircle, Settings } from 'lucide-react'
+import { Home, FileText, History, Bot, UserCircle, Settings, Files } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 
 const navigation = [
   { title: 'Dashboard', url: '/', icon: Home },
   { title: 'Novo Contrato', url: '/contratos/novo', icon: FileText },
-  { title: 'Histórico', url: '/history', icon: History },
+  { title: 'Meus Contratos', url: '/contratos', icon: Files },
+  { title: 'Histórico de Análises', url: '/history', icon: History },
   { title: 'Análise IA', url: '/analysis', icon: Bot },
   { title: 'Meu Perfil', url: '/profile', icon: UserCircle },
 ]

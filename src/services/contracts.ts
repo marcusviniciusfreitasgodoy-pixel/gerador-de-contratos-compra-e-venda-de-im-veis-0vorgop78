@@ -20,6 +20,12 @@ export const generateContractDocx = async (data: any) => {
   })
 }
 
+export const getMyContracts = async (page: number = 1, perPage: number = 50) => {
+  return await pb.collection('contracts').getList(page, perPage, {
+    sort: '-created',
+  })
+}
+
 export const saveContractDraft = async (
   data: Partial<ContractFormValues>,
   id?: string,
