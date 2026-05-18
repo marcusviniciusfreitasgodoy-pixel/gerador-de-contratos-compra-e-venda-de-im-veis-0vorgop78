@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   ChevronRight,
   ChevronLeft,
+  Wand2,
 } from 'lucide-react'
 import { saveContractDraft } from '@/services/contracts'
 import {
@@ -528,6 +529,85 @@ export function ContractForm({
     mode: 'onChange',
   })
 
+  const handleFillMockData = () => {
+    const currentValues = form.getValues()
+    const hasData =
+      currentValues.nome_comprador || currentValues.nome_vendedor || currentValues.matricula_imovel
+
+    if (hasData) {
+      if (!window.confirm('Existem dados preenchidos. Deseja sobrescrever com dados de teste?')) {
+        return
+      }
+    }
+
+    form.reset({
+      ...currentValues,
+      tipo_comprador: 'pf',
+      nome_comprador: 'João Batista da Silva',
+      cpf_comprador: '123.456.789-00',
+      rg_comprador: '12.345.678-9',
+      nacionalidade_comprador: 'Brasileiro(a)',
+      profissao_comprador: 'Engenheiro de Software',
+      data_nascimento_comprador: '1985-05-15',
+      estado_civil_comprador: 'Casado',
+      regime_bens_comprador: 'Comunhão Parcial',
+      nome_conjuge_comprador: 'Maria Aparecida da Silva',
+      cpf_conjuge_comprador: '987.654.321-00',
+      rg_conjuge_comprador: '98.765.432-1',
+      financiamento_comprador: true,
+      fgts_comprador: true,
+      instituicao_financeira: 'Caixa',
+      prazo_financiamento: 360,
+
+      vendedor_pj: false,
+      nome_vendedor: 'Carlos Eduardo Oliveira',
+      cpf_vendedor: '111.222.333-44',
+      rg_vendedor: '11.222.333-4',
+      estado_civil_vendedor: 'Divorciado',
+
+      imovel_inventario: false,
+      imovel_locado: false,
+      imovel_financiado: false,
+      imovel_ocupado: false,
+      possui_usufruto: false,
+
+      tipo_imovel: 'Apartamento',
+      matricula_imovel: '123456',
+      cartorio_imovel: '1º Ofício de Registro de Imóveis',
+      inscricao_iptu: '9876543-2',
+      endereco_imovel: 'Avenida Paulista',
+      numero_imovel: '1000',
+      complemento_imovel: 'Apto 152',
+      bairro_imovel: 'Bela Vista',
+      cidade_imovel: 'São Paulo',
+      estado_imovel: 'SP',
+      area_privativa: 120,
+      area_total: 150,
+      quartos: 3,
+      suites: 1,
+      vagas_garagem: 2,
+
+      valor_sinal: '50.000,00',
+      valor_fgts: '100.000,00',
+      valor_financiamento: '350.000,00',
+      valor_recursos_proprios: '0,00',
+      valor_total: '500.000,00',
+      havera_parcelas: false,
+
+      posse_imediata: false,
+      data_posse: '2026-12-01',
+      prazo_desocupacao: 30,
+
+      assinatura_eletronica: true,
+      plataforma_assinatura: 'Clicksign',
+      arbitragem: false,
+      mediacao: true,
+      clausula_lgpd: true,
+    } as any)
+
+    toast.success('Formulário preenchido com dados de teste.')
+  }
+
   // Auto-save logic
   const handleNext = async () => {
     let isValid = false
@@ -653,9 +733,20 @@ export function ContractForm({
 
   return (
     <div className="max-w-4xl mx-auto animate-in fade-in">
-      <Button variant="ghost" onClick={onBack} className="mb-6 -ml-4">
-        <ArrowLeft className="w-4 h-4 mr-2" /> Voltar
-      </Button>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+        <Button variant="ghost" onClick={onBack} className="-ml-4 w-fit">
+          <ArrowLeft className="w-4 h-4 mr-2" /> Voltar
+        </Button>
+        <Button
+          type="button"
+          onClick={handleFillMockData}
+          className="bg-[#0C2340] text-[#D4AF37] hover:bg-[#0C2340]/90 border border-[#D4AF37] shadow-sm font-medium w-full sm:w-auto"
+          size="sm"
+        >
+          <Wand2 className="w-4 h-4 mr-2" />
+          Preencher Dados de Teste
+        </Button>
+      </div>
       <div className="flex justify-between mb-8 px-2 sm:px-12 relative">
         <div className="absolute top-5 left-8 right-8 sm:left-16 sm:right-16 h-[2px] bg-slate-200 -z-10" />
         {WIZARD_STEPS.map((s) => (

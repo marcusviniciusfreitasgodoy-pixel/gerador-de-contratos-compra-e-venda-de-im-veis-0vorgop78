@@ -19,6 +19,7 @@ import {
   Bot,
   History,
   Sparkles,
+  Wand2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Link, useSearchParams, Navigate } from 'react-router-dom'
@@ -51,6 +52,71 @@ export default function AIAnalysis() {
   const [showRawError, setShowRawError] = useState(false)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleMockAnalysis = async () => {
+    setIsAnalyzing(true)
+    setErrorMsg(null)
+    setReport(null)
+
+    // Simulate network delay
+    await new Promise((resolve) => setTimeout(resolve, 1500))
+
+    const mockReport: any = {
+      id: 'mock-id',
+      summary:
+        'Este é um relatório gerado por mock para testes do sistema. Foram identificados alguns riscos que devem ser analisados antes de prosseguir com a assinatura.',
+      risk_level: 'alto',
+      usedModel: 'Mock AI (Teste)',
+      analysis_result: {
+        riscos: [
+          {
+            gravidade: 'alto',
+            clausula: 'Cláusula 5ª - Da Multa Rescisória',
+            descricao:
+              'Multa de 50% em caso de rescisão excede o limite jurisprudencial de 10% a 25%.',
+            recomendacao:
+              'Reduzir o percentual da multa rescisória para 20% visando evitar nulidade em juízo.',
+          },
+          {
+            gravidade: 'medio',
+            clausula: 'Cláusula 2ª - Do Objeto',
+            descricao: 'Falta especificação clara sobre as vagas de garagem inclusas na matrícula.',
+            recomendacao:
+              'Adicionar o número exato de vagas e sua vinculação à matrícula no registro de imóveis.',
+          },
+        ],
+        omissao: [
+          {
+            gravidade: 'medio',
+            descricao: 'Ausência de cláusula de tolerância para atraso na entrega.',
+            impacto:
+              'Em caso de atraso na entrega das chaves por qualquer motivo, o vendedor pode ser imediatamente processado.',
+            sugestao_inclusao:
+              'Inserir cláusula prevendo prazo de tolerância de 180 dias para a entrega do imóvel.',
+          },
+        ],
+        conformidade: [
+          {
+            status: 'nok',
+            requisito: 'LGPD - Lei Geral de Proteção de Dados',
+            observacao:
+              'O contrato não possui termo de consentimento explícito para tratamento de dados pessoais das partes.',
+          },
+          {
+            status: 'ok',
+            requisito: 'Qualificação das Partes',
+            observacao:
+              'Qualificação do comprador e vendedor atende aos requisitos do Código Civil.',
+          },
+        ],
+      },
+    }
+
+    setReport(mockReport)
+    setUsedModelLabel('Mock AI (Teste)')
+    setIsAnalyzing(false)
+    toast.success('Análise mock gerada com sucesso!')
+  }
 
   const handleToggleAdaptiveThought = (checked: boolean) => {
     setAdaptiveThought(checked)
@@ -403,39 +469,53 @@ export default function AIAnalysis() {
                   />
                 </div>
 
-                <Tooltip open={hasAiKey === false ? undefined : false}>
-                  <TooltipTrigger asChild>
-                    <div className="w-full sm:w-auto">
-                      <Button
-                        size="lg"
-                        disabled={isAnalyzing || hasAiKey === false}
-                        className="bg-purple-600 hover:bg-purple-700 text-white px-8 h-14 text-lg w-full shadow-md hover:shadow-lg transition-all disabled:pointer-events-none"
-                        onClick={handleAnalyzeFile}
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full">
+                  <Tooltip open={hasAiKey === false ? undefined : false}>
+                    <TooltipTrigger asChild>
+                      <div className="w-full sm:w-auto flex-1 max-w-sm">
+                        <Button
+                          size="lg"
+                          disabled={isAnalyzing || hasAiKey === false}
+                          className="bg-purple-600 hover:bg-purple-700 text-white px-8 h-14 text-lg w-full shadow-md hover:shadow-lg transition-all disabled:pointer-events-none"
+                          onClick={handleAnalyzeFile}
+                        >
+                          {isAnalyzing ? (
+                            <>
+                              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                              Analisando...
+                            </>
+                          ) : (
+                            'Analisar com IA'
+                          )}
+                        </Button>
+                      </div>
+                    </TooltipTrigger>
+                    {hasAiKey === false && (
+                      <TooltipContent
+                        side="top"
+                        className="bg-amber-100 text-amber-900 border-amber-200"
                       >
-                        {isAnalyzing ? (
-                          <>
-                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                            Analisando contrato...
-                          </>
-                        ) : (
-                          'Analisar com IA Jurídica'
-                        )}
-                      </Button>
-                    </div>
-                  </TooltipTrigger>
-                  {hasAiKey === false && (
-                    <TooltipContent
-                      side="top"
-                      className="bg-amber-100 text-amber-900 border-amber-200"
+                        <p className="font-medium">Aviso</p>
+                        <p>
+                          Configure sua chave de IA no painel de integração para habilitar esta
+                          função.
+                        </p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+
+                  <div className="w-full sm:w-auto flex-1 max-w-sm">
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="border-[#0C2340] text-[#0C2340] hover:bg-[#0C2340]/5 w-full h-14 text-lg shadow-sm"
+                      onClick={handleMockAnalysis}
+                      disabled={isAnalyzing}
                     >
-                      <p className="font-medium">Aviso</p>
-                      <p>
-                        Configure sua chave de IA no painel de integração para habilitar esta
-                        função.
-                      </p>
-                    </TooltipContent>
-                  )}
-                </Tooltip>
+                      <Wand2 className="w-5 h-5 mr-2 text-[#D4AF37]" /> Gerar Mock (Teste)
+                    </Button>
+                  </div>
+                </div>
 
                 {isAnalyzing && (
                   <div className="text-center animate-in fade-in duration-300 mt-6">
