@@ -321,10 +321,10 @@ function ImovelTab() {
         <div className="grid grid-cols-2 gap-4">
           <FormFileInput
             name="matricula_file"
-            label="Cópia da Matrícula Atualizada *"
+            label="Cópia da Matrícula Atualizada (Opcional)"
             accept=".pdf,image/*"
           />
-          <FormFileInput name="iptu_file" label="Capa do IPTU *" accept=".pdf,image/*" />
+          <FormFileInput name="iptu_file" label="Capa do IPTU (Opcional)" accept=".pdf,image/*" />
         </div>
       </div>
     </div>
@@ -630,13 +630,8 @@ export function ContractForm({
       }
     } else if (currentStep === 3) {
       const mat = form.getValues('matricula_imovel')
-      const matFile = form.getValues('matricula_file')
-      const iptuFile = form.getValues('iptu_file')
       if (!mat) {
         toast.error('O número da Matrícula é obrigatório.')
-        isValid = false
-      } else if (!matFile || !iptuFile) {
-        toast.error('O upload da Matrícula e do IPTU são obrigatórios para Compliance.')
         isValid = false
       } else {
         isValid = true
