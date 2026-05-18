@@ -519,6 +519,7 @@ export function ContractForm({
       tipo_documento: tipoDocumento,
       status: 'em_elaboracao',
       financiamento_comprador: false,
+      possui_financiamento: false,
       fgts_comprador: false,
       posse_imediata: false,
       imovel_inventario: false,
@@ -528,6 +529,14 @@ export function ContractForm({
     } as any,
     mode: 'onChange',
   })
+
+  const isFinanciado = form.watch('financiamento_comprador') || form.watch('possui_financiamento')
+
+  useEffect(() => {
+    if (!isFinanciado) {
+      form.clearErrors('valor_financiamento')
+    }
+  }, [isFinanciado, form])
 
   const handleFillMockData = () => {
     const currentValues = form.getValues()
@@ -555,6 +564,7 @@ export function ContractForm({
       cpf_conjuge_comprador: '987.654.321-00',
       rg_conjuge_comprador: '98.765.432-1',
       financiamento_comprador: true,
+      possui_financiamento: true,
       fgts_comprador: true,
       instituicao_financeira: 'Caixa',
       prazo_financiamento: 360,
