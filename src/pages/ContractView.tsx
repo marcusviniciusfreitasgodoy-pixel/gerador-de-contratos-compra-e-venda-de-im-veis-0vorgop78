@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Loader2, RefreshCw, Save, ArrowLeft, FileText, Download } from 'lucide-react'
+import { Loader2, RefreshCw, Save, ArrowLeft, FileText, Download, FileDown } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   getContract,
@@ -11,12 +11,21 @@ import {
   generateContractDocx,
 } from '@/services/contracts'
 import { RichTextEditor } from '@/components/RichTextEditor'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { generateMinutaPDF } from '@/lib/pdf-generator'
 
 export default function ContractView() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [contract, setContract] = useState<any>(null)
   const [minuta, setMinuta] = useState('')
+  const [status, setStatus] = useState('rascunho')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [generating, setGenerating] = useState(false)
@@ -34,6 +43,11 @@ export default function ContractView() {
       const data = await getContract(id!)
       setContract(data)
       setMinuta(data.minuta_texto || '')
+
+      let st = data.status || 'rascunho'
+      if (st === 'em_elaboracao') st = 'rascunho'
+      if (st === 'concluido') st = 'finalizado'
+      setStatus(st)
     } catch (error) {
       toast.error('Erro ao carregar contrato')
     } finally {
@@ -44,7 +58,7 @@ export default function ContractView() {
   const handleSave = async () => {
     try {
       setSaving(true)
-      await updateContractData(id!, { minuta_texto: minuta })
+      await updateContractData(id!, { minuta_texto: minuta, status })
       toast.success('Contrato atualizado com sucesso!')
     } catch (error) {
       toast.error('Erro ao salvar as alterações')
@@ -90,13 +104,14 @@ export default function ContractView() {
 
       const newMinuta = res?.minuta_texto || ''
       setMinuta(newMinuta)
+      setStatus('finalizado')
       await updateContractData(id!, {
         minuta_texto: newMinuta,
         used_clauses: res?.used_clauses,
-        status: 'concluido',
+        status: 'finalizado',
       })
 
-      toast.success('Contrato atualizado com sucesso!')
+      toast.success('Contrato gerado novamente com sucesso!')
     } catch (error) {
       toast.error('Erro ao gerar novamente. O texto anterior foi mantido.')
     } finally {
@@ -104,19 +119,44 @@ export default function ContractView() {
     }
   }
 
-  const handleDownload = async () => {
+  const handleExportWord = async () => {
     try {
       setDownloading(true)
+      toast.info('Gerando arquivo Word...')
       const res = await generateContractDocx({
         minuta_html: minuta,
         contract_id: contract.id,
       })
 
-      toast.success('Download preparado (Mock)')
+      if (res?.url) {
+        window.open(res.url, '_blank')
+      } else if (res?.download_url) {
+        window.open(res.download_url, '_blank')
+      } else if (res?.base64) {
+        const link = document.createElement('a')
+        link.href = `data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,${res.base64}`
+        link.download = `Contrato_${contract.id}.docx`
+        link.click()
+      } else {
+        toast.success('Documento preparado para download.')
+      }
     } catch (error) {
       toast.error('Erro ao gerar DOCX')
     } finally {
       setDownloading(false)
+    }
+  }
+
+  const handleExportPDF = async () => {
+    if (!minuta) {
+      toast.error('Não há texto para exportar.')
+      return
+    }
+    try {
+      await generateMinutaPDF(minuta, `Contrato_${contract.id}`)
+      toast.success('PDF gerado com sucesso!')
+    } catch (error) {
+      toast.error('Erro ao gerar PDF.')
     }
   }
 
@@ -155,7 +195,18 @@ export default function ContractView() {
             </p>
           </div>
         </div>
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-3 items-center">
+          <Select value={status} onValueChange={setStatus}>
+            <SelectTrigger className="w-[160px] bg-white h-10 shadow-sm border-slate-200">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="rascunho">Em rascunho</SelectItem>
+              <SelectItem value="finalizado">Finalizado</SelectItem>
+              <SelectItem value="assinado">Assinado</SelectItem>
+            </SelectContent>
+          </Select>
+
           <Button
             onClick={handleRegenerate}
             variant="outline"
@@ -169,13 +220,17 @@ export default function ContractView() {
             )}
             Gerar Novamente
           </Button>
-          <Button onClick={handleSave} disabled={generating || saving} className="shadow-sm">
+          <Button
+            onClick={handleSave}
+            disabled={generating || saving}
+            className="shadow-sm bg-primary hover:bg-primary/90 text-white"
+          >
             {saving ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
             ) : (
               <Save className="w-4 h-4 mr-2" />
             )}
-            Salvar Alterações
+            Salvar
           </Button>
         </div>
       </div>
@@ -190,25 +245,36 @@ export default function ContractView() {
       )}
 
       <Card className="shadow-md border-slate-200 overflow-hidden">
-        <CardHeader className="bg-slate-50 border-b flex flex-row items-center justify-between pb-4 pt-5">
+        <CardHeader className="bg-slate-50 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 pt-5">
           <div>
             <CardTitle className="flex items-center gap-2 text-xl">
               <FileText className="w-5 h-5 text-primary" />
               Editor de Minuta
             </CardTitle>
             <CardDescription className="mt-1">
-              Faça ajustes finos no contrato gerado pela IA antes de exportar. Suas alterações não
-              serão perdidas a não ser que você gere novamente.
+              Faça ajustes finos no contrato antes de exportar. Lembre-se de salvar suas alterações.
             </CardDescription>
           </div>
-          <Button variant="secondary" size="sm" onClick={handleDownload} disabled={downloading}>
-            {downloading ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <Download className="w-4 h-4 mr-2" />
-            )}
-            Exportar DOCX
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportPDF}
+              disabled={downloading}
+              className="bg-white"
+            >
+              <FileDown className="w-4 h-4 mr-2 text-red-600" />
+              PDF
+            </Button>
+            <Button variant="secondary" size="sm" onClick={handleExportWord} disabled={downloading}>
+              {downloading ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4 mr-2 text-blue-600" />
+              )}
+              Word
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="p-0 bg-slate-100/50">
           <RichTextEditor value={minuta} onChange={setMinuta} />

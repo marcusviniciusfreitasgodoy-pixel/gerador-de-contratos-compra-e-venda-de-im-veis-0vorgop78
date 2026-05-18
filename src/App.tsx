@@ -17,6 +17,7 @@ import NotFound from '@/pages/NotFound'
 import AdminDashboard from '@/pages/admin/AdminDashboard'
 import LegalKnowledgeList from '@/pages/admin/LegalKnowledgeList'
 import LegalKnowledgeForm from '@/pages/admin/LegalKnowledgeForm'
+import { ProtectedRoute } from '@/components/ProtectedRoute'
 
 export default function App() {
   return (
@@ -28,7 +29,13 @@ export default function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
-            <Route element={<Layout />}>
+            <Route
+              element={
+                <ProtectedRoute>
+                  <Layout />
+                </ProtectedRoute>
+              }
+            >
               <Route path="/" element={<Home />} />
               <Route path="/contratos/novo" element={<NewContract />} />
               <Route path="/contratos" element={<MyContracts />} />

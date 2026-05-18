@@ -20,6 +20,10 @@ export const generateContractDocx = async (data: any) => {
   })
 }
 
+export const deleteContract = async (id: string) => {
+  return await pb.collection('contracts').delete(id)
+}
+
 export const getContract = async (id: string) => {
   return await pb.collection('contracts').getOne(id)
 }

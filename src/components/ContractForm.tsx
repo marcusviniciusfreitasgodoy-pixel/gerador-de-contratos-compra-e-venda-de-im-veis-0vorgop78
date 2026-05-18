@@ -519,7 +519,7 @@ export function ContractForm({
       tipo_comprador: 'pf',
       vendedor_pj: false,
       tipo_documento: tipoDocumento,
-      status: 'em_elaboracao',
+      status: 'rascunho',
       financiamento_comprador: false,
       possui_financiamento: false,
       fgts_comprador: false,
@@ -787,7 +787,7 @@ export function ContractForm({
       })
 
       await saveContractDraft(
-        { ...values, used_clauses: res?.used_clauses, status: 'concluido' },
+        { ...values, used_clauses: res?.used_clauses, status: 'finalizado' },
         draftId,
         res?.minuta_texto,
       )
