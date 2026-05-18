@@ -67,8 +67,9 @@ export default function LegalKnowledgeForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!formData.content) {
-      toast.error('O conteúdo é obrigatório.')
+    const hasFile = Boolean(sourceFile || formData.source_file)
+    if (!formData.content && !hasFile) {
+      toast.error('Por favor, insira o conteúdo do texto ou anexe um arquivo de modelo.')
       return
     }
 
@@ -228,12 +229,15 @@ export default function LegalKnowledgeForm() {
           </div>
 
           <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="content">Conteúdo (Texto ou Markdown)</Label>
+            <Label htmlFor="content">
+              Conteúdo (Texto ou Markdown){' '}
+              {!sourceFile && !formData.source_file && <span className="text-destructive">*</span>}
+            </Label>
             <Textarea
               id="content"
               value={formData.content}
               onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-              required
+              required={!sourceFile && !formData.source_file}
               placeholder="Digite ou cole o conteúdo da cláusula ou documento..."
               className="min-h-[200px]"
             />
