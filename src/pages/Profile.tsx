@@ -5,6 +5,7 @@ import { profileSchema, type ProfileFormValues } from '@/lib/schemas'
 import { useAuth } from '@/hooks/use-auth'
 import { updateUserProfile } from '@/services/users'
 import { extractFieldErrors } from '@/lib/pocketbase/errors'
+import pb from '@/lib/pocketbase/client'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -16,11 +17,35 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
-import { Loader2, Save } from 'lucide-react'
+import { Loader2, Save, Eye, EyeOff } from 'lucide-react'
 
 export default function Profile() {
   const { user } = useAuth()
   const [isSaving, setIsSaving] = useState(false)
+  const [showKeys, setShowKeys] = useState({
+    openai: false,
+    anthropic: false,
+    gemini: false,
+  })
+  const [testingProvider, setTestingProvider] = useState<string | null>(null)
+
+  const handleTestConnection = async (provider: string, key: string) => {
+    if (!key) return
+    setTestingProvider(provider)
+    try {
+      await pb.send('/backend/v1/testar_conexao_ia', {
+        method: 'POST',
+        body: JSON.stringify({ apiKey: key, provider }),
+      })
+      toast.success('Chave validada com sucesso!')
+    } catch (err: any) {
+      const msg =
+        err.response?.message || err.message || 'Erro ao validar chave. Verifique os dados.'
+      toast.error('Erro ao validar chave. Verifique os dados.', { description: msg })
+    } finally {
+      setTestingProvider(null)
+    }
+  }
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -242,7 +267,7 @@ export default function Profile() {
             <h2 className="text-xl font-semibold text-slate-800 border-b pb-2">
               Chaves de API (Inteligência Artificial)
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-6">
               <FormField
                 control={form.control}
                 name="openai_api_key"
@@ -250,12 +275,39 @@ export default function Profile() {
                   <FormItem>
                     <FormLabel>OpenAI API Key</FormLabel>
                     <FormControl>
-                      <Input
-                        type="password"
-                        {...field}
-                        value={field.value || ''}
-                        placeholder="sk-..."
-                      />
+                      <div className="flex gap-2">
+                        <div className="relative flex-1">
+                          <Input
+                            type={showKeys.openai ? 'text' : 'password'}
+                            {...field}
+                            value={field.value || ''}
+                            placeholder="sk-..."
+                            className="pr-10"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowKeys((p) => ({ ...p, openai: !p.openai }))}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                          >
+                            {showKeys.openai ? (
+                              <EyeOff className="w-4 h-4" />
+                            ) : (
+                              <Eye className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => handleTestConnection('openai', field.value || '')}
+                          disabled={testingProvider === 'openai' || !field.value}
+                        >
+                          {testingProvider === 'openai' && (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          )}
+                          Validar
+                        </Button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -268,12 +320,39 @@ export default function Profile() {
                   <FormItem>
                     <FormLabel>Anthropic API Key</FormLabel>
                     <FormControl>
-                      <Input
-                        type="password"
-                        {...field}
-                        value={field.value || ''}
-                        placeholder="sk-ant-..."
-                      />
+                      <div className="flex gap-2">
+                        <div className="relative flex-1">
+                          <Input
+                            type={showKeys.anthropic ? 'text' : 'password'}
+                            {...field}
+                            value={field.value || ''}
+                            placeholder="sk-ant-..."
+                            className="pr-10"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowKeys((p) => ({ ...p, anthropic: !p.anthropic }))}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                          >
+                            {showKeys.anthropic ? (
+                              <EyeOff className="w-4 h-4" />
+                            ) : (
+                              <Eye className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => handleTestConnection('anthropic', field.value || '')}
+                          disabled={testingProvider === 'anthropic' || !field.value}
+                        >
+                          {testingProvider === 'anthropic' && (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          )}
+                          Validar
+                        </Button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -286,12 +365,39 @@ export default function Profile() {
                   <FormItem>
                     <FormLabel>Gemini API Key</FormLabel>
                     <FormControl>
-                      <Input
-                        type="password"
-                        {...field}
-                        value={field.value || ''}
-                        placeholder="AIza..."
-                      />
+                      <div className="flex gap-2">
+                        <div className="relative flex-1">
+                          <Input
+                            type={showKeys.gemini ? 'text' : 'password'}
+                            {...field}
+                            value={field.value || ''}
+                            placeholder="AIza..."
+                            className="pr-10"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowKeys((p) => ({ ...p, gemini: !p.gemini }))}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                          >
+                            {showKeys.gemini ? (
+                              <EyeOff className="w-4 h-4" />
+                            ) : (
+                              <Eye className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => handleTestConnection('gemini', field.value || '')}
+                          disabled={testingProvider === 'gemini' || !field.value}
+                        >
+                          {testingProvider === 'gemini' && (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          )}
+                          Validar
+                        </Button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
