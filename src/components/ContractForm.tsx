@@ -656,30 +656,33 @@ export function ContractForm({
       <Button variant="ghost" onClick={onBack} className="mb-6 -ml-4">
         <ArrowLeft className="w-4 h-4 mr-2" /> Voltar
       </Button>
-      <div className="flex justify-between mb-8 px-12 relative">
-        <div className="absolute top-5 left-16 right-16 h-[2px] bg-slate-200 -z-10" />
+      <div className="flex justify-between mb-8 px-2 sm:px-12 relative">
+        <div className="absolute top-5 left-8 right-8 sm:left-16 sm:right-16 h-[2px] bg-slate-200 -z-10" />
         {WIZARD_STEPS.map((s) => (
           <div
             key={s.id}
             className={cn(
-              'flex flex-col items-center bg-white',
-              s.id <= currentStep ? 'text-blue-600' : 'text-slate-400',
+              'flex flex-col items-center bg-transparent',
+              s.id <= currentStep ? 'text-primary' : 'text-slate-400',
             )}
           >
             <div
               className={cn(
-                'w-10 h-10 rounded-full flex items-center justify-center font-bold mb-2 transition-all duration-300',
+                'w-10 h-10 rounded-full flex items-center justify-center font-bold mb-2 transition-all duration-300 border-2',
                 s.id === currentStep
-                  ? 'bg-blue-600 text-white shadow-md ring-4 ring-blue-100'
+                  ? 'bg-primary text-primary-foreground border-secondary shadow-md ring-4 ring-primary/10'
                   : s.id < currentStep
-                    ? 'bg-emerald-500 text-white'
-                    : 'bg-slate-100 text-slate-400',
+                    ? 'bg-secondary text-secondary-foreground border-secondary shadow-sm'
+                    : 'bg-white text-slate-400 border-slate-200',
               )}
             >
-              {s.id < currentStep ? <CheckCircle2 className="w-5 h-5" /> : s.id}
+              {s.id < currentStep ? <CheckCircle2 className="w-5 h-5 text-primary" /> : s.id}
             </div>
             <span
-              className={cn('text-xs font-medium', s.id === currentStep ? 'text-blue-700' : '')}
+              className={cn(
+                'text-[10px] sm:text-xs font-bold text-center w-16 sm:w-auto',
+                s.id === currentStep ? 'text-primary' : '',
+              )}
             >
               {s.title}
             </span>
@@ -707,23 +710,30 @@ export function ContractForm({
                   <ChevronLeft className="mr-2 w-4 h-4" /> Anterior
                 </Button>
                 {currentStep < 5 ? (
-                  <Button type="button" onClick={handleNext} disabled={isGenerating}>
+                  <Button
+                    type="button"
+                    onClick={handleNext}
+                    disabled={isGenerating}
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+                  >
                     Próximo <ChevronRight className="ml-2 w-4 h-4" />
                   </Button>
                 ) : (
                   <Button
                     type="button"
                     onClick={initiateGeneration}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white min-w-[200px]"
+                    className="bg-secondary hover:bg-secondary/90 text-secondary-foreground min-w-[200px] font-bold shadow-lg"
                     disabled={isGenerating}
                   >
                     {isGenerating ? (
                       <>
-                        <Loader2 className="mr-2 w-5 h-5 animate-spin" /> Processando IA...
+                        <Loader2 className="mr-2 w-5 h-5 animate-spin text-primary" />{' '}
+                        <span className="text-primary">Processando IA...</span>
                       </>
                     ) : (
                       <>
-                        <ShieldCheck className="mr-2 w-5 h-5" /> Validar e Gerar Contrato
+                        <ShieldCheck className="mr-2 w-5 h-5 text-primary" />{' '}
+                        <span className="text-primary">Validar e Gerar Contrato</span>
                       </>
                     )}
                   </Button>

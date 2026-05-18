@@ -11,42 +11,46 @@ export function generateContractPDF(text: string, fileName: string) {
 
     const addHeader = (d: jsPDF) => {
       d.setFont('helvetica', 'bold')
-      d.setFontSize(10)
-      d.setTextColor(15, 23, 42) // slate-900
+      d.setFontSize(12)
+      d.setTextColor(12, 35, 64) // Marinho
       d.text('GODOY PRIME REALTY', margin, 18)
-      d.setFontSize(8)
-      d.setTextColor(100, 116, 139) // slate-500
+      d.setFontSize(9)
+      d.setTextColor(212, 175, 55) // Ouro
       d.text('Assessoria Jurídica Imobiliária', margin, 23)
 
       d.setFontSize(10)
-      d.setTextColor(15, 23, 42)
-      d.text('CONTRATO PARTICULAR DE COMPRA E VENDA DE IMÓVEL', pageWidth / 2, 23, {
+      d.setTextColor(12, 35, 64)
+      d.text('CONTRATO DE COMPRA E VENDA DE IMÓVEL', pageWidth / 2, 23, {
         align: 'center',
       })
 
-      d.setDrawColor(226, 232, 240) // slate-200
+      d.setDrawColor(212, 175, 55) // Ouro
       d.setLineWidth(0.5)
       d.line(margin, 28, pageWidth - margin, 28)
     }
 
     const addFooter = (d: jsPDF, pageNum: number, total: number) => {
-      d.setDrawColor(226, 232, 240)
+      d.setDrawColor(212, 175, 55)
       d.setLineWidth(0.5)
       d.line(margin, pageHeight - 25, pageWidth - margin, pageHeight - 25)
 
       d.setFont('helvetica', 'normal')
       d.setFontSize(8)
-      d.setTextColor(148, 163, 184)
+      d.setTextColor(12, 35, 64)
 
       // Left: QR Code Placeholder
-      d.text('[ QR CODE AUTENTICAÇÃO ]', margin, pageHeight - 15)
+      d.setDrawColor(12, 35, 64)
+      d.rect(margin, pageHeight - 22, 10, 10)
+      d.setFontSize(6)
+      d.text('QR CODE', margin + 1, pageHeight - 16)
+      d.setFontSize(8)
 
       // Center: Pagination
       d.text(`Página ${pageNum} de ${total}`, pageWidth / 2, pageHeight - 15, { align: 'center' })
 
       // Right: Timestamp
       d.text(
-        `Gerado em ${format(new Date(), 'dd/MM/yyyy HH:mm')}`,
+        `Autenticado em ${format(new Date(), 'dd/MM/yyyy HH:mm')}`,
         pageWidth - margin,
         pageHeight - 15,
         { align: 'right' },
@@ -54,42 +58,56 @@ export function generateContractPDF(text: string, fileName: string) {
     }
 
     // Cover Page
-    doc.setFillColor(15, 23, 42)
+    doc.setFillColor(12, 35, 64) // Marinho
     doc.rect(0, 0, pageWidth, pageHeight, 'F')
 
-    doc.setTextColor(255, 255, 255)
+    // Inner gold border
+    doc.setDrawColor(212, 175, 55)
+    doc.setLineWidth(1)
+    doc.rect(10, 10, pageWidth - 20, pageHeight - 20)
+
+    doc.setTextColor(212, 175, 55) // Ouro
     doc.setFont('helvetica', 'bold')
-    doc.setFontSize(24)
+    doc.setFontSize(28)
     doc.text('GODOY PRIME REALTY', pageWidth / 2, pageHeight / 3, { align: 'center' })
 
-    doc.setFontSize(16)
+    doc.setFontSize(14)
     doc.setFont('helvetica', 'normal')
-    doc.text('MASTER CONTRACT FRAMEWORK', pageWidth / 2, pageHeight / 3 + 15, { align: 'center' })
+    doc.text('ASSESSORIA JURÍDICA IMOBILIÁRIA', pageWidth / 2, pageHeight / 3 + 12, {
+      align: 'center',
+    })
 
-    doc.setFontSize(12)
+    doc.setTextColor(255, 255, 255)
+    doc.setFontSize(16)
+    doc.setFont('helvetica', 'bold')
     doc.text(
       'CONTRATO PARTICULAR DE COMPRA E VENDA DE IMÓVEL',
       pageWidth / 2,
-      pageHeight / 3 + 30,
+      pageHeight / 3 + 40,
       { align: 'center' },
     )
 
     doc.setFontSize(10)
-    doc.setTextColor(148, 163, 184)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(212, 175, 55)
     doc.text(
-      `Internal Code: ${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
+      `CÓDIGO INTERNO DO DOCUMENTO: ${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
       pageWidth / 2,
-      pageHeight - 50,
+      pageHeight - 60,
       { align: 'center' },
     )
-    doc.text(`[ QR CODE AUTHENTICATION ]`, pageWidth / 2, pageHeight - 40, { align: 'center' })
+
+    // Cover QR Code Placeholder
+    doc.setDrawColor(212, 175, 55)
+    doc.rect(pageWidth / 2 - 15, pageHeight - 50, 30, 30)
+    doc.text(`QR CODE`, pageWidth / 2, pageHeight - 34, { align: 'center' })
 
     // Content Pages
     doc.addPage()
 
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(11)
-    doc.setTextColor(30, 41, 59) // slate-800
+    doc.setTextColor(12, 35, 64) // Navy for text base
     const lineHeight = 6
 
     const safeText = String(text || '').replace(/•/g, '-')
@@ -98,8 +116,11 @@ export function generateContractPDF(text: string, fileName: string) {
     let y = 40
     addHeader(doc)
 
-    for (const line of lines) {
-      if (y > pageHeight - 35) {
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
+
+      // Lookahead for page breaks to avoid orphans (don't break if next 2 lines don't fit)
+      if (y > pageHeight - 45) {
         doc.addPage()
         addHeader(doc)
         y = 40
@@ -107,10 +128,13 @@ export function generateContractPDF(text: string, fileName: string) {
 
       if (line.trim().length > 0 && line === line.toUpperCase() && !line.includes('___')) {
         doc.setFont('helvetica', 'bold')
+        doc.setTextColor(12, 35, 64)
       } else if (line.trim().startsWith('##')) {
         doc.setFont('helvetica', 'bold')
+        doc.setTextColor(12, 35, 64)
       } else {
         doc.setFont('helvetica', 'normal')
+        doc.setTextColor(51, 65, 85)
       }
 
       doc.text(line.replace(/#/g, ''), margin, y)

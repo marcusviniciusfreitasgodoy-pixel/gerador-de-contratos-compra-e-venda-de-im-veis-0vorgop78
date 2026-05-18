@@ -4,23 +4,64 @@ import { format } from 'date-fns'
 export async function generateMinutaPDF(minutaText: string, fileName: string): Promise<void> {
   return new Promise((resolve) => {
     const doc = new jsPDF()
-    let y = 20
+    let y = 40
     const margin = 20
     const pageWidth = 210
     const contentWidth = pageWidth - margin * 2
     const pageHeight = 297
 
+    const addHeader = (d: jsPDF) => {
+      d.setFont('helvetica', 'bold')
+      d.setFontSize(12)
+      d.setTextColor(12, 35, 64) // Marinho
+      d.text('GODOY PRIME REALTY', margin, 18)
+      d.setFontSize(9)
+      d.setTextColor(212, 175, 55) // Ouro
+      d.text('Assessoria Jurídica Imobiliária', margin, 23)
+
+      d.setFontSize(10)
+      d.setTextColor(12, 35, 64)
+      d.text('MINUTA DE CONTRATO', pageWidth / 2, 23, {
+        align: 'center',
+      })
+
+      d.setDrawColor(212, 175, 55) // Ouro
+      d.setLineWidth(0.5)
+      d.line(margin, 28, pageWidth - margin, 28)
+    }
+
+    addHeader(doc)
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(11)
+    doc.setTextColor(51, 65, 85)
     const lines = doc.splitTextToSize(minutaText, contentWidth)
 
     for (let i = 0; i < lines.length; i++) {
-      if (y > pageHeight - 20) {
+      if (y > pageHeight - 35) {
         doc.addPage()
-        y = 20
+        addHeader(doc)
+        y = 40
       }
-      doc.text(lines[i], margin, y)
+      const line = lines[i]
+      if (line.trim() === line.trim().toUpperCase() && line.trim().length > 0) {
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(12, 35, 64)
+      } else {
+        doc.setFont('helvetica', 'normal')
+        doc.setTextColor(51, 65, 85)
+      }
+      doc.text(line, margin, y)
       y += 6
+    }
+
+    // Add pagination
+    const totalPages = doc.getNumberOfPages()
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i)
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(8)
+      doc.setTextColor(12, 35, 64)
+      doc.text(`Página ${i} de ${totalPages}`, pageWidth / 2, pageHeight - 15, { align: 'center' })
     }
 
     doc.save(`${fileName}_${format(new Date(), 'yyyy-MM-dd')}.pdf`)
@@ -32,30 +73,63 @@ export async function generateAnalysisPDF(report: any, contract: any): Promise<v
   return new Promise((resolve, reject) => {
     try {
       const doc = new jsPDF()
-      let y = 20
+      let y = 40
       const margin = 20
       const pageWidth = 210
       const contentWidth = pageWidth - margin * 2
       const pageHeight = 297
 
+      const addHeader = (d: jsPDF) => {
+        d.setFont('helvetica', 'bold')
+        d.setFontSize(12)
+        d.setTextColor(12, 35, 64) // Marinho
+        d.text('GODOY PRIME REALTY', margin, 18)
+        d.setFontSize(9)
+        d.setTextColor(212, 175, 55) // Ouro
+        d.text('Assessoria Jurídica Imobiliária', margin, 23)
+
+        d.setFontSize(10)
+        d.setTextColor(12, 35, 64)
+        d.text('ANÁLISE DE COMPLIANCE JURÍDICO', pageWidth / 2, 23, {
+          align: 'center',
+        })
+
+        d.setDrawColor(212, 175, 55) // Ouro
+        d.setLineWidth(0.5)
+        d.line(margin, 28, pageWidth - margin, 28)
+      }
+
       const addFooter = () => {
         const pageCount = doc.getNumberOfPages()
         for (let i = 1; i <= pageCount; i++) {
           doc.setPage(i)
-          doc.setFontSize(8)
-          doc.setTextColor(100, 100, 100)
+          if (i === 1) continue // Skip cover page footer if there is one
+
+          doc.setDrawColor(212, 175, 55)
+          doc.setLineWidth(0.5)
+          doc.line(margin, pageHeight - 25, pageWidth - margin, pageHeight - 25)
+
+          doc.setFontSize(7)
+          doc.setTextColor(12, 35, 64)
           const footerText =
             'AVISO JURÍDICO: Esta análise é suporte informativo. Não substitui assessoria jurídica profissional.'
-          doc.text(footerText, margin, pageHeight - 10)
-          const dateText = `Gerado em ${format(new Date(), 'dd/MM/yyyy')} - Godoy Prime Realty`
-          doc.text(dateText, pageWidth - margin - doc.getTextWidth(dateText), pageHeight - 10)
+          doc.text(footerText, margin, pageHeight - 15)
+
+          doc.setFontSize(8)
+          doc.text(`Página ${i - 1} de ${pageCount - 1}`, pageWidth / 2, pageHeight - 15, {
+            align: 'center',
+          })
+
+          const dateText = format(new Date(), 'dd/MM/yyyy')
+          doc.text(dateText, pageWidth - margin - doc.getTextWidth(dateText), pageHeight - 15)
         }
       }
 
       const checkPageBreak = (needed: number) => {
-        if (y + needed > pageHeight - 20) {
+        if (y + needed > pageHeight - 35) {
           doc.addPage()
-          y = 20
+          addHeader(doc)
+          y = 40
         }
       }
 
@@ -82,22 +156,62 @@ export async function generateAnalysisPDF(report: any, contract: any): Promise<v
       }
 
       const addSectionTitle = (title: string, forceBreak = true) => {
-        if (forceBreak && y > 40) {
+        if (forceBreak && y > 60) {
           doc.addPage()
-          y = 20
+          addHeader(doc)
+          y = 40
         } else {
-          checkPageBreak(20)
+          checkPageBreak(25)
         }
         y += 5
-        addText(title, 14, true, [0, 0, 0])
+        addText(title, 14, true, [12, 35, 64])
         y += 2
       }
 
-      // Header
-      addText('ANÁLISE JURÍDICA DE CONTRATO', 16, true, [0, 0, 0])
+      // Cover Page for Analysis
+      doc.setFillColor(12, 35, 64) // Marinho
+      doc.rect(0, 0, pageWidth, pageHeight, 'F')
+      doc.setDrawColor(212, 175, 55)
+      doc.setLineWidth(1)
+      doc.rect(10, 10, pageWidth - 20, pageHeight - 20)
+
+      doc.setTextColor(212, 175, 55) // Ouro
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(28)
+      doc.text('GODOY PRIME REALTY', pageWidth / 2, pageHeight / 3, { align: 'center' })
+
+      doc.setFontSize(14)
+      doc.setFont('helvetica', 'normal')
+      doc.text('ASSESSORIA JURÍDICA IMOBILIÁRIA', pageWidth / 2, pageHeight / 3 + 12, {
+        align: 'center',
+      })
+
+      doc.setTextColor(255, 255, 255)
+      doc.setFontSize(16)
+      doc.setFont('helvetica', 'bold')
+      doc.text('RELATÓRIO DE ANÁLISE DE COMPLIANCE JURÍDICO', pageWidth / 2, pageHeight / 3 + 40, {
+        align: 'center',
+      })
+
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(212, 175, 55)
+      doc.text(
+        `GERADO EM: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`,
+        pageWidth / 2,
+        pageHeight - 60,
+        { align: 'center' },
+      )
+
+      doc.addPage()
+      addHeader(doc)
+      y = 40
+
+      // Content Header
+      addText('ANÁLISE JURÍDICA DE CONTRATO', 16, true, [12, 35, 64])
       y += 5
 
-      addText(`Data da Análise: ${format(new Date(), 'dd/MM/yyyy')}`, 11, false, [50, 50, 50])
+      addText(`Data da Análise: ${format(new Date(), 'dd/MM/yyyy')}`, 11, true, [12, 35, 64])
       addText(`Tipo de Contrato: ${contract?.tipo || 'Não especificado'}`, 11, false, [50, 50, 50])
       addText(`Vendedor: ${contract?.nome_vendedor || 'Não especificado'}`, 11, false, [50, 50, 50])
       addText(
