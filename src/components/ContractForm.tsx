@@ -587,11 +587,11 @@ export function ContractForm({
       suites: 1,
       vagas_garagem: 2,
 
+      valor_total: '500.000,00',
       valor_sinal: '50.000,00',
       valor_fgts: '100.000,00',
-      valor_financiamento: '350.000,00',
+      valor_financiamento: formatCurrency(500000 * 0.7), // 70% do valor total
       valor_recursos_proprios: '0,00',
-      valor_total: '500.000,00',
       havera_parcelas: false,
 
       posse_imediata: false,
@@ -637,10 +637,42 @@ export function ContractForm({
         isValid = true
       }
     } else if (currentStep === 4) {
-      isValid = true
+      isValid = await form.trigger([
+        'valor_sinal',
+        'valor_fgts',
+        'valor_financiamento',
+        'valor_recursos_proprios',
+        'havera_parcelas',
+      ])
+
+      const isFinanciado =
+        form.getValues('financiamento_comprador') || form.getValues('possui_financiamento')
+      const valorFinanciamentoStr = form.getValues('valor_financiamento')
+      const valorFinanciamento = parseCurrencySafe(valorFinanciamentoStr)
+
+      if (isFinanciado && valorFinanciamento <= 0) {
+        toast.error(
+          'Compliance Alert: Valor do financiamento é obrigatório quando há financiamento',
+          {
+            style: { backgroundColor: '#fee2e2', color: '#b91c1c', borderColor: '#f87171' },
+          },
+        )
+        form.setError('valor_financiamento', {
+          type: 'manual',
+          message: 'Compliance Alert: Valor do financiamento é obrigatório quando há financiamento',
+        })
+        setTimeout(() => {
+          const el = document.querySelector('[name="valor_financiamento"]') as HTMLElement
+          if (el) {
+            el.focus()
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          }
+        }, 100)
+        isValid = false
+      }
     }
 
-    if (!isValid && currentStep !== 4) return
+    if (!isValid) return
 
     try {
       const record = await saveContractDraft(form.getValues(), draftId)
@@ -654,7 +686,36 @@ export function ContractForm({
 
   const initiateGeneration = async () => {
     const valid = await form.trigger()
-    if (!valid) return toast.error('Preencha todos os campos obrigatórios.')
+
+    const isFinanciado =
+      form.getValues('financiamento_comprador') || form.getValues('possui_financiamento')
+    const valorFinanciamentoStr = form.getValues('valor_financiamento')
+    const valorFinanciamento = parseCurrencySafe(valorFinanciamentoStr)
+    let customValid = true
+
+    if (isFinanciado && valorFinanciamento <= 0) {
+      toast.error(
+        'Compliance Alert: Valor do financiamento é obrigatório quando há financiamento',
+        {
+          style: { backgroundColor: '#fee2e2', color: '#b91c1c', borderColor: '#f87171' },
+        },
+      )
+      form.setError('valor_financiamento', {
+        type: 'manual',
+        message: 'Compliance Alert: Valor do financiamento é obrigatório quando há financiamento',
+      })
+      setCurrentStep(4)
+      setTimeout(() => {
+        const el = document.querySelector('[name="valor_financiamento"]') as HTMLElement
+        if (el) {
+          el.focus()
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+      }, 100)
+      customValid = false
+    }
+
+    if (!valid || !customValid) return toast.error('Preencha todos os campos obrigatórios.')
 
     const lgpd = form.getValues('clausula_lgpd')
     if (!lgpd) return toast.error('O consentimento da LGPD é obrigatório.')
