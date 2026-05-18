@@ -11,6 +11,7 @@ import Login from '@/pages/Login'
 import AIAnalysis from '@/pages/AIAnalysis'
 import AnalysisHistory from '@/pages/AnalysisHistory'
 import MyContracts from '@/pages/MyContracts'
+import ContractView from '@/pages/ContractView'
 import SignUp from '@/pages/SignUp'
 import NotFound from '@/pages/NotFound'
 import AdminDashboard from '@/pages/admin/AdminDashboard'
@@ -31,6 +32,7 @@ export default function App() {
               <Route path="/" element={<Home />} />
               <Route path="/contratos/novo" element={<NewContract />} />
               <Route path="/contratos" element={<MyContracts />} />
+              <Route path="/contratos/:id" element={<ContractView />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/analysis" element={<AIAnalysis />} />
               <Route path="/history" element={<AnalysisHistory />} />

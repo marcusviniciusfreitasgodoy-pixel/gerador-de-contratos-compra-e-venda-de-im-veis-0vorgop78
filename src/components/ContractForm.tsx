@@ -833,7 +833,9 @@ export function ContractForm({
       {isGenerating && (
         <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center rounded-2xl min-h-[500px]">
           <Loader2 className="w-16 h-16 text-primary animate-spin mb-6" />
-          <h2 className="text-2xl font-bold text-slate-800">Gerando minuta com IA...</h2>
+          <h2 className="text-2xl font-bold text-slate-800">
+            Gerando minuta... Isso pode levar alguns segundos
+          </h2>
           <p className="text-slate-600 mt-2 text-lg">Por favor, aguarde.</p>
         </div>
       )}

@@ -20,10 +20,25 @@ export const generateContractDocx = async (data: any) => {
   })
 }
 
+export const getContract = async (id: string) => {
+  return await pb.collection('contracts').getOne(id)
+}
+
+export const regenerateContract = async (id: string, data: any) => {
+  return await pb.send('/backend/v1/assemble-contract', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
 export const getMyContracts = async (page: number = 1, perPage: number = 50) => {
   return await pb.collection('contracts').getList(page, perPage, {
     sort: '-created',
   })
+}
+
+export const updateContractData = async (id: string, data: any) => {
+  return await pb.collection('contracts').update(id, data)
 }
 
 export const saveContractDraft = async (
