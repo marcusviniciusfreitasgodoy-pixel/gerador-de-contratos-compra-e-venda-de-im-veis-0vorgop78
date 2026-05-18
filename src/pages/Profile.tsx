@@ -459,9 +459,9 @@ export default function Profile() {
             </h2>
             <p className="text-sm text-slate-500">
               Personalize o cabeçalho e rodapé dos documentos exportados. Variáveis suportadas:{' '}
-              <code className="bg-slate-100 px-1 rounded">{{ imobiliaria_nome }}</code>,{' '}
-              <code className="bg-slate-100 px-1 rounded">{{ creci }}</code>,{' '}
-              <code className="bg-slate-100 px-1 rounded">{{ imobiliaria_documento }}</code>.
+              <code className="bg-slate-100 px-1 rounded">{'{{ imobiliaria_nome }}'}</code>,{' '}
+              <code className="bg-slate-100 px-1 rounded">{'{{ creci }}'}</code>,{' '}
+              <code className="bg-slate-100 px-1 rounded">{'{{ imobiliaria_documento }}'}</code>.
             </p>
             <div className="grid grid-cols-1 gap-6">
               <div className="space-y-2">
