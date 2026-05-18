@@ -3,6 +3,7 @@ routerAdd(
   '/backend/v1/assemble-contract',
   (e) => {
     const body = e.requestInfo().body || {}
+    const tipoDocumento = body.tipo_documento || 'promessa_compra_venda'
 
     const normalizeDigits = (str) => (str ? String(str).replace(/\D/g, '') : '')
 
@@ -10,7 +11,7 @@ routerAdd(
     const master_data = {
       metadata: {
         versao_sistema: '1.0',
-        tipo_contrato: body.tipo_documento || 'promessa_compra_venda',
+        tipo_contrato: tipoDocumento,
       },
       comprador: {
         nome: body.nome_comprador || '',
@@ -143,39 +144,57 @@ routerAdd(
       },
     }
 
-    // Hard Blocks (Compliance Validation)
-    if (!master_data.comprador.cpf && body.tipo_comprador !== 'pj') {
+    const isContractType = [
+      'promessa_compra_venda',
+      'contrato_particular',
+      'recibo_sinal',
+      'distrato',
+    ].includes(tipoDocumento)
+
+    // General Compliance Validations
+    if (
+      !master_data.comprador.cpf &&
+      body.tipo_comprador !== 'pj' &&
+      tipoDocumento !== 'autorizacao_intermediacao'
+    ) {
       return e.badRequestError('Compliance Alert: CPF do comprador é obrigatório.')
     }
     if (!master_data.vendedor.cpf && !body.vendedor_pj) {
       return e.badRequestError('Compliance Alert: CPF do vendedor é obrigatório.')
     }
-    if (
-      (master_data.vendedor.estado_civil.toLowerCase() === 'casado' ||
-        master_data.vendedor.estado_civil.toLowerCase() === 'casada') &&
-      !master_data.vendedor.conjuge.nome
-    ) {
-      return e.badRequestError(
-        'Compliance Alert: Dados do cônjuge do vendedor são obrigatórios para casados (Sellers married under Communion of Assets require Spouse identification).',
-      )
-    }
-    if (master_data.comprador.financeiro.financiamento && !master_data.comprador.financeiro.banco) {
-      return e.badRequestError(
-        'Compliance Alert: Instituição Financeira é obrigatória para financiamentos.',
-      )
-    }
-    if (
-      master_data.comprador.financeiro.financiamento &&
-      master_data.financeiro.valor_financiamento === 0
-    ) {
-      return e.badRequestError(
-        'Compliance Alert: Valor do financiamento é obrigatório quando há financiamento.',
-      )
-    }
-    if (master_data.comissao.garantida && !master_data.comissao.responsavel_pagamento) {
-      return e.badRequestError(
-        'Compliance Alert: Responsável pelo pagamento da comissão é obrigatório para comissões garantidas.',
-      )
+
+    // Contract-specific Compliance Validations
+    if (isContractType) {
+      if (
+        (master_data.vendedor.estado_civil.toLowerCase() === 'casado' ||
+          master_data.vendedor.estado_civil.toLowerCase() === 'casada') &&
+        !master_data.vendedor.conjuge.nome
+      ) {
+        return e.badRequestError(
+          'Compliance Alert: Dados do cônjuge do vendedor são obrigatórios para casados (Sellers married under Communion of Assets require Spouse identification).',
+        )
+      }
+      if (
+        master_data.comprador.financeiro.financiamento &&
+        !master_data.comprador.financeiro.banco
+      ) {
+        return e.badRequestError(
+          'Compliance Alert: Instituição Financeira é obrigatória para financiamentos.',
+        )
+      }
+      if (
+        master_data.comprador.financeiro.financiamento &&
+        master_data.financeiro.valor_financiamento === 0
+      ) {
+        return e.badRequestError(
+          'Compliance Alert: Valor do financiamento é obrigatório quando há financiamento.',
+        )
+      }
+      if (master_data.comissao.garantida && !master_data.comissao.responsavel_pagamento) {
+        return e.badRequestError(
+          'Compliance Alert: Responsável pelo pagamento da comissão é obrigatório para comissões garantidas.',
+        )
+      }
     }
 
     const clauses = $app.findRecordsByFilter(
@@ -248,11 +267,71 @@ routerAdd(
       }
     })
 
-    // Sort by priority to help AI sequence them naturally
     availableClauses.sort((a, b) => a.priority - b.priority)
 
-    const systemPrompt = `Você é um Advogado Sênior Especialista em Direito Imobiliário brasileiro.
-Sua função é montar contratos juridicamente consistentes utilizando EXCLUSIVAMENTE as cláusulas fornecidas na "Available Clauses Library".
+    const documentTypeMap = {
+      ficha_cadastral: 'Ficha Cadastral',
+      checklist_documental: 'Checklist Documental',
+      recibo_sinal: 'Recibo de Sinal',
+      promessa_compra_venda: 'Promessa de Compra e Venda',
+      contrato_particular: 'Contrato Particular de Compra e Venda',
+      termo_entrega_chaves: 'Termo de Entrega de Chaves',
+      termo_posse: 'Termo de Posse',
+      declaracoes_complementares: 'Declarações Complementares',
+      autorizacao_intermediacao: 'Autorização de Intermediação Imobiliária',
+      distrato: 'Distrato de Compra e Venda',
+    }
+
+    const documentTitle = documentTypeMap[tipoDocumento] || 'Documento Imobiliário'
+    let systemPrompt = `Você é um Advogado Sênior Especialista em Direito Imobiliário brasileiro.`
+
+    if (tipoDocumento === 'ficha_cadastral') {
+      systemPrompt += `
+Sua função é gerar uma FICHA CADASTRAL estruturada contendo os dados do comprador, vendedor e do imóvel.
+Geração em TEXTO PURO (Plain Text). É ESTRITAMENTE PROIBIDO o uso de Markdown.
+Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 3 linhas:
+GODOY PRIME REALTY
+Assessoria Jurídica Imobiliária
+FICHA CADASTRAL
+
+Use os dados do Master JSON para preencher a ficha, organizando de forma clara (dados pessoais, contatos, dados do imóvel). Não inclua cláusulas contratuais.
+`
+    } else if (tipoDocumento === 'checklist_documental') {
+      systemPrompt += `
+Sua função é gerar um CHECKLIST DOCUMENTAL relacionando todos os documentos necessários para a transação imobiliária com base no perfil das partes e do imóvel.
+Geração em TEXTO PURO (Plain Text). É ESTRITAMENTE PROIBIDO o uso de Markdown.
+Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 3 linhas:
+GODOY PRIME REALTY
+Assessoria Jurídica Imobiliária
+CHECKLIST DOCUMENTAL
+
+Liste os documentos exigidos do Vendedor (ex: certidões negativas, matrícula), Comprador e Imóvel com base na situação informada. Organize em tópicos numéricos para facilitar a conferência.
+`
+    } else if (tipoDocumento === 'termo_entrega_chaves' || tipoDocumento === 'termo_posse') {
+      systemPrompt += `
+Sua função é gerar um ${documentTitle.toUpperCase()} formalizando a entrega das chaves e a imissão na posse do imóvel.
+Geração em TEXTO PURO (Plain Text). É ESTRITAMENTE PROIBIDO o uso de Markdown.
+Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 3 linhas:
+GODOY PRIME REALTY
+Assessoria Jurídica Imobiliária
+${documentTitle.toUpperCase()}
+
+Inclua a qualificação das partes, a descrição do imóvel, a data da posse e a declaração de que o comprador vistoriou o imóvel. Inclua espaço para assinaturas ao final.
+`
+    } else if (tipoDocumento === 'recibo_sinal') {
+      systemPrompt += `
+Sua função é gerar um RECIBO DE SINAL formalizando o pagamento do princípio de pagamento (arras).
+Geração em TEXTO PURO (Plain Text). É ESTRITAMENTE PROIBIDO o uso de Markdown.
+Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 3 linhas:
+GODOY PRIME REALTY
+Assessoria Jurídica Imobiliária
+RECIBO DE SINAL E PRINCÍPIO DE PAGAMENTO
+
+Inclua a qualificação das partes, o valor do sinal explicitado, a referência ao imóvel e as condições básicas das arras. Inclua espaço para assinatura de quem recebe.
+`
+    } else {
+      systemPrompt += `
+Sua função é montar contratos/distratos juridicamente consistentes utilizando EXCLUSIVAMENTE as cláusulas fornecidas na "Available Clauses Library".
 
 Regras Obrigatórias (Hard Rules):
 1. NEVER invent clauses. Only use the ones provided in the library. As variáveis interpoladas já foram preenchidas nos textos das cláusulas.
@@ -262,43 +341,41 @@ Regras Obrigatórias (Hard Rules):
 5. Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 3 linhas:
 GODOY PRIME REALTY
 Assessoria Jurídica Imobiliária
-MINUTA DE CONTRATO
+${documentTitle.toUpperCase()}
 
 6. Numeração Formal de Cláusulas: Estruture as cláusulas sequencialmente utilizando numeração ordinal em caixa alta (ex: CLÁUSULA PRIMEIRA - [TÍTULO], CLÁUSULA SEGUNDA - [TÍTULO]). As seções "Objeto do Contrato" e "Descrição do Imóvel" devem seguir esta mesma sequência numérica formal.
 7. Qualificação das Partes: Os rótulos VENDEDOR e COMPRADOR devem estar em caixa alta como texto puro, seguidos dos respectivos dados, sem símbolos de negrito.
-8. The final generated contract MUST strictly follow the "Estrutura Obrigatória" sequence:
-   -> Cabeçalho (GODOY PRIME REALTY...)
-   -> Qualifications (Qualificação das Partes: Vendedor, Comprador, Cônjuges, Procuradores)
-   -> Object & Description (Objeto do Contrato e Descrição do Imóvel e Registro)
-   -> Price/Payment (Condições de Pagamento e Preço)
-   -> Financing (Financiamento Bancário - se aplicável)
-   -> Possession (Posse e Desocupação)
-   -> Taxes (Tributos e Despesas)
-   -> Obligations (Obrigações)
-   -> Special Clauses (Cláusulas Especiais e Proteção Comercial)
-   -> Commission (Comissão de Corretagem)
-   -> Default (Penalidades e Multas)
-   -> Rescission (Rescisão)
-   -> LGPD (Conformidade LGPD)
-   -> Electronic Signature (Assinatura Eletrônica)
-   -> Forum (Foro / Resolução de Conflitos)
-   -> Signatures (Assinaturas e Testemunhas)
+8. The final generated contract MUST strictly follow the logical sequence:
+   -> Cabeçalho
+   -> Qualifications
+   -> Object & Description
+   -> Price/Payment
+   -> Financing (se aplicável)
+   -> Possession
+   -> Taxes
+   -> Obligations
+   -> Special Clauses
+   -> Commission
+   -> Default
+   -> Rescission
+   -> LGPD
+   -> Electronic Signature
+   -> Forum
+   -> Signatures
 
 Process:
 1. Analyze the matched "Available Clauses Library".
-2. Assemble the contract following the exact Structure Enforcement sequence above.
+2. Assemble the contract following the exact Structure sequence above.
 3. Do not output anything other than the final contract.
-
-Output:
-Provide ONLY the final assembled contract text in PLAIN TEXT format, without ANY markdown symbols, with appropriate line breaks. Do not include conversational text ou explicações.`
+`
+    }
 
     const userPrompt = `Master JSON Data (Variables & Triggers):
 ${JSON.stringify(master_data, null, 2)}
 
-Available Clauses Library:
-${JSON.stringify(availableClauses, null, 2)}
+${isContractType ? `Available Clauses Library:\n${JSON.stringify(availableClauses, null, 2)}` : ''}
 
-Please assemble the contract.`
+Por favor, gere o documento solicitado.`
 
     let anthropicKey = ''
     let openaiKey = ''

@@ -32,12 +32,12 @@ import { getErrorMessage } from '@/lib/pocketbase/errors'
 import { cn } from '@/lib/utils'
 import { ESTADO_CIVIL_OPTIONS, REGIME_BENS_OPTIONS, PLATAFORMA_OPTIONS } from '@/lib/constants'
 
-const WIZARD_STEPS = [
-  { id: 1, title: 'Comprador' },
-  { id: 2, title: 'Vendedor' },
-  { id: 3, title: 'Imóvel' },
-  { id: 4, title: 'Negociação' },
-  { id: 5, title: 'Compliance Jurídico' },
+const WIZARD_STEPS_ALL = [
+  { id: 'comprador', title: 'Comprador' },
+  { id: 'vendedor', title: 'Vendedor' },
+  { id: 'imovel', title: 'Imóvel' },
+  { id: 'negociacao', title: 'Negociação' },
+  { id: 'compliance', title: 'Compliance Jurídico' },
 ]
 
 function CompradorTab() {
@@ -332,10 +332,19 @@ function ImovelTab() {
   )
 }
 
-function NegociacaoTab() {
+function NegociacaoTab({ tipoDocumento }: { tipoDocumento: string }) {
   const { watch, control, setValue } = useFormContext()
   const total = watch('valor_total')
   const parcelas = watch('havera_parcelas')
+
+  const showValues = !['termo_entrega_chaves', 'termo_posse'].includes(tipoDocumento)
+  const showPosse = !['recibo_sinal', 'autorizacao_intermediacao'].includes(tipoDocumento)
+  const showParcelamento = ![
+    'recibo_sinal',
+    'termo_entrega_chaves',
+    'termo_posse',
+    'autorizacao_intermediacao',
+  ].includes(tipoDocumento)
 
   useEffect(() => {
     const s = parseCurrency(String(watch('valor_sinal') || '0'))
@@ -353,66 +362,74 @@ function NegociacaoTab() {
 
   return (
     <div className="space-y-6 animate-in fade-in">
-      <div className="p-4 bg-blue-50 border border-blue-100 rounded-lg flex justify-between items-center mb-6">
-        <span className="font-semibold">Valor Total Estimado:</span>
-        <span className="text-2xl font-bold text-blue-600">
-          {total ? formatCurrency(total) : 'R$ 0,00'}
-        </span>
-      </div>
-
-      <h3 className="font-semibold text-lg border-b pb-2">Valores</h3>
-      <div className="grid grid-cols-2 gap-4">
-        <FormCurrencyInput name="valor_sinal" label="Sinal (Arras)" />
-        <FormCurrencyInput name="valor_fgts" label="Valor FGTS" />
-        <FormCurrencyInput name="valor_financiamento" label="Valor a Financiar (Revisão)" />
-        <FormCurrencyInput name="valor_recursos_proprios" label="Recursos Próprios / Saldo" />
-      </div>
-
-      <div className="pt-4 border-t space-y-4">
-        <h3 className="font-semibold text-lg border-b pb-2">Parcelamento</h3>
-        <FormField
-          control={control}
-          name="havera_parcelas"
-          render={({ field }) => (
-            <FormItem className="flex items-center space-x-2">
-              <FormControl>
-                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-              </FormControl>
-              <FormLabel className="!mt-0 cursor-pointer">
-                Haverá pagamento parcelado direto?
-              </FormLabel>
-            </FormItem>
-          )}
-        />
-        {parcelas && (
-          <div className="grid grid-cols-2 gap-4 border p-4 rounded bg-slate-50">
-            <FormInput name="quantidade_parcelas" label="Quantidade de Parcelas" type="number" />
-            <FormCurrencyInput name="valor_parcela" label="Valor da Parcela" />
+      {showValues && (
+        <>
+          <div className="p-4 bg-blue-50 border border-blue-100 rounded-lg flex justify-between items-center mb-6">
+            <span className="font-semibold">Valor Total Estimado:</span>
+            <span className="text-2xl font-bold text-blue-600">
+              {total ? formatCurrency(total) : 'R$ 0,00'}
+            </span>
           </div>
-        )}
-      </div>
 
-      <div className="pt-4 border-t space-y-4">
-        <h3 className="font-semibold text-lg border-b pb-2">Posse do Imóvel</h3>
-        <FormField
-          control={control}
-          name="posse_imediata"
-          render={({ field }) => (
-            <FormItem className="flex items-center space-x-2 mb-4">
-              <FormControl>
-                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-              </FormControl>
-              <FormLabel className="!mt-0 cursor-pointer">Posse Imediata na Assinatura</FormLabel>
-            </FormItem>
-          )}
-        />
-        {!watch('posse_imediata') && (
-          <div className="grid grid-cols-2 gap-4 border p-4 rounded bg-slate-50">
-            <FormInput name="data_posse" label="Data de Posse Acordada" type="date" />
-            <FormInput name="prazo_desocupacao" label="Prazo Desocupação (dias)" type="number" />
+          <h3 className="font-semibold text-lg border-b pb-2">Valores</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <FormCurrencyInput name="valor_sinal" label="Sinal (Arras)" />
+            <FormCurrencyInput name="valor_fgts" label="Valor FGTS" />
+            <FormCurrencyInput name="valor_financiamento" label="Valor a Financiar (Revisão)" />
+            <FormCurrencyInput name="valor_recursos_proprios" label="Recursos Próprios / Saldo" />
           </div>
-        )}
-      </div>
+        </>
+      )}
+
+      {showParcelamento && (
+        <div className="pt-4 border-t space-y-4">
+          <h3 className="font-semibold text-lg border-b pb-2">Parcelamento</h3>
+          <FormField
+            control={control}
+            name="havera_parcelas"
+            render={({ field }) => (
+              <FormItem className="flex items-center space-x-2">
+                <FormControl>
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                </FormControl>
+                <FormLabel className="!mt-0 cursor-pointer">
+                  Haverá pagamento parcelado direto?
+                </FormLabel>
+              </FormItem>
+            )}
+          />
+          {parcelas && (
+            <div className="grid grid-cols-2 gap-4 border p-4 rounded bg-slate-50">
+              <FormInput name="quantidade_parcelas" label="Quantidade de Parcelas" type="number" />
+              <FormCurrencyInput name="valor_parcela" label="Valor da Parcela" />
+            </div>
+          )}
+        </div>
+      )}
+
+      {showPosse && (
+        <div className="pt-4 border-t space-y-4">
+          <h3 className="font-semibold text-lg border-b pb-2">Posse do Imóvel</h3>
+          <FormField
+            control={control}
+            name="posse_imediata"
+            render={({ field }) => (
+              <FormItem className="flex items-center space-x-2 mb-4">
+                <FormControl>
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                </FormControl>
+                <FormLabel className="!mt-0 cursor-pointer">Posse Imediata na Assinatura</FormLabel>
+              </FormItem>
+            )}
+          />
+          {!watch('posse_imediata') && (
+            <div className="grid grid-cols-2 gap-4 border p-4 rounded bg-slate-50">
+              <FormInput name="data_posse" label="Data de Posse Acordada" type="date" />
+              <FormInput name="prazo_desocupacao" label="Prazo Desocupação (dias)" type="number" />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -506,7 +523,16 @@ export function ContractForm({
   tipoDocumento: string
   onBack: () => void
 }) {
-  const [currentStep, setCurrentStep] = useState(1)
+  const activeSteps = WIZARD_STEPS_ALL.filter((s) => {
+    if (['ficha_cadastral', 'checklist_documental'].includes(tipoDocumento)) {
+      return s.id !== 'negociacao'
+    }
+    return true
+  })
+
+  const [currentStepIndex, setCurrentStepIndex] = useState(0)
+  const currentStepData = activeSteps[currentStepIndex]
+
   const [isGenerating, setIsGenerating] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [draftId, setDraftId] = useState<string | undefined>()
@@ -629,32 +655,41 @@ export function ContractForm({
   // Auto-save logic
   const handleNext = async () => {
     let isValid = false
+    const stepId = currentStepData.id
 
-    if (currentStep === 1) {
+    if (stepId === 'comprador') {
       isValid = await form.trigger(['nome_comprador'])
       const estC = form.getValues('estado_civil_comprador')
       if (estC === 'Casado' || estC === 'Casada') {
         if (!form.getValues('nome_conjuge_comprador')) {
-          toast.error('Informe o nome do cônjuge do comprador.')
-          isValid = false
+          if (tipoDocumento !== 'checklist_documental') {
+            toast.error('Informe o nome do cônjuge do comprador.')
+            isValid = false
+          } else {
+            isValid = true
+          }
         }
       }
-    } else if (currentStep === 2) {
+    } else if (stepId === 'vendedor') {
       isValid = await form.trigger(['nome_vendedor'])
       const estV = form.getValues('estado_civil_vendedor')
       if ((estV === 'Casado' || estV === 'Casada') && !form.getValues('conjuge_vendedor')) {
-        toast.error('Informe o nome do cônjuge do vendedor (Compliance exigido).')
-        isValid = false
+        if (tipoDocumento !== 'checklist_documental') {
+          toast.error('Informe o nome do cônjuge do vendedor (Compliance exigido).')
+          isValid = false
+        } else {
+          isValid = true
+        }
       }
-    } else if (currentStep === 3) {
+    } else if (stepId === 'imovel') {
       const mat = form.getValues('matricula_imovel')
-      if (!mat) {
-        toast.error('O número da Matrícula é obrigatório.')
+      if (!mat && !['ficha_cadastral', 'checklist_documental'].includes(tipoDocumento)) {
+        toast.error('O número da Matrícula é obrigatório para este documento.')
         isValid = false
       } else {
         isValid = true
       }
-    } else if (currentStep === 4) {
+    } else if (stepId === 'negociacao') {
       isValid = await form.trigger([
         'valor_sinal',
         'valor_fgts',
@@ -670,7 +705,11 @@ export function ContractForm({
       const valorFinanciamentoStr = form.getValues('valor_financiamento')
       const valorFinanciamentoVal = parseCurrencySafe(valorFinanciamentoStr)
 
-      if (isFinanciadoVal && valorFinanciamentoVal <= 0) {
+      if (
+        isFinanciadoVal &&
+        valorFinanciamentoVal <= 0 &&
+        !['ficha_cadastral', 'checklist_documental'].includes(tipoDocumento)
+      ) {
         toast.error(
           'Compliance Alert: Valor do financiamento é obrigatório quando há financiamento',
           {
@@ -703,7 +742,7 @@ export function ContractForm({
       console.error('Failed to autosave draft:', err)
     }
 
-    setCurrentStep((s) => s + 1)
+    setCurrentStepIndex((s) => s + 1)
   }
 
   const initiateGeneration = async () => {
@@ -720,7 +759,11 @@ export function ContractForm({
     const valorFinanciamento = parseCurrencySafe(values.valor_financiamento)
     let customValid = true
 
-    if (isFinanciado && valorFinanciamento <= 0) {
+    if (
+      isFinanciado &&
+      valorFinanciamento <= 0 &&
+      !['ficha_cadastral', 'checklist_documental'].includes(tipoDocumento)
+    ) {
       toast.error(
         'Compliance Alert: Valor do financiamento é obrigatório quando há financiamento',
         {
@@ -731,7 +774,8 @@ export function ContractForm({
         type: 'manual',
         message: 'Compliance Alert: Valor do financiamento é obrigatório quando há financiamento',
       })
-      setCurrentStep(4)
+      const negIndex = activeSteps.findIndex((s) => s.id === 'negociacao')
+      if (negIndex !== -1) setCurrentStepIndex(negIndex)
       setTimeout(() => {
         const el = document.querySelector('[name="valor_financiamento"]') as HTMLElement
         if (el) {
@@ -855,30 +899,30 @@ export function ContractForm({
       </div>
       <div className="flex justify-between mb-8 px-2 sm:px-12 relative">
         <div className="absolute top-5 left-8 right-8 sm:left-16 sm:right-16 h-[2px] bg-slate-200 -z-10" />
-        {WIZARD_STEPS.map((s) => (
+        {activeSteps.map((s, idx) => (
           <div
             key={s.id}
             className={cn(
               'flex flex-col items-center bg-transparent',
-              s.id <= currentStep ? 'text-primary' : 'text-slate-400',
+              idx <= currentStepIndex ? 'text-primary' : 'text-slate-400',
             )}
           >
             <div
               className={cn(
                 'w-10 h-10 rounded-full flex items-center justify-center font-bold mb-2 transition-all duration-300 border-2',
-                s.id === currentStep
+                idx === currentStepIndex
                   ? 'bg-primary text-primary-foreground border-secondary shadow-md ring-4 ring-primary/10'
-                  : s.id < currentStep
+                  : idx < currentStepIndex
                     ? 'bg-secondary text-secondary-foreground border-secondary shadow-sm'
                     : 'bg-white text-slate-400 border-slate-200',
               )}
             >
-              {s.id < currentStep ? <CheckCircle2 className="w-5 h-5 text-primary" /> : s.id}
+              {idx < currentStepIndex ? <CheckCircle2 className="w-5 h-5 text-primary" /> : idx + 1}
             </div>
             <span
               className={cn(
                 'text-[10px] sm:text-xs font-bold text-center w-16 sm:w-auto',
-                s.id === currentStep ? 'text-primary' : '',
+                idx === currentStepIndex ? 'text-primary' : '',
               )}
             >
               {s.title}
@@ -890,23 +934,25 @@ export function ContractForm({
         <CardContent className="p-8">
           <Form {...form}>
             <form className="space-y-6">
-              {currentStep === 1 && <CompradorTab />}
-              {currentStep === 2 && <VendedorTab />}
-              {currentStep === 3 && <ImovelTab />}
-              {currentStep === 4 && <NegociacaoTab />}
-              {currentStep === 5 && <ComplianceTab />}
+              {currentStepData.id === 'comprador' && <CompradorTab />}
+              {currentStepData.id === 'vendedor' && <VendedorTab />}
+              {currentStepData.id === 'imovel' && <ImovelTab />}
+              {currentStepData.id === 'negociacao' && (
+                <NegociacaoTab tipoDocumento={tipoDocumento} />
+              )}
+              {currentStepData.id === 'compliance' && <ComplianceTab />}
 
               <div className="flex justify-between pt-8 mt-8 border-t border-slate-100">
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setCurrentStep((s) => s - 1)}
-                  disabled={currentStep === 1 || isGenerating}
-                  className={currentStep === 1 ? 'invisible' : ''}
+                  onClick={() => setCurrentStepIndex((s) => s - 1)}
+                  disabled={currentStepIndex === 0 || isGenerating}
+                  className={currentStepIndex === 0 ? 'invisible' : ''}
                 >
                   <ChevronLeft className="mr-2 w-4 h-4" /> Anterior
                 </Button>
-                {currentStep < 5 ? (
+                {currentStepIndex < activeSteps.length - 1 ? (
                   <Button
                     type="button"
                     onClick={handleNext}
