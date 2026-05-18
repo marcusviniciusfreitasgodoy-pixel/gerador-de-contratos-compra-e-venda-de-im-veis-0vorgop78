@@ -200,6 +200,7 @@ export default function ContractView() {
     } catch (error) {
       setApiError(true)
       setGenerating(false)
+      setMinuta('')
       toast.error('Erro na requisição para o provedor de IA.')
     }
   }
@@ -320,13 +321,23 @@ export default function ContractView() {
         </div>
       </div>
 
-      {!hasKeys && (
+      {!hasKeys && !apiError && (
         <Alert variant="destructive" className="mb-6 animate-in slide-in-from-top-2">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Configuração necessária</AlertTitle>
-          <AlertDescription>
-            Você precisa configurar ao menos uma chave de API de Inteligência Artificial (OpenAI,
-            Gemini ou Anthropic) no seu Perfil para gerar minutas.
+          <AlertDescription className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
+            <span>
+              Você precisa configurar ao menos uma chave de API de Inteligência Artificial (OpenAI,
+              Gemini ou Anthropic) no seu Perfil para gerar minutas.
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/profile')}
+              className="bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 border-red-200"
+            >
+              Configurar Chaves
+            </Button>
           </AlertDescription>
         </Alert>
       )}
@@ -335,9 +346,19 @@ export default function ContractView() {
         <Alert variant="destructive" className="mb-6 animate-in slide-in-from-top-2">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Erro na Geração</AlertTitle>
-          <AlertDescription>
-            Não foi possível gerar a minuta. Verifique se suas chaves de API estão configuradas
-            corretamente no seu Perfil.
+          <AlertDescription className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
+            <span>
+              Não foi possível gerar a minuta. Verifique se suas chaves de API estão configuradas
+              corretamente no seu Perfil.
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/profile')}
+              className="bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 border-red-200"
+            >
+              Configurar Chaves
+            </Button>
           </AlertDescription>
         </Alert>
       )}

@@ -294,8 +294,28 @@ ${JSON.stringify(availableClauses, null, 2)}
 
 Please assemble the contract.`
 
-    const url = $secrets.get('SKIP_AI_GATEWAY_URL')
-    const apiKey = $secrets.get('SKIP_AI_GATEWAY_API_KEY')
+    let anthropicKey = ''
+    let openaiKey = ''
+    let geminiKey = ''
+
+    if (e.auth?.id) {
+      try {
+        const userRecord = $app.findRecordById('users', e.auth.id)
+        anthropicKey = userRecord.getString('anthropic_api_key')
+        openaiKey = userRecord.getString('openai_api_key')
+        geminiKey = userRecord.getString('gemini_api_key')
+      } catch (_) {}
+    }
+
+    if (!anthropicKey) anthropicKey = $secrets.get('ANTHROPIC_API_KEY') || ''
+    if (!openaiKey) openaiKey = $secrets.get('OPENAI_API_KEY') || ''
+    if (!geminiKey) geminiKey = $secrets.get('GEMINI_API_KEY') || ''
+
+    if (!anthropicKey && !openaiKey && !geminiKey) {
+      return e.badRequestError(
+        'Configure pelo menos uma chave de API para habilitar a geração por IA.',
+      )
+    }
 
     let generatedText = 'Minuta não gerada. Erro no provedor de IA.'
     let usedClauses = availableClauses.map((c) => ({
@@ -304,46 +324,72 @@ Please assemble the contract.`
       version: c.version,
     }))
 
-    if (url && apiKey) {
+    let success = false
+    let lastErrorMsg = ''
+
+    if (anthropicKey && !success) {
+      const aiBody = {
+        model: 'claude-3-5-sonnet-latest',
+        max_tokens: 4096,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }],
+      }
       try {
-        const completionUrl = url.endsWith('/')
-          ? url + 'v1/chat/completions'
-          : url + '/v1/chat/completions'
-        const res = $http.send({
-          url: completionUrl,
+        const chatRes = $http.send({
+          url: 'https://api.anthropic.com/v1/messages',
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            Authorization: 'Bearer ' + apiKey,
+            'x-api-key': anthropicKey,
+            'anthropic-version': '2023-06-01',
+            'content-type': 'application/json',
           },
-          body: JSON.stringify({
-            model: 'gpt-4o',
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: userPrompt },
-            ],
-          }),
-          timeout: 110,
+          body: JSON.stringify(aiBody),
+          timeout: 120,
         })
-
-        if (res.statusCode === 200 && res.json && res.json.choices && res.json.choices.length > 0) {
-          generatedText = res.json.choices[0].message.content
+        if (chatRes.statusCode === 200) {
+          generatedText = chatRes.json.content[0].text
+          success = true
         } else {
-          $app
-            .logger()
-            .warn(
-              'AI Gateway returned non-200',
-              'status',
-              res.statusCode,
-              'json',
-              res.json || 'No JSON response',
-            )
-          throw new Error('AI Generation failed')
+          lastErrorMsg = chatRes.json?.error?.message || `Anthropic: ${chatRes.statusCode}`
         }
       } catch (err) {
-        $app.logger().error('AI Gateway call failed', 'error', err)
-        generatedText = 'Minuta não gerada. Erro no provedor de IA.'
+        lastErrorMsg = err.message
       }
+    }
+
+    if (openaiKey && !success) {
+      const aiBody = {
+        model: 'gpt-4o',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+      }
+      try {
+        const chatRes = $http.send({
+          url: 'https://api.openai.com/v1/chat/completions',
+          method: 'POST',
+          headers: {
+            Authorization: 'Bearer ' + openaiKey,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(aiBody),
+          timeout: 120,
+        })
+        if (chatRes.statusCode === 200) {
+          generatedText = chatRes.json.choices[0].message.content
+          success = true
+        } else {
+          lastErrorMsg = chatRes.json?.error?.message || `OpenAI: ${chatRes.statusCode}`
+        }
+      } catch (err) {
+        lastErrorMsg = err.message
+      }
+    }
+
+    if (!success) {
+      $app.logger().error('AI Generation failed', 'error', lastErrorMsg)
+      generatedText = 'Minuta não gerada. Erro no provedor de IA.'
     }
 
     return e.json(200, { minuta_texto: generatedText, used_clauses: usedClauses })
