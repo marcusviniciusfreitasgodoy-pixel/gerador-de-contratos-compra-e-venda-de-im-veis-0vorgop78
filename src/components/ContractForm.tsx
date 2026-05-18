@@ -68,11 +68,13 @@ function CompradorTab() {
         <div className="grid grid-cols-2 gap-4">
           <FormMaskedInput name="cnpj_comprador" label="CNPJ" maskType="cnpj" />
           <FormInput name="representante_comprador" label="Representante Legal" />
+          <FormInput name="email_comprador" label="E-mail do Comprador" type="email" />
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-4">
           <FormMaskedInput name="cpf_comprador" label="CPF" maskType="cpf" />
           <FormInput name="rg_comprador" label="RG" />
+          <FormInput name="email_comprador" label="E-mail do Comprador" type="email" />
           <FormSelect
             name="nacionalidade_comprador"
             label="Nacionalidade"
@@ -186,11 +188,13 @@ function VendedorTab() {
         <div className="grid grid-cols-2 gap-4">
           <FormMaskedInput name="cnpj_vendedor" label="CNPJ" maskType="cnpj" />
           <FormInput name="representante_vendedor" label="Representante Legal" />
+          <FormInput name="email_vendedor" label="E-mail do Vendedor" type="email" />
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-4">
           <FormMaskedInput name="cpf_vendedor" label="CPF" maskType="cpf" />
           <FormInput name="rg_vendedor" label="RG" />
+          <FormInput name="email_vendedor" label="E-mail do Vendedor" type="email" />
           <FormSelect
             name="estado_civil_vendedor"
             label="Estado Civil"
@@ -624,6 +628,7 @@ export function ContractForm({
       ...currentValues,
       tipo_comprador: 'pf',
       nome_comprador: 'João Batista da Silva',
+      email_comprador: 'joao.batista@email.com',
       cpf_comprador: '123.456.789-00',
       rg_comprador: '12.345.678-9',
       nacionalidade_comprador: 'Brasileiro(a)',
@@ -642,6 +647,7 @@ export function ContractForm({
 
       vendedor_pj: false,
       nome_vendedor: 'Carlos Eduardo Oliveira',
+      email_vendedor: 'carlos.eduardo@email.com',
       cpf_vendedor: '111.222.333-44',
       rg_vendedor: '11.222.333-4',
       estado_civil_vendedor: 'Divorciado',
