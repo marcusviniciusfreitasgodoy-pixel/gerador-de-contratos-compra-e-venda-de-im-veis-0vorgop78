@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import pb from '@/lib/pocketbase/client'
 import {
   getLegalKnowledge,
   createLegalKnowledge,
@@ -25,6 +26,9 @@ export default function LegalKnowledgeForm() {
 
   const [loading, setLoading] = useState(isEditing)
   const [saving, setSaving] = useState(false)
+  const [sourceFile, setSourceFile] = useState<File | null>(null)
+  const [record, setRecord] = useState<any>(null)
+
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -33,12 +37,14 @@ export default function LegalKnowledgeForm() {
     priority: 1,
     trigger_logic: '',
     code: '',
+    source_file: '',
   })
 
   useEffect(() => {
     if (id) {
       getLegalKnowledge(id)
         .then((data) => {
+          setRecord(data)
           setFormData({
             title: data.title || '',
             content: data.content || '',
@@ -47,6 +53,7 @@ export default function LegalKnowledgeForm() {
             priority: data.priority || 1,
             trigger_logic: data.trigger_logic || '',
             code: data.code || '',
+            source_file: data.source_file || '',
           })
         })
         .catch((error) => {
@@ -59,13 +66,39 @@ export default function LegalKnowledgeForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!formData.content && !sourceFile && !formData.source_file) {
+      toast.error('Forneça o conteúdo manualmente ou envie um documento fonte.')
+      return
+    }
+
     setSaving(true)
     try {
+      const submitData = new FormData()
+      submitData.append('title', formData.title)
+      submitData.append('category', formData.category)
+      submitData.append('version', String(formData.version))
+      submitData.append('priority', String(formData.priority))
+      submitData.append('trigger_logic', formData.trigger_logic)
+      submitData.append('code', formData.code)
+
+      if (formData.content) {
+        submitData.append('content', formData.content)
+      } else if (sourceFile) {
+        submitData.append('content', 'Processando documento...')
+      } else {
+        submitData.append('content', '')
+      }
+
+      if (sourceFile) {
+        submitData.append('source_file', sourceFile)
+      }
+
       if (isEditing && id) {
-        await updateLegalKnowledge(id, formData)
+        await updateLegalKnowledge(id, submitData)
         toast.success('Registro atualizado com sucesso')
       } else {
-        await createLegalKnowledge(formData)
+        await createLegalKnowledge(submitData)
         toast.success('Registro criado com sucesso')
       }
       navigate('/admin/knowledge')
@@ -87,7 +120,7 @@ export default function LegalKnowledgeForm() {
           </h1>
           <p className="text-muted-foreground">Preencha os detalhes do registro para a IA.</p>
         </div>
-        <Button variant="outline" onClick={() => navigate('/admin/knowledge')}>
+        <Button variant="outline" onClick={() => navigate('/admin/knowledge')} disabled={saving}>
           Cancelar
         </Button>
       </div>
@@ -164,13 +197,56 @@ export default function LegalKnowledgeForm() {
             />
           </div>
 
+          <div className="space-y-2 md:col-span-2 p-4 border rounded-md bg-muted/30">
+            <Label htmlFor="source_file" className="font-semibold text-base">
+              Documento Fonte (Opcional)
+            </Label>
+            <div className="mt-2">
+              <Input
+                id="source_file"
+                type="file"
+                className="bg-background cursor-pointer"
+                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                onChange={(e) => {
+                  if (e.target.files && e.target.files.length > 0) {
+                    setSourceFile(e.target.files[0])
+                  }
+                }}
+              />
+              <p className="text-xs text-muted-foreground mt-2">
+                Envie um PDF ou Word para extração automática do texto e processamento pela IA.
+                Limite: 10MB.
+              </p>
+            </div>
+
+            {formData.source_file && !sourceFile && record && (
+              <div className="mt-3 text-sm flex items-center gap-2 bg-background p-2 rounded border">
+                <span className="font-medium">Arquivo atual:</span>
+                <a
+                  href={pb.files.getURL(record, formData.source_file)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-primary hover:underline truncate max-w-[300px]"
+                  title={formData.source_file}
+                >
+                  {formData.source_file}
+                </a>
+              </div>
+            )}
+          </div>
+
           <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="content">Conteúdo (Texto ou Markdown)</Label>
+            <Label htmlFor="content">Conteúdo Manual / Extraído (Texto ou Markdown)</Label>
             <Textarea
               id="content"
               value={formData.content}
               onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-              required
+              required={!sourceFile && !formData.source_file}
+              placeholder={
+                sourceFile
+                  ? 'O conteúdo será extraído do arquivo enviado...'
+                  : 'Digite o conteúdo da cláusula ou documento...'
+              }
               className="min-h-[200px]"
             />
           </div>
@@ -178,7 +254,7 @@ export default function LegalKnowledgeForm() {
 
         <div className="flex justify-end pt-4 border-t">
           <Button type="submit" disabled={saving}>
-            {saving ? 'Salvando...' : 'Salvar Registro'}
+            {saving ? 'Processando...' : 'Salvar Registro'}
           </Button>
         </div>
       </form>

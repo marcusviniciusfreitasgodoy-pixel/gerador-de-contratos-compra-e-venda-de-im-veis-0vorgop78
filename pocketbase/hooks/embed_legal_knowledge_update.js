@@ -1,4 +1,5 @@
 onRecordAfterUpdateSuccess((e) => {
+  if (e.record.getString('content') === 'Processando documento...') return e.next()
   const original = e.record.original()
   const oldText = (original.getString('title') + '\n\n' + original.getString('content')).trim()
   const text = (e.record.getString('title') + '\n\n' + e.record.getString('content')).trim()

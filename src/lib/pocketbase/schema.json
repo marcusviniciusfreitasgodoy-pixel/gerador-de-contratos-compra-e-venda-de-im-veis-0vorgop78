@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-18T19:12:06.944Z",
+  "generatedAt": "2026-05-18T19:25:35.524Z",
   "collections": [
     {
       "name": "users",
@@ -1174,6 +1174,12 @@
         {
           "name": "priority",
           "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "source_file",
+          "type": "file",
           "required": false,
           "system": false
         }

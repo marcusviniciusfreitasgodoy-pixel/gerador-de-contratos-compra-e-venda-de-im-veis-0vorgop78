@@ -1,4 +1,5 @@
 onRecordAfterCreateSuccess((e) => {
+  if (e.record.getString('content') === 'Processando documento...') return e.next()
   const text = (e.record.getString('title') + '\n\n' + e.record.getString('content')).trim()
   if (!text) return e.next()
   const apiKey = $secrets.get('OPENAI_API_KEY')

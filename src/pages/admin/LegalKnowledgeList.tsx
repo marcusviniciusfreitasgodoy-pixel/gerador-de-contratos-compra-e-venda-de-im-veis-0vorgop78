@@ -6,7 +6,8 @@ import {
   type LegalKnowledge,
 } from '@/services/legal_knowledge'
 import { Button } from '@/components/ui/button'
-import { Plus, Edit, Trash2 } from 'lucide-react'
+import { Plus, Edit, Trash2, FileText } from 'lucide-react'
+import pb from '@/lib/pocketbase/client'
 import {
   Table,
   TableBody,
@@ -78,8 +79,8 @@ export default function LegalKnowledgeList() {
             <TableRow>
               <TableHead>Título</TableHead>
               <TableHead>Categoria</TableHead>
+              <TableHead>Arquivo</TableHead>
               <TableHead>Código</TableHead>
-              <TableHead>Prioridade</TableHead>
               <TableHead>Versão</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
@@ -100,14 +101,33 @@ export default function LegalKnowledgeList() {
             ) : (
               items.map((item) => (
                 <TableRow key={item.id}>
-                  <TableCell className="font-medium max-w-[300px] truncate" title={item.title}>
+                  <TableCell className="font-medium max-w-[250px] truncate" title={item.title}>
                     {item.title}
                   </TableCell>
                   <TableCell>
                     <Badge variant="secondary">{categoryMap[item.category] || item.category}</Badge>
                   </TableCell>
+                  <TableCell>
+                    {item.source_file ? (
+                      <a
+                        href={pb.files.getURL(item as any, item.source_file)}
+                        target="_blank"
+                        rel="noreferrer"
+                        title={item.source_file}
+                      >
+                        <Badge
+                          variant="outline"
+                          className="flex items-center gap-1 w-fit cursor-pointer hover:bg-muted"
+                        >
+                          <FileText className="w-3 h-3" />
+                          <span className="truncate max-w-[80px]">{item.source_file}</span>
+                        </Badge>
+                      </a>
+                    ) : (
+                      <span className="text-muted-foreground text-sm">-</span>
+                    )}
+                  </TableCell>
                   <TableCell>{item.code || '-'}</TableCell>
-                  <TableCell>{item.priority ?? '-'}</TableCell>
                   <TableCell>{item.version ?? '-'}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">

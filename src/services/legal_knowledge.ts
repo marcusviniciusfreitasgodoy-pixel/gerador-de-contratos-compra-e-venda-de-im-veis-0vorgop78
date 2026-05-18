@@ -15,14 +15,15 @@ export interface LegalKnowledge extends RecordModel {
   code?: string
   trigger_logic?: string
   priority?: number
+  source_file?: string
 }
 
 export const getLegalKnowledgeList = () =>
   pb.collection('legal_knowledge').getFullList<LegalKnowledge>({ sort: '-created' })
 export const getLegalKnowledge = (id: string) =>
   pb.collection('legal_knowledge').getOne<LegalKnowledge>(id)
-export const createLegalKnowledge = (data: Partial<LegalKnowledge>) =>
+export const createLegalKnowledge = (data: Partial<LegalKnowledge> | FormData) =>
   pb.collection('legal_knowledge').create<LegalKnowledge>(data)
-export const updateLegalKnowledge = (id: string, data: Partial<LegalKnowledge>) =>
+export const updateLegalKnowledge = (id: string, data: Partial<LegalKnowledge> | FormData) =>
   pb.collection('legal_knowledge').update<LegalKnowledge>(id, data)
 export const deleteLegalKnowledge = (id: string) => pb.collection('legal_knowledge').delete(id)
