@@ -6,24 +6,38 @@ export default function NewContract() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  const [tipoDocumento, setTipoDocumento] = useState('promessa_cv')
+  const [tipoDocumento, setTipoDocumento] = useState(() => {
+    let tipo = location.state?.tipo_documento || 'promessa_compra_venda'
+    if (tipo === 'promessa_cv') tipo = 'promessa_compra_venda'
+    if (tipo === 'checklist') tipo = 'checklist_documental'
+    if (tipo === 'termo_chaves') tipo = 'termo_entrega_chaves'
+    if (tipo === 'declaracoes') tipo = 'declaracoes_complementares'
+    if (tipo === 'autorizacao') tipo = 'autorizacao_intermediacao'
+    return tipo
+  })
 
   useEffect(() => {
     if (location.state?.tipo_documento) {
-      setTipoDocumento(location.state.tipo_documento)
+      let tipo = location.state.tipo_documento
+      if (tipo === 'promessa_cv') tipo = 'promessa_compra_venda'
+      if (tipo === 'checklist') tipo = 'checklist_documental'
+      if (tipo === 'termo_chaves') tipo = 'termo_entrega_chaves'
+      if (tipo === 'declaracoes') tipo = 'declaracoes_complementares'
+      if (tipo === 'autorizacao') tipo = 'autorizacao_intermediacao'
+      setTipoDocumento(tipo)
     }
   }, [location])
 
   const titleMap: Record<string, string> = {
     ficha_cadastral: 'Ficha Cadastral',
-    checklist: 'Checklist Documental',
+    checklist_documental: 'Checklist Documental',
     recibo_sinal: 'Recibo de Sinal',
-    promessa_cv: 'Promessa de Compra e Venda',
+    promessa_compra_venda: 'Promessa de Compra e Venda',
     contrato_particular: 'Contrato Particular',
-    termo_chaves: 'Termo de Entrega de Chaves',
+    termo_entrega_chaves: 'Termo de Entrega de Chaves',
     termo_posse: 'Termo de Posse',
-    declaracoes: 'Declarações Complementares',
-    autorizacao: 'Autorização de Intermediação',
+    declaracoes_complementares: 'Declarações Complementares',
+    autorizacao_intermediacao: 'Autorização de Intermediação',
     distrato: 'Distrato de Contrato',
   }
 
