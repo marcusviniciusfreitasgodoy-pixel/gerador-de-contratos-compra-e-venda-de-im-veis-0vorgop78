@@ -147,7 +147,10 @@ export const contractSchema = z
     checklist_compliance: z.record(z.boolean()).optional(),
   })
   .superRefine((data, ctx) => {
-    const isFinanciado = data.financiamento_comprador || data.possui_financiamento
+    const isFinanciado =
+      data.financiamento_comprador ||
+      data.possui_financiamento ||
+      (data as any).tipo_negociacao === 'financiamento'
     if (isFinanciado && (!data.valor_financiamento || data.valor_financiamento <= 0)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

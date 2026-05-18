@@ -1,6 +1,7 @@
 import pb from '@/lib/pocketbase/client'
 import type { ContractFormValues } from '@/lib/schemas'
 import { parseCurrency } from '@/lib/formatters'
+import { parseCurrencySafe } from '@/lib/schemas'
 
 const toPbDate = (dateStr?: string | null) => {
   if (!dateStr) return null
@@ -38,14 +39,14 @@ export const saveContractDraft = async (
     area_total: Number(data.area_total) || 0,
     area_privativa: Number(data.area_privativa) || 0,
     vagas_garagem: Number(data.vagas_garagem) || 0,
-    valor_total: parseCurrency(String(data.valor_total || 0)),
-    valor_sinal: parseCurrency(String(data.valor_sinal || 0)),
-    valor_financiamento: parseCurrency(String(data.valor_financiamento || 0)),
-    valor_fgts: parseCurrency(String(data.valor_fgts || 0)),
-    valor_recursos_proprios: parseCurrency(String(data.valor_recursos_proprios || 0)),
-    valor_parcela: parseCurrency(String(data.valor_parcela || 0)),
-    valor_comissao: parseCurrency(String(data.valor_comissao || 0)),
-    multa_desocupacao: parseCurrency(String(data.multa_desocupacao || 0)),
+    valor_total: parseCurrencySafe(data.valor_total),
+    valor_sinal: parseCurrencySafe(data.valor_sinal),
+    valor_financiamento: parseCurrencySafe(data.valor_financiamento),
+    valor_fgts: parseCurrencySafe(data.valor_fgts),
+    valor_recursos_proprios: parseCurrencySafe(data.valor_recursos_proprios),
+    valor_parcela: parseCurrencySafe(data.valor_parcela),
+    valor_comissao: parseCurrencySafe(data.valor_comissao),
+    multa_desocupacao: parseCurrencySafe(data.multa_desocupacao),
     quantidade_parcelas: Number(data.quantidade_parcelas) || 0,
     prazo_financiamento: Number(data.prazo_financiamento) || 0,
     multa_inadimplencia: Number(data.multa_inadimplencia) || 0,

@@ -530,13 +530,19 @@ export function ContractForm({
     mode: 'onChange',
   })
 
-  const isFinanciado = form.watch('financiamento_comprador') || form.watch('possui_financiamento')
+  const isFinanciado =
+    form.watch('financiamento_comprador') ||
+    form.watch('possui_financiamento') ||
+    form.watch('tipo_negociacao' as any) === 'financiamento'
+  const valorFinanciamentoWatch = form.watch('valor_financiamento')
 
   useEffect(() => {
     if (!isFinanciado) {
       form.clearErrors('valor_financiamento')
+    } else if (parseCurrencySafe(valorFinanciamentoWatch) > 0) {
+      form.clearErrors('valor_financiamento')
     }
-  }, [isFinanciado, form])
+  }, [isFinanciado, valorFinanciamentoWatch, form])
 
   const handleFillMockData = () => {
     const currentValues = form.getValues()
@@ -655,12 +661,14 @@ export function ContractForm({
         'havera_parcelas',
       ])
 
-      const isFinanciado =
-        form.getValues('financiamento_comprador') || form.getValues('possui_financiamento')
+      const isFinanciadoVal =
+        form.getValues('financiamento_comprador') ||
+        form.getValues('possui_financiamento') ||
+        (form.getValues() as any).tipo_negociacao === 'financiamento'
       const valorFinanciamentoStr = form.getValues('valor_financiamento')
-      const valorFinanciamento = parseCurrencySafe(valorFinanciamentoStr)
+      const valorFinanciamentoVal = parseCurrencySafe(valorFinanciamentoStr)
 
-      if (isFinanciado && valorFinanciamento <= 0) {
+      if (isFinanciadoVal && valorFinanciamentoVal <= 0) {
         toast.error(
           'Compliance Alert: Valor do financiamento é obrigatório quando há financiamento',
           {
@@ -679,6 +687,8 @@ export function ContractForm({
           }
         }, 100)
         isValid = false
+      } else {
+        form.clearErrors('valor_financiamento')
       }
     }
 
@@ -697,10 +707,15 @@ export function ContractForm({
   const initiateGeneration = async () => {
     const valid = await form.trigger()
 
+    const rawValues = form.getValues()
+    const parsedResult = contractSchema.safeParse(rawValues)
+    const values = parsedResult.success ? parsedResult.data : rawValues
+
     const isFinanciado =
-      form.getValues('financiamento_comprador') || form.getValues('possui_financiamento')
-    const valorFinanciamentoStr = form.getValues('valor_financiamento')
-    const valorFinanciamento = parseCurrencySafe(valorFinanciamentoStr)
+      values.financiamento_comprador ||
+      values.possui_financiamento ||
+      (values as any).tipo_negociacao === 'financiamento'
+    const valorFinanciamento = parseCurrencySafe(values.valor_financiamento)
     let customValid = true
 
     if (isFinanciado && valorFinanciamento <= 0) {
@@ -723,17 +738,17 @@ export function ContractForm({
         }
       }, 100)
       customValid = false
+    } else {
+      form.clearErrors('valor_financiamento')
     }
 
     if (!valid || !customValid) return toast.error('Preencha todos os campos obrigatórios.')
 
-    const lgpd = form.getValues('clausula_lgpd')
+    const lgpd = values.clausula_lgpd
     if (!lgpd) return toast.error('O consentimento da LGPD é obrigatório.')
 
     setIsGenerating(true)
     try {
-      const values = form.getValues()
-
       const jsonMestre = {
         comprador: {
           nome: values.nome_comprador,
@@ -760,7 +775,7 @@ export function ContractForm({
         },
       }
 
-      const payloadForAi = { ...values, json_mestre: jsonMestre }
+      const payloadForAi = { ...values, json_mestre: jsonMestre } as any
       delete payloadForAi.matricula_file
       delete payloadForAi.iptu_file
 
