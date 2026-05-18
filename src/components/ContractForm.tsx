@@ -378,6 +378,35 @@ function NegociacaoTab({ tipoDocumento }: { tipoDocumento: string }) {
             <FormCurrencyInput name="valor_financiamento" label="Valor a Financiar (Revisão)" />
             <FormCurrencyInput name="valor_recursos_proprios" label="Recursos Próprios / Saldo" />
           </div>
+
+          <h3 className="font-semibold text-lg border-b pb-2 mt-6">Comissão</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <FormInput name="percentual_comissao" label="Percentual (%)" type="number" />
+            <FormCurrencyInput name="valor_comissao" label="Valor Fixo da Comissão" />
+            <FormSelect
+              name="responsavel_comissao"
+              label="Responsável Pagamento"
+              options={[
+                { label: 'Vendedor', value: 'vendedor' },
+                { label: 'Comprador', value: 'comprador' },
+                { label: 'Ambos', value: 'ambos' },
+              ]}
+            />
+            <FormField
+              control={control}
+              name="comissao_garantida"
+              render={({ field }) => (
+                <FormItem className="flex items-center space-x-2 mt-8">
+                  <FormControl>
+                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                  </FormControl>
+                  <FormLabel className="!mt-0 cursor-pointer">
+                    Comissão Garantida em Distrato
+                  </FormLabel>
+                </FormItem>
+              )}
+            />
+          </div>
         </>
       )}
 
@@ -430,6 +459,14 @@ function NegociacaoTab({ tipoDocumento }: { tipoDocumento: string }) {
           )}
         </div>
       )}
+
+      <div className="pt-4 border-t space-y-4">
+        <h3 className="font-semibold text-lg border-b pb-2">Penalidades / Multas</h3>
+        <div className="grid grid-cols-2 gap-4">
+          <FormInput name="multa_inadimplencia" label="Multa Inadimplência (%)" type="number" />
+          <FormCurrencyInput name="multa_desocupacao" label="Multa Atraso Desocupação (Diária)" />
+        </div>
+      </div>
     </div>
   )
 }
@@ -637,6 +674,11 @@ export function ContractForm({
       valor_financiamento: formatCurrency(500000 * 0.7), // 70% do valor total
       valor_recursos_proprios: '0,00',
       havera_parcelas: false,
+
+      percentual_comissao: 5,
+      valor_comissao: '0,00',
+      responsavel_comissao: 'vendedor',
+      comissao_garantida: true,
 
       posse_imediata: false,
       data_posse: '2026-12-01',

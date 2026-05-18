@@ -240,34 +240,45 @@ routerAdd(
     }
 
     let availableClauses = []
-    clauses.forEach((m) => {
-      const cat = m.getString('category')
-      const trigger = m.getString('trigger_logic') || ''
 
-      let include = true
+    // Automated filtering of the legal knowledge base
+    const isSimpleDocument = [
+      'declaracoes_complementares',
+      'autorizacao_intermediacao',
+      'distrato',
+    ].includes(tipoDocumento)
 
-      if (cat === 'clausula_condicional' && trigger) {
-        include = triggerLogicEval(trigger, master_data)
-      }
+    if (!isSimpleDocument) {
+      clauses.forEach((m) => {
+        const cat = m.getString('category')
+        const trigger = m.getString('trigger_logic') || ''
 
-      if (include) {
-        const rawContent = m.getString('content')
-        const interpolatedContent = replaceVariables(rawContent, master_data)
+        let include = true
 
-        availableClauses.push({
-          id: m.id,
-          code: m.getString('code') || m.getString('title').split(' - ')[0] || m.getString('title'),
-          title: m.getString('title'),
-          type: cat,
-          trigger: trigger || 'Always include',
-          content: interpolatedContent,
-          version: m.getInt('version') || 1,
-          priority: m.getInt('priority') || 999,
-        })
-      }
-    })
+        if (cat === 'clausula_condicional' && trigger) {
+          include = triggerLogicEval(trigger, master_data)
+        }
 
-    availableClauses.sort((a, b) => a.priority - b.priority)
+        if (include) {
+          const rawContent = m.getString('content')
+          const interpolatedContent = replaceVariables(rawContent, master_data)
+
+          availableClauses.push({
+            id: m.id,
+            code:
+              m.getString('code') || m.getString('title').split(' - ')[0] || m.getString('title'),
+            title: m.getString('title'),
+            type: cat,
+            trigger: trigger || 'Always include',
+            content: interpolatedContent,
+            version: m.getInt('version') || 1,
+            priority: m.getInt('priority') || 999,
+          })
+        }
+      })
+
+      availableClauses.sort((a, b) => a.priority - b.priority)
+    }
 
     const documentTypeMap = {
       ficha_cadastral: 'Ficha Cadastral',
@@ -329,9 +340,53 @@ RECIBO DE SINAL E PRINCÍPIO DE PAGAMENTO
 
 Inclua a qualificação das partes, o valor do sinal explicitado, a referência ao imóvel e as condições básicas das arras. Inclua espaço para assinatura de quem recebe.
 `
+    } else if (tipoDocumento === 'autorizacao_intermediacao') {
+      systemPrompt += `
+Sua função é gerar uma AUTORIZAÇÃO DE INTERMEDIAÇÃO IMOBILIÁRIA.
+Geração em TEXTO PURO (Plain Text). É ESTRITAMENTE PROIBIDO o uso de Markdown.
+Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 3 linhas:
+GODOY PRIME REALTY
+Assessoria Jurídica Imobiliária
+AUTORIZAÇÃO DE INTERMEDIAÇÃO IMOBILIÁRIA
+
+Regras Específicas:
+1. Foque exclusivamente nos termos da corretagem, regras de comissionamento (valor/percentual e responsabilidade), exclusividade (se for o caso) e as obrigações da imobiliária (Godoy Prime Realty) e do Vendedor (proprietário).
+2. Omita totalmente cláusulas relativas à transferência da propriedade (compra e venda), posse, multas de desocupação e financiamento.
+3. Utilize numeração formal de cláusulas (CLÁUSULA PRIMEIRA - DO OBJETO, etc).
+4. O Objeto é a autorização para a intermediação da venda do imóvel descrito.
+`
+    } else if (tipoDocumento === 'distrato') {
+      systemPrompt += `
+Sua função é gerar um DISTRATO DE COMPRA E VENDA.
+Geração em TEXTO PURO (Plain Text). É ESTRITAMENTE PROIBIDO o uso de Markdown.
+Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 3 linhas:
+GODOY PRIME REALTY
+Assessoria Jurídica Imobiliária
+DISTRATO DE COMPRA E VENDA
+
+Regras Específicas:
+1. Foque na rescisão do contrato original, devolução de valores (se houver, com base nos dados de multa/inadimplência informados), e na quitação mútua e irrevogável de obrigações.
+2. Mencione as partes, o imóvel objeto do distrato e as condições do desfazimento do negócio.
+3. NÃO é necessário montar a estrutura descritiva completa de um contrato de venda (como detalhamento exaustivo de financiamento futuro, posse futura etc).
+4. Estruture as cláusulas sequencialmente utilizando numeração ordinal em caixa alta.
+`
+    } else if (tipoDocumento === 'declaracoes_complementares') {
+      systemPrompt += `
+Sua função é gerar DECLARAÇÕES COMPLEMENTARES para a transação imobiliária.
+Geração em TEXTO PURO (Plain Text). É ESTRITAMENTE PROIBIDO o uso de Markdown.
+Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 3 linhas:
+GODOY PRIME REALTY
+Assessoria Jurídica Imobiliária
+DECLARAÇÕES COMPLEMENTARES
+
+Regras Específicas:
+1. O documento deve seguir o formato formal de uma declaração/atestado.
+2. Seja conciso e não utilize a numeração de cláusulas (como "CLÁUSULA PRIMEIRA"), utilize tópicos simples ou texto corrido.
+3. A declaração deve atestar fatos específicos com base nos dados preenchidos (como situação do imóvel, ocupação, anuência etc).
+`
     } else {
       systemPrompt += `
-Sua função é montar contratos/distratos juridicamente consistentes utilizando EXCLUSIVAMENTE as cláusulas fornecidas na "Available Clauses Library".
+Sua função é montar contratos juridicamente consistentes utilizando EXCLUSIVAMENTE as cláusulas fornecidas na "Available Clauses Library".
 
 Regras Obrigatórias (Hard Rules):
 1. NEVER invent clauses. Only use the ones provided in the library. As variáveis interpoladas já foram preenchidas nos textos das cláusulas.
@@ -373,7 +428,7 @@ Process:
     const userPrompt = `Master JSON Data (Variables & Triggers):
 ${JSON.stringify(master_data, null, 2)}
 
-${isContractType ? `Available Clauses Library:\n${JSON.stringify(availableClauses, null, 2)}` : ''}
+${!isSimpleDocument && availableClauses.length > 0 ? `Available Clauses Library:\n${JSON.stringify(availableClauses, null, 2)}` : ''}
 
 Por favor, gere o documento solicitado.`
 
