@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-18T19:56:19.642Z",
+  "generatedAt": "2026-05-18T20:04:04.092Z",
   "collections": [
     {
       "name": "users",
@@ -101,6 +101,24 @@
         {
           "name": "anthropic_api_key",
           "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "header_content",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "footer_content",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "imobiliaria_logo",
+          "type": "file",
           "required": false,
           "system": false
         }

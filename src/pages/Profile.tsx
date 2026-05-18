@@ -29,6 +29,33 @@ export default function Profile() {
   })
   const [testingProvider, setTestingProvider] = useState<string | null>(null)
 
+  const [isSavingBranding, setIsSavingBranding] = useState(false)
+  const [brandingData, setBrandingData] = useState({
+    header_content: user?.header_content || '',
+    footer_content: user?.footer_content || '',
+  })
+  const [logoFile, setLogoFile] = useState<File | null>(null)
+
+  const handleSaveBranding = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!user?.id) return
+    setIsSavingBranding(true)
+    try {
+      const formData = new FormData()
+      formData.append('header_content', brandingData.header_content)
+      formData.append('footer_content', brandingData.footer_content)
+      if (logoFile) {
+        formData.append('imobiliaria_logo', logoFile)
+      }
+      await pb.collection('users').update(user.id, formData)
+      toast.success('Configurações de marca atualizadas!')
+    } catch (err) {
+      toast.error('Erro ao atualizar marca.')
+    } finally {
+      setIsSavingBranding(false)
+    }
+  }
+
   const handleTestConnection = async (provider: string, key: string) => {
     if (!key) return
     setTestingProvider(provider)
@@ -406,7 +433,7 @@ export default function Profile() {
             </div>
           </div>
 
-          <div className="flex justify-end pb-12">
+          <div className="flex justify-end">
             <Button
               type="submit"
               size="lg"
@@ -423,6 +450,84 @@ export default function Profile() {
           </div>
         </form>
       </Form>
+
+      <div className="mt-8 mb-12">
+        <form onSubmit={handleSaveBranding} className="space-y-6">
+          <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-6">
+            <h2 className="text-xl font-semibold text-slate-800 border-b pb-2">
+              Configurações de Marca (Header/Footer)
+            </h2>
+            <p className="text-sm text-slate-500">
+              Personalize o cabeçalho e rodapé dos documentos exportados. Variáveis suportadas:{' '}
+              <code className="bg-slate-100 px-1 rounded">{{ imobiliaria_nome }}</code>,{' '}
+              <code className="bg-slate-100 px-1 rounded">{{ creci }}</code>,{' '}
+              <code className="bg-slate-100 px-1 rounded">{{ imobiliaria_documento }}</code>.
+            </p>
+            <div className="grid grid-cols-1 gap-6">
+              <div className="space-y-2">
+                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  Logo da Imobiliária
+                </label>
+                <div className="flex items-center gap-4">
+                  {user?.imobiliaria_logo && !logoFile && (
+                    <img
+                      src={pb.files.getURL(user, user.imobiliaria_logo)}
+                      alt="Logo atual"
+                      className="h-16 w-auto object-contain border rounded p-1"
+                    />
+                  )}
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files.length > 0) {
+                        setLogoFile(e.target.files[0])
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium leading-none">Cabeçalho (Header)</label>
+                <textarea
+                  className="flex min-h-[80px] w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  value={brandingData.header_content}
+                  onChange={(e) =>
+                    setBrandingData((prev) => ({ ...prev, header_content: e.target.value }))
+                  }
+                  placeholder="Texto do cabeçalho..."
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium leading-none">Rodapé (Footer)</label>
+                <textarea
+                  className="flex min-h-[80px] w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  value={brandingData.footer_content}
+                  onChange={(e) =>
+                    setBrandingData((prev) => ({ ...prev, footer_content: e.target.value }))
+                  }
+                  placeholder="Texto do rodapé..."
+                />
+              </div>
+            </div>
+            <div className="flex justify-end pt-4">
+              <Button
+                type="submit"
+                size="lg"
+                disabled={isSavingBranding}
+                className="bg-slate-800 hover:bg-slate-900"
+              >
+                {isSavingBranding ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4 mr-2" />
+                )}
+                Salvar Marca
+              </Button>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
   )
 }

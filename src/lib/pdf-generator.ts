@@ -1,7 +1,11 @@
 import { jsPDF } from 'jspdf'
 import { format } from 'date-fns'
 
-export async function generateMinutaPDF(minutaText: string, fileName: string): Promise<void> {
+export async function generateMinutaPDF(
+  minutaText: string,
+  fileName: string,
+  userDetails?: any,
+): Promise<void> {
   return new Promise((resolve) => {
     const doc = new jsPDF()
     let y = 40
@@ -10,11 +14,16 @@ export async function generateMinutaPDF(minutaText: string, fileName: string): P
     const contentWidth = pageWidth - margin * 2
     const pageHeight = 297
 
+    const headerTitle = userDetails?.imobiliaria_nome || 'GODOY PRIME REALTY'
+    const headerContentLines = userDetails?.header_content
+      ? doc.splitTextToSize(userDetails.header_content, contentWidth)
+      : []
+
     const addHeader = (d: jsPDF) => {
       d.setFont('helvetica', 'bold')
       d.setFontSize(12)
       d.setTextColor(12, 35, 64) // Marinho
-      d.text('GODOY PRIME REALTY', margin, 18)
+      d.text(headerTitle, margin, 18)
       d.setFontSize(9)
       d.setTextColor(212, 175, 55) // Ouro
       d.text('Assessoria Jurídica Imobiliária', margin, 23)
@@ -28,13 +37,24 @@ export async function generateMinutaPDF(minutaText: string, fileName: string): P
       d.setDrawColor(212, 175, 55) // Ouro
       d.setLineWidth(0.5)
       d.line(margin, 28, pageWidth - margin, 28)
+
+      let currentY = 35
+      if (headerContentLines.length > 0) {
+        d.setFont('helvetica', 'bold')
+        d.setFontSize(10)
+        d.setTextColor(80, 80, 80)
+        d.text(headerContentLines, margin, currentY)
+        currentY += headerContentLines.length * 5 + 5
+      }
+      return currentY
     }
 
-    addHeader(doc)
+    y = addHeader(doc)
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(11)
     doc.setTextColor(51, 65, 85)
-    const cleanText = minutaText
+
+    let cleanText = minutaText
       .replace(/<br\s*[/]?>/gi, '\n')
       .replace(/<\/div>/gi, '\n')
       .replace(/<\/p>/gi, '\n')
@@ -47,8 +67,7 @@ export async function generateMinutaPDF(minutaText: string, fileName: string): P
     for (let i = 0; i < lines.length; i++) {
       if (y > pageHeight - 35) {
         doc.addPage()
-        addHeader(doc)
-        y = 40
+        y = addHeader(doc)
       }
       const line = lines[i]
       if (line.trim() === line.trim().toUpperCase() && line.trim().length > 0) {
@@ -62,14 +81,30 @@ export async function generateMinutaPDF(minutaText: string, fileName: string): P
       y += 6
     }
 
-    // Add pagination
+    const footerContentLines = userDetails?.footer_content
+      ? doc.splitTextToSize(userDetails.footer_content, contentWidth)
+      : []
+
+    // Add pagination and footer
     const totalPages = doc.getNumberOfPages()
     for (let i = 1; i <= totalPages; i++) {
       doc.setPage(i)
+
+      if (footerContentLines.length > 0) {
+        doc.setDrawColor(200, 200, 200)
+        doc.setLineWidth(0.2)
+        doc.line(margin, pageHeight - 25, pageWidth - margin, pageHeight - 25)
+
+        doc.setFont('helvetica', 'normal')
+        doc.setFontSize(8)
+        doc.setTextColor(120, 120, 120)
+        doc.text(footerContentLines, margin, pageHeight - 20)
+      }
+
       doc.setFont('helvetica', 'normal')
       doc.setFontSize(8)
       doc.setTextColor(12, 35, 64)
-      doc.text(`Página ${i} de ${totalPages}`, pageWidth / 2, pageHeight - 15, { align: 'center' })
+      doc.text(`Página ${i} de ${totalPages}`, pageWidth / 2, pageHeight - 10, { align: 'center' })
     }
 
     doc.save(`${fileName}_${format(new Date(), 'yyyy-MM-dd')}.pdf`)

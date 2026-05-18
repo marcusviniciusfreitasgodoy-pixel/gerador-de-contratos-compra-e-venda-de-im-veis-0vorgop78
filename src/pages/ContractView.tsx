@@ -47,6 +47,10 @@ export default function ContractView() {
   const [generating, setGenerating] = useState(false)
   const [downloading, setDownloading] = useState(false)
 
+  const [emailModalOpen, setEmailModalOpen] = useState(false)
+  const [sendingEmail, setSendingEmail] = useState(false)
+  const [emailData, setEmailData] = useState({ destinatario: '', assunto: '', mensagem: '' })
+
   const [hasKeys, setHasKeys] = useState(true)
   const [apiError, setApiError] = useState(false)
 
@@ -205,13 +209,29 @@ export default function ContractView() {
     }
   }
 
+  const replaceBrandingPlaceholders = (text?: string) => {
+    if (!text || !user) return ''
+    return text
+      .replace(/{{imobiliaria_nome}}/g, user.imobiliaria_nome || '')
+      .replace(/{{creci}}/g, user.creci || '')
+      .replace(/{{imobiliaria_documento}}/g, user.imobiliaria_documento || '')
+  }
+
   const handleExportWord = async () => {
     try {
       setDownloading(true)
       toast.info('Gerando arquivo Word...')
+
+      const headerContent = replaceBrandingPlaceholders(user?.header_content)
+      const footerContent = replaceBrandingPlaceholders(user?.footer_content)
+
       const res = await generateContractDocx({
         minuta_html: minuta,
+        minuta_texto: minuta,
         contract_id: contract.id,
+        header_content: headerContent,
+        footer_content: footerContent,
+        user_details: user,
       })
 
       if (res?.url) {
@@ -239,10 +259,52 @@ export default function ContractView() {
       return
     }
     try {
-      await generateMinutaPDF(minuta, `Contrato_${contract.id}`)
+      const headerContent = replaceBrandingPlaceholders(user?.header_content)
+      const footerContent = replaceBrandingPlaceholders(user?.footer_content)
+
+      await generateMinutaPDF(minuta, `Contrato_${contract.id}`, {
+        ...user,
+        header_content: headerContent,
+        footer_content: footerContent,
+      })
       toast.success('PDF gerado com sucesso!')
     } catch (error) {
       toast.error('Erro ao gerar PDF.')
+    }
+  }
+
+  const handleOpenEmailModal = () => {
+    let destinatario = contract.email_comprador || contract.email_vendedor || ''
+    let assunto = `${user?.imobiliaria_nome || 'Imobiliária'} - Documento: ${contract.tipo_documento ? contract.tipo_documento.replace(/_/g, ' ') : 'Contrato'}`
+
+    setEmailData({
+      destinatario,
+      assunto,
+      mensagem: `Olá,\n\nSegue em anexo o documento referente à negociação.\n\nAtenciosamente,\n${user?.imobiliaria_nome || user?.name || 'Equipe'}`,
+    })
+    setEmailModalOpen(true)
+  }
+
+  const handleSendEmail = async () => {
+    if (!emailData.destinatario || !emailData.assunto) {
+      toast.error('Destinatário e assunto são obrigatórios.')
+      return
+    }
+    setSendingEmail(true)
+    try {
+      await pb.send('/backend/v1/enviar_documento_email', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...emailData,
+          contract_id: contract.id,
+        }),
+      })
+      toast.success('E-mail enviado com sucesso!')
+      setEmailModalOpen(false)
+    } catch (err) {
+      toast.error('Erro ao enviar e-mail.')
+    } finally {
+      setSendingEmail(false)
     }
   }
 
@@ -384,7 +446,17 @@ export default function ContractView() {
               Faça ajustes finos no contrato antes de exportar. Lembre-se de salvar suas alterações.
             </CardDescription>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleOpenEmailModal}
+              disabled={downloading || !minuta}
+              className="bg-white text-slate-700"
+            >
+              <Mail className="w-4 h-4 mr-2" />
+              Enviar E-mail
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -429,6 +501,60 @@ export default function ContractView() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={emailModalOpen} onOpenChange={setEmailModalOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Enviar Documento por E-mail</DialogTitle>
+            <DialogDescription>
+              O documento gerado será anexado em formato PDF ao e-mail.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="destinatario">Destinatário</Label>
+              <Input
+                id="destinatario"
+                value={emailData.destinatario}
+                onChange={(e) => setEmailData({ ...emailData, destinatario: e.target.value })}
+                placeholder="email@cliente.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="assunto">Assunto</Label>
+              <Input
+                id="assunto"
+                value={emailData.assunto}
+                onChange={(e) => setEmailData({ ...emailData, assunto: e.target.value })}
+                placeholder="Assunto do e-mail"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="mensagem">Mensagem</Label>
+              <Textarea
+                id="mensagem"
+                value={emailData.mensagem}
+                onChange={(e) => setEmailData({ ...emailData, mensagem: e.target.value })}
+                placeholder="Escreva sua mensagem aqui..."
+                rows={6}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEmailModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSendEmail} disabled={sendingEmail}>
+              {sendingEmail ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Send className="w-4 h-4 mr-2" />
+              )}
+              Enviar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

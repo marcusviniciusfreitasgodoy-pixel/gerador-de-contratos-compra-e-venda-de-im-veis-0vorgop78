@@ -31,6 +31,9 @@ routerAdd(
     const {
       tipo,
       minuta_texto,
+      minuta_html,
+      header_content,
+      footer_content,
       nome_vendedor,
       nome_comprador,
       cpf_vendedor,
@@ -87,7 +90,9 @@ routerAdd(
 
     let bodyContent = ''
 
-    if (minuta_texto) {
+    if (minuta_html) {
+      bodyContent = minuta_html
+    } else if (minuta_texto) {
       bodyContent = minuta_texto
         .split('\n')
         .map((line) => (line.trim() === '' ? '<br>' : `<p style="margin: 0 0 10px 0;">${line}</p>`))
@@ -264,11 +269,23 @@ routerAdd(
       `
     }
 
+    let finalHtml = bodyContent
+    if (header_content) {
+      finalHtml =
+        `<div style="text-align: center; margin-bottom: 30px; font-weight: bold; color: #555;">${header_content.replace(/\n/g, '<br>')}</div>` +
+        finalHtml
+    }
+    if (footer_content) {
+      finalHtml =
+        finalHtml +
+        `<div style="text-align: center; margin-top: 50px; border-top: 1px solid #ccc; padding-top: 10px; font-size: 12px; color: #777;">${footer_content.replace(/\n/g, '<br>')}</div>`
+    }
+
     const html = `
     <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
     <head><meta charset='utf-8'><title>Contrato</title></head>
     <body style="font-family: Arial, sans-serif; line-height: 1.5; max-width: 800px; margin: 0 auto; padding: 20px;">
-      ${bodyContent}
+      ${finalHtml}
     </body>
     </html>
   `
