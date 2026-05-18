@@ -67,8 +67,8 @@ export default function LegalKnowledgeForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!formData.content && !sourceFile && !formData.source_file) {
-      toast.error('Forneça o conteúdo manualmente ou envie um documento fonte.')
+    if (!formData.content) {
+      toast.error('O conteúdo é obrigatório.')
       return
     }
 
@@ -81,14 +81,7 @@ export default function LegalKnowledgeForm() {
       submitData.append('priority', String(formData.priority))
       submitData.append('trigger_logic', formData.trigger_logic)
       submitData.append('code', formData.code)
-
-      if (formData.content) {
-        submitData.append('content', formData.content)
-      } else if (sourceFile) {
-        submitData.append('content', 'Processando documento...')
-      } else {
-        submitData.append('content', '')
-      }
+      submitData.append('content', formData.content)
 
       if (sourceFile) {
         submitData.append('source_file', sourceFile)
@@ -214,8 +207,7 @@ export default function LegalKnowledgeForm() {
                 }}
               />
               <p className="text-xs text-muted-foreground mt-2">
-                Envie um PDF ou Word para extração automática do texto e processamento pela IA.
-                Limite: 10MB.
+                Envie o documento original como anexo para referência futura. Limite: 10MB.
               </p>
             </div>
 
@@ -236,17 +228,13 @@ export default function LegalKnowledgeForm() {
           </div>
 
           <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="content">Conteúdo Manual / Extraído (Texto ou Markdown)</Label>
+            <Label htmlFor="content">Conteúdo (Texto ou Markdown)</Label>
             <Textarea
               id="content"
               value={formData.content}
               onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-              required={!sourceFile && !formData.source_file}
-              placeholder={
-                sourceFile
-                  ? 'O conteúdo será extraído do arquivo enviado...'
-                  : 'Digite o conteúdo da cláusula ou documento...'
-              }
+              required
+              placeholder="Digite ou cole o conteúdo da cláusula ou documento..."
               className="min-h-[200px]"
             />
           </div>
