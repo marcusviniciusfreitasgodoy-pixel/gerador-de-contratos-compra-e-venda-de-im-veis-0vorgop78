@@ -329,12 +329,20 @@ Please assemble the contract.`
         if (res.statusCode === 200 && res.json && res.json.choices && res.json.choices.length > 0) {
           generatedText = res.json.choices[0].message.content
         } else {
-          $app.logger().warn('AI Gateway returned non-200', 'status', res.statusCode)
+          $app
+            .logger()
+            .warn(
+              'AI Gateway returned non-200',
+              'status',
+              res.statusCode,
+              'json',
+              res.json || 'No JSON response',
+            )
           throw new Error('AI Generation failed')
         }
       } catch (err) {
         $app.logger().error('AI Gateway call failed', 'error', err)
-        return e.badRequestError('Error generating contract with AI.')
+        generatedText = 'Minuta não gerada. Erro no provedor de IA.'
       }
     }
 

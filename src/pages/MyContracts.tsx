@@ -2,7 +2,11 @@ import { useState, useEffect } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Files, FileText, Loader2, Eye, Plus } from 'lucide-react'
+import { Files, FileText, Loader2, Eye, Plus, RefreshCw, AlertCircle } from 'lucide-react'
+import pb from '@/lib/pocketbase/client'
+import { getErrorMessage } from '@/lib/pocketbase/errors'
+import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 import { getMyContracts } from '@/services/contracts'
 import { useAuth } from '@/hooks/use-auth'
 import { useRealtime } from '@/hooks/use-realtime'
@@ -35,16 +39,46 @@ export default function MyContracts() {
   const { user, loading: authLoading } = useAuth()
   const [contracts, setContracts] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const [selectedContract, setSelectedContract] = useState<any | null>(null)
+  const [isRegenerating, setIsRegenerating] = useState(false)
 
-  const loadContracts = async () => {
+  const loadContracts = async (showRefresh = false) => {
+    if (showRefresh) setIsRefreshing(true)
     try {
       const records = await getMyContracts()
       setContracts(records.items)
     } catch (err) {
       console.error(err)
+      toast.error('Erro ao carregar contratos')
     } finally {
       setIsLoading(false)
+      setIsRefreshing(false)
+    }
+  }
+
+  const handleRegenerate = async () => {
+    if (!selectedContract) return
+    setIsRegenerating(true)
+    try {
+      const res = await pb.send('/backend/v1/assemble-contract', {
+        method: 'POST',
+        body: JSON.stringify(selectedContract),
+      })
+
+      const updatedContract = await pb.collection('contracts').update(selectedContract.id, {
+        minuta_texto: res.minuta_texto,
+        used_clauses: res.used_clauses,
+        status: 'concluido',
+      })
+
+      toast.success('Minuta regerada com sucesso!')
+      setSelectedContract(updatedContract)
+      loadContracts()
+    } catch (err) {
+      toast.error('Erro ao regerar minuta', { description: getErrorMessage(err) })
+    } finally {
+      setIsRegenerating(false)
     }
   }
 
@@ -61,14 +95,25 @@ export default function MyContracts() {
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-5xl">
-      <div className="mb-10">
-        <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-3">
-          <Files className="w-8 h-8 text-indigo-600" />
-          Meus Contratos
-        </h1>
-        <p className="text-slate-600 mt-2 text-lg">
-          Consulte e gerencie todos os contratos que você gerou.
-        </p>
+      <div className="mb-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-3">
+            <Files className="w-8 h-8 text-indigo-600" />
+            Meus Contratos
+          </h1>
+          <p className="text-slate-600 mt-2 text-lg">
+            Consulte e gerencie todos os contratos que você gerou.
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          onClick={() => loadContracts(true)}
+          disabled={isLoading || isRefreshing}
+          className="w-fit"
+        >
+          <RefreshCw className={cn('w-4 h-4 mr-2', isRefreshing && 'animate-spin')} />
+          Atualizar Lista
+        </Button>
       </div>
 
       {isLoading ? (
@@ -145,28 +190,76 @@ export default function MyContracts() {
 
       <Dialog open={!!selectedContract} onOpenChange={(open) => !open && setSelectedContract(null)}>
         <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
-          <DialogHeader className="p-6 pb-4 border-b shrink-0">
-            <DialogTitle className="text-2xl flex items-center gap-2">
-              <FileText className="w-6 h-6 text-indigo-600" />
-              {selectedContract &&
-                (titleMap[selectedContract.tipo_documento] ||
-                  selectedContract.tipo_documento ||
-                  'Documento')}
-            </DialogTitle>
-            <DialogDescription>
-              {selectedContract &&
-                format(new Date(selectedContract.created), "dd 'de' MMMM 'de' yyyy, 'às' HH:mm", {
-                  locale: ptBR,
-                })}
-            </DialogDescription>
+          <DialogHeader className="p-6 pb-4 border-b shrink-0 flex flex-row items-start justify-between">
+            <div>
+              <DialogTitle className="text-2xl flex items-center gap-2">
+                <FileText className="w-6 h-6 text-indigo-600" />
+                {selectedContract &&
+                  (titleMap[selectedContract.tipo_documento] ||
+                    selectedContract.tipo_documento ||
+                    'Documento')}
+              </DialogTitle>
+              <DialogDescription className="mt-1">
+                {selectedContract &&
+                  format(new Date(selectedContract.created), "dd 'de' MMMM 'de' yyyy, 'às' HH:mm", {
+                    locale: ptBR,
+                  })}
+              </DialogDescription>
+            </div>
+            {selectedContract?.minuta_texto?.includes('Erro no provedor de IA') && (
+              <Button
+                variant="destructive"
+                className="mr-8"
+                onClick={handleRegenerate}
+                disabled={isRegenerating}
+              >
+                {isRegenerating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Regerando...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Regerar Minuta
+                  </>
+                )}
+              </Button>
+            )}
           </DialogHeader>
 
-          <ScrollArea className="flex-1 p-6">
-            {selectedContract?.minuta_texto ? (
+          <ScrollArea className="flex-1 p-6 relative">
+            {isRegenerating && (
+              <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
+                <Loader2 className="w-10 h-10 animate-spin text-indigo-600 mb-4" />
+                <p className="text-indigo-800 font-medium">Reconstruindo minuta com a IA...</p>
+              </div>
+            )}
+
+            {selectedContract?.minuta_texto &&
+            !selectedContract.minuta_texto.includes('Erro no provedor de IA') ? (
               <div
                 className="prose prose-sm md:prose-base max-w-none text-slate-800 pb-12"
                 dangerouslySetInnerHTML={{ __html: selectedContract.minuta_texto }}
               />
+            ) : selectedContract?.minuta_texto?.includes('Erro no provedor de IA') ? (
+              <div className="flex flex-col items-center justify-center py-12 text-red-500">
+                <AlertCircle className="w-12 h-12 mb-4 text-red-400" />
+                <p className="text-lg font-medium text-red-600">
+                  A geração da minuta falhou anteriormente.
+                </p>
+                <p className="text-red-500/80">
+                  Ocorreu um erro ao comunicar com o provedor de IA.
+                </p>
+                <Button
+                  variant="outline"
+                  className="mt-6 border-red-200 text-red-600 hover:bg-red-50"
+                  onClick={handleRegenerate}
+                  disabled={isRegenerating}
+                >
+                  Tentar Novamente
+                </Button>
+              </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-12 text-slate-500">
                 <FileText className="w-12 h-12 mb-4 text-slate-300" />

@@ -829,7 +829,14 @@ export function ContractForm({
   }
 
   return (
-    <div className="max-w-4xl mx-auto animate-in fade-in">
+    <div className="max-w-4xl mx-auto animate-in fade-in relative">
+      {isGenerating && (
+        <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center rounded-2xl min-h-[500px]">
+          <Loader2 className="w-16 h-16 text-primary animate-spin mb-6" />
+          <h2 className="text-2xl font-bold text-slate-800">Gerando minuta com IA...</h2>
+          <p className="text-slate-600 mt-2 text-lg">Por favor, aguarde.</p>
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <Button variant="ghost" onClick={onBack} className="-ml-4 w-fit">
           <ArrowLeft className="w-4 h-4 mr-2" /> Voltar
