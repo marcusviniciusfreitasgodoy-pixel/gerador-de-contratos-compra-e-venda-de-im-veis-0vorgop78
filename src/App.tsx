@@ -12,6 +12,9 @@ import AIAnalysis from '@/pages/AIAnalysis'
 import AnalysisHistory from '@/pages/AnalysisHistory'
 import SignUp from '@/pages/SignUp'
 import NotFound from '@/pages/NotFound'
+import AdminDashboard from '@/pages/admin/AdminDashboard'
+import LegalKnowledgeList from '@/pages/admin/LegalKnowledgeList'
+import LegalKnowledgeForm from '@/pages/admin/LegalKnowledgeForm'
 
 export default function App() {
   return (
@@ -29,6 +32,10 @@ export default function App() {
               <Route path="/profile" element={<Profile />} />
               <Route path="/analysis" element={<AIAnalysis />} />
               <Route path="/history" element={<AnalysisHistory />} />
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/knowledge" element={<LegalKnowledgeList />} />
+              <Route path="/admin/knowledge/new" element={<LegalKnowledgeForm />} />
+              <Route path="/admin/knowledge/:id" element={<LegalKnowledgeForm />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
