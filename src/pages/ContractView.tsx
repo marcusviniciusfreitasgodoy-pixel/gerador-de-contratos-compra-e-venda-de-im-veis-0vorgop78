@@ -2,7 +2,17 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Loader2, RefreshCw, Save, ArrowLeft, FileText, Download, FileDown } from 'lucide-react'
+import {
+  Loader2,
+  RefreshCw,
+  Save,
+  ArrowLeft,
+  FileText,
+  Download,
+  FileDown,
+  Wand2,
+  AlertCircle,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import {
   getContract,
@@ -19,10 +29,16 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { generateMinutaPDF } from '@/lib/pdf-generator'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { useAuth } from '@/hooks/use-auth'
+import { useRealtime } from '@/hooks/use-realtime'
+import pb from '@/lib/pocketbase/client'
 
 export default function ContractView() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { user } = useAuth()
+
   const [contract, setContract] = useState<any>(null)
   const [minuta, setMinuta] = useState('')
   const [status, setStatus] = useState('rascunho')
@@ -31,18 +47,68 @@ export default function ContractView() {
   const [generating, setGenerating] = useState(false)
   const [downloading, setDownloading] = useState(false)
 
+  const [hasKeys, setHasKeys] = useState(true)
+  const [apiError, setApiError] = useState(false)
+
+  useEffect(() => {
+    const checkKeys = async () => {
+      if (user?.id) {
+        try {
+          const u = await pb.collection('users').getOne(user.id)
+          setHasKeys(!!(u.gemini_api_key || u.openai_api_key || u.anthropic_api_key))
+        } catch (err) {
+          console.error('Failed to check API keys', err)
+        }
+      }
+    }
+    checkKeys()
+  }, [user?.id])
+
   useEffect(() => {
     if (id) {
       loadContract()
     }
   }, [id])
 
+  useRealtime<any>('contracts', (e) => {
+    if (e.action === 'update' && e.record.id === id) {
+      const newText = e.record.minuta_texto || ''
+
+      if (newText.includes('Erro no provedor') || newText.includes('Minuta não gerada')) {
+        setApiError(true)
+        setMinuta('')
+        setGenerating(false)
+        return
+      }
+
+      if (newText && newText !== minuta) {
+        setMinuta(newText)
+        setContract(e.record)
+        setApiError(false)
+        setGenerating(false)
+
+        let st = e.record.status || 'rascunho'
+        if (st === 'em_elaboracao') st = 'rascunho'
+        if (st === 'concluido') st = 'finalizado'
+        setStatus(st)
+      }
+    }
+  })
+
   const loadContract = async () => {
     try {
       setLoading(true)
       const data = await getContract(id!)
       setContract(data)
-      setMinuta(data.minuta_texto || '')
+
+      let text = data.minuta_texto || ''
+      if (text.includes('Erro no provedor') || text.includes('Minuta não gerada')) {
+        setApiError(true)
+        text = ''
+      } else {
+        setApiError(false)
+      }
+      setMinuta(text)
 
       let st = data.status || 'rascunho'
       if (st === 'em_elaboracao') st = 'rascunho'
@@ -68,8 +134,14 @@ export default function ContractView() {
   }
 
   const handleRegenerate = async () => {
+    if (!hasKeys) {
+      toast.error('Configure suas chaves de API no seu perfil antes de gerar.')
+      return
+    }
+
     try {
       setGenerating(true)
+      setApiError(false)
 
       const payloadForAi = {
         ...contract,
@@ -101,21 +173,34 @@ export default function ContractView() {
       }
 
       const res = await regenerateContract(id!, payloadForAi)
-
       const newMinuta = res?.minuta_texto || ''
-      setMinuta(newMinuta)
-      setStatus('finalizado')
-      await updateContractData(id!, {
-        minuta_texto: newMinuta,
-        used_clauses: res?.used_clauses,
-        status: 'finalizado',
-      })
 
-      toast.success('Contrato gerado novamente com sucesso!')
+      if (newMinuta) {
+        if (newMinuta.includes('Erro no provedor') || newMinuta.includes('Minuta não gerada')) {
+          setApiError(true)
+          setMinuta('')
+          toast.error('Falha na geração com a IA.')
+        } else {
+          setMinuta(newMinuta)
+          setStatus('finalizado')
+          await updateContractData(id!, {
+            minuta_texto: newMinuta,
+            used_clauses: res?.used_clauses,
+            status: 'finalizado',
+          })
+          toast.success('Contrato gerado novamente com sucesso!')
+        }
+        setGenerating(false)
+      } else if (res?.id) {
+        // A geração pode estar ocorrendo em background
+        // Deixamos generating = true até que o hook realtime atualize a página
+      } else {
+        setGenerating(false)
+      }
     } catch (error) {
-      toast.error('Erro ao gerar novamente. O texto anterior foi mantido.')
-    } finally {
+      setApiError(true)
       setGenerating(false)
+      toast.error('Erro na requisição para o provedor de IA.')
     }
   }
 
@@ -210,13 +295,13 @@ export default function ContractView() {
           <Button
             onClick={handleRegenerate}
             variant="outline"
-            disabled={generating || saving}
+            disabled={generating || saving || !hasKeys}
             className="text-amber-600 border-amber-200 hover:bg-amber-50 shadow-sm"
           >
             {generating ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
             ) : (
-              <RefreshCw className="w-4 h-4 mr-2" />
+              <Wand2 className="w-4 h-4 mr-2" />
             )}
             Gerar Novamente
           </Button>
@@ -235,16 +320,39 @@ export default function ContractView() {
         </div>
       </div>
 
-      {generating && (
-        <div className="mb-6 p-4 bg-blue-50 text-blue-800 rounded-lg flex items-center justify-center gap-3 shadow-sm border border-blue-100 animate-in slide-in-from-top-2">
-          <Loader2 className="w-5 h-5 animate-spin" />
-          <span className="font-medium text-lg">
-            Gerando minuta... Isso pode levar alguns segundos
-          </span>
-        </div>
+      {!hasKeys && (
+        <Alert variant="destructive" className="mb-6 animate-in slide-in-from-top-2">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Configuração necessária</AlertTitle>
+          <AlertDescription>
+            Você precisa configurar ao menos uma chave de API de Inteligência Artificial (OpenAI,
+            Gemini ou Anthropic) no seu Perfil para gerar minutas.
+          </AlertDescription>
+        </Alert>
       )}
 
-      <Card className="shadow-md border-slate-200 overflow-hidden">
+      {apiError && (
+        <Alert variant="destructive" className="mb-6 animate-in slide-in-from-top-2">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Erro na Geração</AlertTitle>
+          <AlertDescription>
+            Não foi possível gerar a minuta. Verifique se suas chaves de API estão configuradas
+            corretamente no seu Perfil.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <Card className="shadow-md border-slate-200 overflow-hidden relative">
+        {generating && (
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm">
+            <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
+            <p className="text-lg font-medium text-slate-800">
+              Processando inteligência artificial e gerando minuta...
+            </p>
+            <p className="text-sm text-slate-500 mt-2">Isso pode levar alguns segundos.</p>
+          </div>
+        )}
+
         <CardHeader className="bg-slate-50 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 pt-5">
           <div>
             <CardTitle className="flex items-center gap-2 text-xl">
@@ -260,13 +368,18 @@ export default function ContractView() {
               variant="outline"
               size="sm"
               onClick={handleExportPDF}
-              disabled={downloading}
+              disabled={downloading || !minuta}
               className="bg-white"
             >
               <FileDown className="w-4 h-4 mr-2 text-red-600" />
               PDF
             </Button>
-            <Button variant="secondary" size="sm" onClick={handleExportWord} disabled={downloading}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleExportWord}
+              disabled={downloading || !minuta}
+            >
               {downloading ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               ) : (
@@ -277,7 +390,22 @@ export default function ContractView() {
           </div>
         </CardHeader>
         <CardContent className="p-0 bg-slate-100/50">
-          <RichTextEditor value={minuta} onChange={setMinuta} />
+          {!minuta && !generating ? (
+            <div className="flex flex-col items-center justify-center p-12 text-center bg-white min-h-[500px]">
+              <Wand2 className="w-12 h-12 text-slate-300 mb-4" />
+              <h3 className="text-lg font-medium text-slate-900 mb-2">Nenhuma minuta gerada</h3>
+              <p className="text-slate-500 mb-6 max-w-md">
+                Este contrato ainda não possui um texto de minuta. Clique no botão abaixo para gerar
+                a primeira versão usando Inteligência Artificial.
+              </p>
+              <Button onClick={handleRegenerate} disabled={!hasKeys || generating}>
+                <Wand2 className="w-4 h-4 mr-2" />
+                Gerar Minuta
+              </Button>
+            </div>
+          ) : (
+            <RichTextEditor value={minuta} onChange={setMinuta} />
+          )}
         </CardContent>
       </Card>
     </div>
