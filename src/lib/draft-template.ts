@@ -67,10 +67,111 @@ export function generateDraftText(data: any, user: any) {
     procurador,
     matricula_atualizada,
     debitos_condominio,
+    valor_condominio,
+    valor_iptu_anual,
+    valor_avaliacao,
+    cep_imovel,
+    bairro_imovel,
+    cidade_imovel,
+    numero_imovel,
+    complemento_imovel,
+    quartos,
+    email_vendedor,
+    telefone_vendedor,
+    orgao_emissor_vendedor,
   } = data
 
   const dateNow = new Date().toLocaleDateString('pt-BR')
-  const foro = cidade || '[Cidade/Estado]'
+  const foro = cidade || cidade_imovel || '[Cidade/Estado]'
+
+  if (tipo_documento === 'autorizacao_intermediacao') {
+    const contratadoNome = user?.imobiliaria_nome || '[NOME DA IMOBILIÁRIA]'
+    const contratadoDoc = user?.imobiliaria_documento || '[CNPJ/CPF]'
+    const contratadoCreci = user?.creci || '[CRECI]'
+
+    const addr =
+      `${endereco_imovel || ''} ${numero_imovel || ''} ${complemento_imovel || ''}`.trim() ||
+      '[Endereço]'
+
+    const now = new Date()
+    const months = [
+      'Janeiro',
+      'Fevereiro',
+      'Março',
+      'Abril',
+      'Maio',
+      'Junho',
+      'Julho',
+      'Agosto',
+      'Setembro',
+      'Outubro',
+      'Novembro',
+      'Dezembro',
+    ]
+    const dateStr = `${now.getDate()} de ${months[now.getMonth()]} de ${now.getFullYear()}`
+
+    return `AUTORIZAÇÃO PARA DIVULGAÇÃO E VENDA DE IMÓVEL
+
+CONTRATANTES
+
+NOME: ${nome_vendedor || '[Nome]'}
+RG: ${rg_vendedor || '[RG]'}
+TELEFONES: ${telefone_vendedor || '[Telefone]'}
+ORGÃO EMISSOR: ${orgao_emissor_vendedor || '[Órgão]'}
+E-MAIL: ${email_vendedor || '[E-mail]'}
+CPF: ${cpf_vendedor || '[CPF]'}
+
+DESCRIÇÃO DO IMÓVEL
+
+ENDEREÇO: ${addr}
+BAIRRO: ${bairro_imovel || '[Bairro]'}
+R$ CONDOMÍNIO: ${formatCurrency(valor_condominio || 0)}
+CIDADE: ${cidade_imovel || '[Cidade]'}
+R$ IPTU: ${formatCurrency(valor_iptu_anual || 0)}
+VAGAS: ${vagas_garagem || '0'}
+CEP: ${cep_imovel || '[CEP]'}
+QUARTOS: ${quartos || '0'}
+
+VALOR DE AVALIAÇÃO: R$ ${formatCurrency(valor_avaliacao || 0)}
+VALOR DE VENDA: R$ ${formatCurrency(valor_total || 0)}
+
+CONTRATADO: ${contratadoNome} CNPJ: ${contratadoDoc}
+
+CONDIÇÕES
+
+1. A presente Autorização de Venda, COM GESTÃO EXCLUSIVA, tem o seu amparo na Lei 6.530, Art. 20, item III, de 12/05/1978 e pela Resolução do COFECI no. 458/95 de 17/11/1995.
+
+2. Entenda-se por GESTÃO EXCLUSIVA, a escolha do CONTRATADO, como responsável exclusivo pela Representação Comercial do imóvel perante o mercado. A ele caberá centralizar os contatos de possíveis interessados Clientes Diretos ou Corretores, acompanhar todas as visitas realizadas, atender outros Corretores interessados em estabelecer parceria comercial para venda do Imóvel e investir na divulgação do imóvel de forma ampla.
+
+3. É concedida esta autorização pelo prazo de 90 dias, a contar desta data, nela também está incluída a veiculação de anúncios e fotos do imóvel em todos os meios de publicidade utilizados pelo CONTRATADO, prorrogada automaticamente pelo mesmo período, caso, após o término do citado prazo, não ocorra manifestação expressa dos CONTRATANTES.
+
+OS CONTRATANTES SE COMPROMETEM A PAGAR AO CONTRATADO O PERCENTUAL DE 5% SOBRE O PREÇO DE VENDA EFETIVAMENTE TRANSACIONADO, A TÍTULO DE HONORÁRIOS DE CORRETAGEM, QUE SERÃO PAGOS NO ATO DO RECEBIMENTO DO VALOR FINANCIADO PELO ITAÚ UNIBANCO S.A.
+
+4. A mesma remuneração será devida pelos CONTRATANTES se, durante a vigência desta autorização o proprietário realizar a venda do imóvel sem a ciência e acompanhamento do CONTRATADO ou se em até 180 dias após o término do prazo estabelecido neste instrumento, eles venham a realizar, por conta própria ou através de terceiros, a venda do imóvel objeto da presente autorização, com pretendentes apresentados ou indicados pelo CONTRATADO, conforme relação nominal que lhes será ou tenha sido entregue, relação essa obtida por meio de registro nas respectivas fichas de visita ao imóvel.
+
+5. A única obrigação financeira do contratante para com a contratada é o pagamento de comissão de venda no valor de 5%, caso o imóvel seja efetivamente vendido, conforme previsto na clausula 3 e 4 deste acordo. Nenhum outro valor será devido, incluindo, mas não se limitando a: ressarcimentos, indenizações por prejuízos, ajuda de custo, remuneração por horas trabalhadas, entre outros.
+
+6. Os CONTRATANTES se responsabilizam por todas as informações pessoais e de propriedade aqui prestadas acerca do imóvel objeto da presente Autorização.
+
+7. Para dirimir eventuais dúvidas ou questões oriundas da presente Autorização, que não possam ser resolvidas de comum acordo entre as partes, fica eleito o foro da Comarca do Rio de Janeiro, RJ, com renúncia a qualquer outro, por mais privilegiado que seja.
+
+8. O contratante reserva-se o direito de, unilateralmente de recusar qualquer proposta de venda que não lhe seja conveniente, sem que tal recusa implique em qualquer ônus ou custo adicional.
+
+9. Este documento cancela e substitui a autorização anterior assinada em 3 de Dezembro de 2025
+
+${foro}, ${dateStr}.
+
+_________________________________________________
+NOME: ${nome_vendedor || '[Nome]'}
+CONTRATANTE(S)
+CPF: ${cpf_vendedor || '[CPF]'}
+
+_________________________________________________
+CORRETOR: ${user?.name || '[Nome Corretor]'}
+CONTRATADO
+CRECI: ${contratadoCreci}
+`
+  }
 
   const vendedorQualificacao =
     tipo_vendedor === 'pj'

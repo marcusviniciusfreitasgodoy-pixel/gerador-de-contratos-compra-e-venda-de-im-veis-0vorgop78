@@ -31,19 +31,20 @@ const PHASES = [
         icon: CheckSquare,
         desc: 'Relação de documentos exigidos',
       },
-      {
-        id: 'autorizacao_intermediacao',
-        title: 'Autorização de Intermediação',
-        icon: Users,
-        desc: 'Autorização exclusiva/simples de venda',
-      },
     ],
   },
   {
     id: 'fase-2',
-    title: 'Fase 2: Proposta e Acordo',
-    description: 'Fase inicial da negociação financeira',
+    title: 'Fase 2: Intermediação e Proposta',
+    description: 'Autorização de venda e início da negociação',
     documents: [
+      {
+        id: 'autorizacao_intermediacao',
+        title: 'Autorização de Intermediação',
+        icon: Users,
+        desc: 'Autorização exclusiva para venda de imóvel',
+        highlight: true,
+      },
       {
         id: 'recibo_sinal',
         title: 'Recibo de Sinal',

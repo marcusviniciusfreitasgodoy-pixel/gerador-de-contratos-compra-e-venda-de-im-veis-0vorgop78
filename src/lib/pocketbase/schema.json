@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-18T20:54:07.762Z",
+  "generatedAt": "2026-05-19T13:35:23.360Z",
   "collections": [
     {
       "name": "users",
@@ -1106,6 +1106,24 @@
         {
           "name": "havera_parcelas",
           "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_condominio",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_iptu_anual",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_avaliacao",
+          "type": "number",
           "required": false,
           "system": false
         }

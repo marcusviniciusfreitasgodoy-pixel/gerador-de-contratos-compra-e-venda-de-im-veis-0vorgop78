@@ -17,6 +17,7 @@ import {
   Wand2,
 } from 'lucide-react'
 import { saveContractDraft } from '@/services/contracts'
+import { generateDraftText } from '@/lib/draft-template'
 import {
   FormInput,
   FormCurrencyInput,
@@ -38,7 +39,23 @@ const WIZARD_STEPS_ALL = [
   { id: 'imovel', title: 'Imóvel' },
   { id: 'negociacao', title: 'Negociação' },
   { id: 'compliance', title: 'Compliance Jurídico' },
+  { id: 'preview', title: 'Minuta' },
 ]
+
+function PreviewTab({ user }: { user: any }) {
+  const { getValues } = useFormContext()
+  const values = getValues()
+  const text = generateDraftText(values, user)
+
+  return (
+    <div className="space-y-4 animate-in fade-in">
+      <h3 className="font-semibold text-lg border-b pb-2">Pré-visualização do Documento</h3>
+      <div className="bg-slate-50 p-6 rounded-lg border border-slate-200 whitespace-pre-wrap font-mono text-sm h-[500px] overflow-y-auto">
+        {text}
+      </div>
+    </div>
+  )
+}
 
 function CompradorTab() {
   const { watch, control } = useFormContext()
@@ -194,6 +211,8 @@ function VendedorTab() {
         <div className="grid grid-cols-2 gap-4">
           <FormMaskedInput name="cpf_vendedor" label="CPF" maskType="cpf" />
           <FormInput name="rg_vendedor" label="RG" />
+          <FormInput name="orgao_emissor_vendedor" label="Órgão Emissor" />
+          <FormInput name="telefone_vendedor" label="Telefone / Celular" />
           <FormInput name="email_vendedor" label="E-mail do Vendedor" type="email" />
           <FormSelect
             name="estado_civil_vendedor"
@@ -299,14 +318,23 @@ function ImovelTab() {
 
       <div className="grid grid-cols-2 gap-4">
         <FormInput name="endereco_imovel" label="Logradouro" />
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           <FormInput name="numero_imovel" label="Número" />
           <FormInput name="complemento_imovel" label="Complemento" />
+          <FormInput name="cep_imovel" label="CEP" />
         </div>
         <FormInput name="bairro_imovel" label="Bairro" />
         <div className="grid grid-cols-2 gap-2">
           <FormInput name="cidade_imovel" label="Cidade" />
           <FormInput name="estado_imovel" label="UF" />
+        </div>
+      </div>
+
+      <div className="pt-4 border-t space-y-4">
+        <h3 className="font-semibold text-lg border-b pb-2">Valores</h3>
+        <div className="grid grid-cols-2 gap-4">
+          <FormCurrencyInput name="valor_condominio" label="Valor do Condomínio (R$)" />
+          <FormCurrencyInput name="valor_iptu_anual" label="Valor do IPTU Anual (R$)" />
         </div>
       </div>
 
@@ -341,7 +369,10 @@ function NegociacaoTab({ tipoDocumento }: { tipoDocumento: string }) {
   const total = watch('valor_total')
   const parcelas = watch('havera_parcelas')
 
-  const showValues = !['termo_entrega_chaves', 'termo_posse'].includes(tipoDocumento)
+  const isAutorizacao = tipoDocumento === 'autorizacao_intermediacao'
+  const showValues = !['termo_entrega_chaves', 'termo_posse', 'autorizacao_intermediacao'].includes(
+    tipoDocumento,
+  )
   const showPosse = !['recibo_sinal', 'autorizacao_intermediacao'].includes(tipoDocumento)
   const showParcelamento = ![
     'recibo_sinal',
@@ -366,6 +397,16 @@ function NegociacaoTab({ tipoDocumento }: { tipoDocumento: string }) {
 
   return (
     <div className="space-y-6 animate-in fade-in">
+      {isAutorizacao && (
+        <>
+          <h3 className="font-semibold text-lg border-b pb-2">Avaliação e Venda</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <FormCurrencyInput name="valor_avaliacao" label="Valor de Avaliação (R$)" />
+            <FormCurrencyInput name="valor_total" label="Valor de Venda (R$)" />
+          </div>
+        </>
+      )}
+
       {showValues && (
         <>
           <div className="p-4 bg-blue-50 border border-blue-100 rounded-lg flex justify-between items-center mb-6">
@@ -565,10 +606,13 @@ export function ContractForm({
   onBack: () => void
 }) {
   const activeSteps = WIZARD_STEPS_ALL.filter((s) => {
-    if (['ficha_cadastral', 'checklist_documental'].includes(tipoDocumento)) {
-      return s.id !== 'negociacao'
+    if (tipoDocumento === 'autorizacao_intermediacao') {
+      return ['vendedor', 'imovel', 'negociacao', 'preview'].includes(s.id)
     }
-    return true
+    if (['ficha_cadastral', 'checklist_documental'].includes(tipoDocumento)) {
+      return s.id !== 'negociacao' && s.id !== 'preview'
+    }
+    return s.id !== 'preview'
   })
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
@@ -674,6 +718,10 @@ export function ContractForm({
       suites: 1,
       vagas_garagem: 2,
 
+      valor_condominio: '1.200,00',
+      valor_iptu_anual: '3.500,00',
+      valor_avaliacao: '550.000,00',
+
       valor_total: '500.000,00',
       valor_sinal: '50.000,00',
       valor_fgts: '100.000,00',
@@ -756,7 +804,9 @@ export function ContractForm({
       if (
         isFinanciadoVal &&
         valorFinanciamentoVal <= 0 &&
-        !['ficha_cadastral', 'checklist_documental'].includes(tipoDocumento)
+        !['ficha_cadastral', 'checklist_documental', 'autorizacao_intermediacao'].includes(
+          tipoDocumento,
+        )
       ) {
         toast.error(
           'Compliance Alert: Valor do financiamento é obrigatório quando há financiamento',
@@ -810,7 +860,9 @@ export function ContractForm({
     if (
       isFinanciado &&
       valorFinanciamento <= 0 &&
-      !['ficha_cadastral', 'checklist_documental'].includes(tipoDocumento)
+      !['ficha_cadastral', 'checklist_documental', 'autorizacao_intermediacao'].includes(
+        tipoDocumento,
+      )
     ) {
       toast.error(
         'Compliance Alert: Valor do financiamento é obrigatório quando há financiamento',
@@ -840,6 +892,23 @@ export function ContractForm({
 
     const lgpd = values.clausula_lgpd
     if (!lgpd) return toast.error('O consentimento da LGPD é obrigatório.')
+
+    if (tipoDocumento === 'autorizacao_intermediacao') {
+      setIsGenerating(true)
+      try {
+        const text = generateDraftText(values, user)
+        await saveContractDraft({ ...values, status: 'finalizado' }, draftId, text)
+        toast.success('Autorização gerada com sucesso!')
+        setIsSuccess(true)
+      } catch (err) {
+        toast.error('Erro na geração do documento', {
+          description: getErrorMessage(err),
+        })
+      } finally {
+        setIsGenerating(false)
+      }
+      return
+    }
 
     setIsGenerating(true)
     try {
@@ -989,6 +1058,7 @@ export function ContractForm({
                 <NegociacaoTab tipoDocumento={tipoDocumento} />
               )}
               {currentStepData.id === 'compliance' && <ComplianceTab />}
+              {currentStepData.id === 'preview' && <PreviewTab user={user} />}
 
               <div className="flex justify-between pt-8 mt-8 border-t border-slate-100">
                 <Button

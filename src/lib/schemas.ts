@@ -131,6 +131,10 @@ export const contractSchema = z
     data_quitacao: z.string().optional(),
     vistoria_obrigatoria: z.boolean().default(false),
 
+    valor_condominio: currencyToNumber.optional(),
+    valor_iptu_anual: currencyToNumber.optional(),
+    valor_avaliacao: currencyToNumber.optional(),
+
     // Legal & Commission
     percentual_comissao: z.coerce.number().optional(),
     valor_comissao: currencyToNumber.optional(),
