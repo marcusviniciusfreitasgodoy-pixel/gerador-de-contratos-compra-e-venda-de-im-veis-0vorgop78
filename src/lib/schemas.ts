@@ -149,9 +149,18 @@ export const contractSchema = z
     arbitragem: z.boolean().default(false),
     mediacao: z.boolean().default(false),
 
+    gestao_exclusiva: z.enum(['com_exclusiva', 'sem_exclusiva']).optional(),
+
     checklist_compliance: z.record(z.boolean()).optional(),
   })
   .superRefine((data, ctx) => {
+    if (data.tipo_documento === 'autorizacao_intermediacao' && !data.gestao_exclusiva) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['gestao_exclusiva'],
+        message: 'O tipo de gestão é obrigatório para Autorização',
+      })
+    }
     const isFinanciado =
       data.financiamento_comprador ||
       data.possui_financiamento ||

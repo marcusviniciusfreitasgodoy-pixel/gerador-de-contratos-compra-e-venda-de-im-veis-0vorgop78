@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-19T15:01:32.251Z",
+  "generatedAt": "2026-05-19T15:13:21.641Z",
   "collections": [
     {
       "name": "users",
@@ -1126,6 +1126,13 @@
           "type": "number",
           "required": false,
           "system": false
+        },
+        {
+          "name": "gestao_exclusiva",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["com_exclusiva", "sem_exclusiva"]
         }
       ],
       "indexes": []

@@ -392,6 +392,7 @@ function NegociacaoTab({ tipoDocumento }: { tipoDocumento: string }) {
     'termo_posse',
     'autorizacao_intermediacao',
   ].includes(tipoDocumento)
+  const showPenalidades = tipoDocumento !== 'autorizacao_intermediacao'
 
   useEffect(() => {
     if (!showValues) return
@@ -413,6 +414,17 @@ function NegociacaoTab({ tipoDocumento }: { tipoDocumento: string }) {
     <div className="space-y-6 animate-in fade-in">
       {isAutorizacao && (
         <>
+          <h3 className="font-semibold text-lg border-b pb-2">Tipo de Gestão</h3>
+          <div className="grid grid-cols-1 gap-4 mb-6">
+            <FormSelect
+              name="gestao_exclusiva"
+              label="Exclusividade *"
+              options={[
+                { label: 'Com Gestão Exclusiva', value: 'com_exclusiva' },
+                { label: 'Sem Gestão Exclusiva', value: 'sem_exclusiva' },
+              ]}
+            />
+          </div>
           <h3 className="font-semibold text-lg border-b pb-2">Avaliação e Venda</h3>
           <div className="grid grid-cols-2 gap-4">
             <FormCurrencyInput name="valor_avaliacao" label="Valor de Avaliação (R$)" />
@@ -519,13 +531,15 @@ function NegociacaoTab({ tipoDocumento }: { tipoDocumento: string }) {
         </div>
       )}
 
-      <div className="pt-4 border-t space-y-4">
-        <h3 className="font-semibold text-lg border-b pb-2">Penalidades / Multas</h3>
-        <div className="grid grid-cols-2 gap-4">
-          <FormInput name="multa_inadimplencia" label="Multa Inadimplência (%)" type="number" />
-          <FormCurrencyInput name="multa_desocupacao" label="Multa Atraso Desocupação (Diária)" />
+      {showPenalidades && (
+        <div className="pt-4 border-t space-y-4">
+          <h3 className="font-semibold text-lg border-b pb-2">Penalidades / Multas</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <FormInput name="multa_inadimplencia" label="Multa Inadimplência (%)" type="number" />
+            <FormCurrencyInput name="multa_desocupacao" label="Multa Atraso Desocupação (Diária)" />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
@@ -621,7 +635,7 @@ export function ContractForm({
 }) {
   const activeSteps = WIZARD_STEPS_ALL.filter((s) => {
     if (tipoDocumento === 'autorizacao_intermediacao') {
-      return ['vendedor', 'imovel', 'negociacao', 'preview'].includes(s.id)
+      return ['vendedor', 'imovel', 'negociacao'].includes(s.id)
     }
     if (['ficha_cadastral', 'checklist_documental'].includes(tipoDocumento)) {
       return s.id !== 'negociacao' && s.id !== 'preview'
@@ -808,6 +822,7 @@ export function ContractForm({
         'valor_financiamento',
         'valor_recursos_proprios',
         'havera_parcelas',
+        'gestao_exclusiva',
       ])
 
       const isFinanciadoVal =
@@ -913,21 +928,8 @@ export function ContractForm({
     const lgpd = values.clausula_lgpd
     if (!lgpd) return toast.error('O consentimento da LGPD é obrigatório.')
 
-    if (tipoDocumento === 'autorizacao_intermediacao') {
-      setIsGenerating(true)
-      try {
-        const text = generateDraftText(rawValues, user)
-        await saveContractDraft({ ...values, status: 'finalizado' }, draftId, text)
-        toast.success('Autorização gerada com sucesso!')
-        setIsSuccess(true)
-      } catch (err) {
-        toast.error('Erro na geração do documento', {
-          description: getErrorMessage(err),
-        })
-      } finally {
-        setIsGenerating(false)
-      }
-      return
+    if (tipoDocumento === 'autorizacao_intermediacao' && !values.gestao_exclusiva) {
+      return toast.error('O tipo de gestão (Exclusividade) é obrigatório.')
     }
 
     setIsGenerating(true)

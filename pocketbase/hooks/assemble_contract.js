@@ -151,6 +151,96 @@ routerAdd(
       'distrato',
     ].includes(tipoDocumento)
 
+    if (tipoDocumento === 'autorizacao_intermediacao') {
+      const formatCurrency = (val) => {
+        if (!val) return 'R$ 0,00'
+        const num = Number(val)
+        if (isNaN(num)) return 'R$ 0,00'
+        const parts = num.toFixed(2).split('.')
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+        return 'R$ ' + parts.join(',')
+      }
+
+      const isExclusiva = body.gestao_exclusiva === 'com_exclusiva'
+      const gestaoStr = isExclusiva
+        ? ' _X_ COM GESTÃO EXCLUSIVA _____ SEM GESTÃO EXCLUSIVA'
+        : ' ___ COM GESTÃO EXCLUSIVA __X__ SEM GESTÃO EXCLUSIVA'
+
+      const t_condominio = formatCurrency(body.valor_condominio)
+      const t_iptu = formatCurrency(body.valor_iptu_anual)
+      const t_avaliacao = formatCurrency(body.valor_avaliacao)
+      const t_venda = formatCurrency(body.valor_total)
+
+      const hoje = new Date()
+      const meses = [
+        'janeiro',
+        'fevereiro',
+        'março',
+        'abril',
+        'maio',
+        'junho',
+        'julho',
+        'agosto',
+        'setembro',
+        'outubro',
+        'novembro',
+        'dezembro',
+      ]
+      const dataFormatada = `${hoje.getUTCDate()} de ${meses[hoje.getUTCMonth()]} de ${hoje.getUTCFullYear()}`
+
+      const text = `AUTORIZAÇÃO PARA DIVULGAÇÃO E VENDA DE IMÓVEL
+
+CONTRATANTES
+
+NOME: ${body.nome_vendedor || ''}
+
+IDENTIDADE: ${body.rg_vendedor || ''} ORGÃO EMISSOR: ${body.orgao_emissor_vendedor || ''} CPF: ${body.cpf_vendedor || ''}
+
+TELEFONES: ${body.telefone_vendedor || ''} E-MAIL: ${body.email_vendedor || ''}
+
+CONTRATADO: MARCUS V F GODOY ASSESSORIA IMOBILIARIA CNPJ: 58.409.058/0001-73
+
+DESCRIÇÃO DO IMÓVEL
+
+ENDEREÇO: ${body.endereco_imovel || ''}${body.numero_imovel ? ', ' + body.numero_imovel : ''}${body.complemento_imovel ? ' - ' + body.complemento_imovel : ''}
+
+BAIRRO: ${body.bairro_imovel || ''} CIDADE: ${body.cidade_imovel || ''} CEP: ${body.cep_imovel || ''}
+
+R$ CONDOMINIO: ${t_condominio} R$ IPTU: ${t_iptu} VAGAS: ${body.vagas_garagem || '0'} QUARTOS: ${body.quartos || '0'}
+
+VALOR DE AVALIAÇÃO: ${t_avaliacao}
+
+VALOR DE VENDA: ${t_venda}
+
+CONDIÇÕES
+
+1. A presente Autorização de Venda, ${gestaoStr}, tem o seu amparo na Lei 6.530, Art. 20, item III, de 12/05/1978 e pela Resolução do COFECI no. 458/95 de 17/11/1995. Entenda-se por GESTÃO EXCLUSIVA, a escolha do CONTRATADO, como responsável exclusivo pela Representação Comercial do imóvel perante o mercado. A ele caberá centralizar os contatos de possíveis interessados Clientes Diretos ou Corretores, acompanhar todas as visitas realizadas, atender outros Corretores interessados em estabelecer parceria comercial para venda do Imóvel e investir na divulgação do imóvel de forma ampla.
+
+2. É concedida esta autorização pelo prazo de 90 dias, a contar desta data, nela também está incluída a veiculação de anúncios e fotos do imóvel em todos os meios de publicidade utilizados pelo CONTRATADO, prorrogada automatically pelo mesmo período, caso, após o término do citado prazo, não ocorra manifestação expressa dos CONTRATANTES.
+
+3. Os CONTRATANTES se comprometem a pagar ao CONTRATADO o percentual de 5% sobre o preço de venda efetivamente transacionado, a título de honorários de corretagem, que serão pagos no ato da assinatura da escritura de compra e venda.
+
+4. A mesma remuneração será devida pelos CONTRATANTES se, durante a vigência desta autorização o proprietário realizar a venda do imóvel sem a ciência e acompanhamento do CONTRATADO ou se após o término do prazo estabelecido neste instrumento, eles venham a realizar, por conta própria ou através de terceiros, a venda do imóvel objeto da presente autorização, com pretendentes apresentados ou indicados pelo CONTRATADO, conforme relação nominal que lhes será ou tenha sido entregue, relação essa obtida por meio de registro nas respectivas fichas de visita ao imóvel.
+
+5. O CONTRATADO se compromete a não medir esforços no sentido de intermediar a venda do imóvel com base nas condições acima descritas, agindo de forma legal, obedecendo fielmente à legislação vigente e o Código de Ética da Profissão, estabelecido pelo CONSELHO FEDERAL DE CORRETORES DE IMÓVEIS – COFECI.
+
+6. Os CONTRATANTES se responsabilizam por todas as informações pessoais e de propriedade aqui prestadas acerca do imóvel objeto da presente Autorização.
+
+7. Para dirimir eventuais dúvidas ou questões oriundas da presente Autorização, que não possam ser resolvidas de comum acordo entre as partes, fica eleito o foro da Comarca do Rio de Janeiro, RJ, com renúncia a qualquer outro, por mais privilegiado que seja.
+
+Rio de Janeiro, ${dataFormatada}
+
+NOME:________________________________________________________________________.
+CONTRATANTE(S)
+CPF: ${body.cpf_vendedor || '_________________________'}
+
+CORRETOR:____________________________________________________________________.
+CONTRATADO
+CRECI: ________________`
+
+      return e.json(200, { minuta_texto: text, used_clauses: [] })
+    }
+
     // General Compliance Validations
     if (
       !master_data.comprador.cpf &&
