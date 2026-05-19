@@ -31,13 +31,6 @@ const PHASES = [
         icon: CheckSquare,
         desc: 'Relação de documentos exigidos',
       },
-    ],
-  },
-  {
-    id: 'fase-2',
-    title: 'Fase 2: Intermediação e Proposta',
-    description: 'Autorização de venda e início da negociação',
-    documents: [
       {
         id: 'autorizacao_intermediacao',
         title: 'Autorização de Intermediação',
@@ -45,6 +38,13 @@ const PHASES = [
         desc: 'Autorização exclusiva para venda de imóvel',
         highlight: true,
       },
+    ],
+  },
+  {
+    id: 'fase-2',
+    title: 'Fase 2: Contratual',
+    description: 'Efetivação e regras do negócio',
+    documents: [
       {
         id: 'recibo_sinal',
         title: 'Recibo de Sinal',
@@ -59,13 +59,6 @@ const PHASES = [
         desc: 'Contrato particular preliminar',
         highlight: true,
       },
-    ],
-  },
-  {
-    id: 'fase-3',
-    title: 'Fase 3: Contratação',
-    description: 'Efetivação e regras do negócio',
-    documents: [
       {
         id: 'contrato_particular',
         title: 'Contrato Particular',
@@ -73,19 +66,19 @@ const PHASES = [
         desc: 'Contrato definitivo de compra e venda',
         highlight: true,
       },
+    ],
+  },
+  {
+    id: 'fase-3',
+    title: 'Fase 3: Aditivos/Complementares',
+    description: 'Declarações e termos adicionais',
+    documents: [
       {
         id: 'declaracoes_complementares',
         title: 'Declarações Complementares',
         icon: Shield,
         desc: 'Declarações de estado civil, união, etc',
       },
-    ],
-  },
-  {
-    id: 'fase-4',
-    title: 'Fase 4: Entrega do Imóvel',
-    description: 'Posse e transferência física',
-    documents: [
       {
         id: 'termo_entrega_chaves',
         title: 'Termo de Entrega de Chaves',
@@ -101,9 +94,9 @@ const PHASES = [
     ],
   },
   {
-    id: 'fase-5',
-    title: 'Fase 5: Encerramento',
-    description: 'Rescisão ou cancelamento do negócio',
+    id: 'fase-4',
+    title: 'Fase 4: Finalização',
+    description: 'Encerramento ou rescisão do negócio',
     documents: [
       {
         id: 'distrato',
