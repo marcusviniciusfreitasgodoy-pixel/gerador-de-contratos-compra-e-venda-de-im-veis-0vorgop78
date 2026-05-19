@@ -382,6 +382,7 @@ function NegociacaoTab({ tipoDocumento }: { tipoDocumento: string }) {
   ].includes(tipoDocumento)
 
   useEffect(() => {
+    if (!showValues) return
     const s = parseCurrency(String(watch('valor_sinal') || '0'))
     const fin = parseCurrency(String(watch('valor_financiamento') || '0'))
     const fgts = parseCurrency(String(watch('valor_fgts') || '0'))
@@ -393,6 +394,7 @@ function NegociacaoTab({ tipoDocumento }: { tipoDocumento: string }) {
     watch('valor_fgts'),
     watch('valor_recursos_proprios'),
     setValue,
+    showValues,
   ])
 
   return (
@@ -718,19 +720,19 @@ export function ContractForm({
       suites: 1,
       vagas_garagem: 2,
 
-      valor_condominio: '1.200,00',
-      valor_iptu_anual: '3.500,00',
-      valor_avaliacao: '550.000,00',
+      valor_condominio: formatCurrency(1200),
+      valor_iptu_anual: formatCurrency(3500),
+      valor_avaliacao: formatCurrency(550000),
 
-      valor_total: '500.000,00',
-      valor_sinal: '50.000,00',
-      valor_fgts: '100.000,00',
+      valor_total: formatCurrency(500000),
+      valor_sinal: formatCurrency(50000),
+      valor_fgts: formatCurrency(100000),
       valor_financiamento: formatCurrency(500000 * 0.7), // 70% do valor total
-      valor_recursos_proprios: '0,00',
+      valor_recursos_proprios: formatCurrency(0),
       havera_parcelas: false,
 
       percentual_comissao: 5,
-      valor_comissao: '0,00',
+      valor_comissao: formatCurrency(0),
       responsavel_comissao: 'vendedor',
       comissao_garantida: true,
 
@@ -834,7 +836,11 @@ export function ContractForm({
     if (!isValid) return
 
     try {
-      const record = await saveContractDraft(form.getValues(), draftId)
+      const rawValues = form.getValues()
+      const parsed = contractSchema.safeParse(rawValues)
+      const dataToSave = parsed.success ? parsed.data : rawValues
+
+      const record = await saveContractDraft(dataToSave, draftId)
       setDraftId(record.id)
     } catch (err) {
       console.error('Failed to autosave draft:', err)
@@ -896,7 +902,7 @@ export function ContractForm({
     if (tipoDocumento === 'autorizacao_intermediacao') {
       setIsGenerating(true)
       try {
-        const text = generateDraftText(values, user)
+        const text = generateDraftText(rawValues, user)
         await saveContractDraft({ ...values, status: 'finalizado' }, draftId, text)
         toast.success('Autorização gerada com sucesso!')
         setIsSuccess(true)
