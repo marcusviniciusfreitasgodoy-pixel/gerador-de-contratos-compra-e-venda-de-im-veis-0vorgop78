@@ -29,15 +29,18 @@ export async function generateMinutaPDF(
       d.setFontSize(12)
       d.setTextColor(12, 35, 64) // Marinho
       d.text(headerTitle, margin, 18)
-      d.setFontSize(9)
-      d.setTextColor(212, 175, 55) // Ouro
-      d.text('Assessoria Jurídica Imobiliária', margin, 23)
 
-      d.setFontSize(10)
-      d.setTextColor(12, 35, 64)
-      d.text('MINUTA DE CONTRATO', pageWidth / 2, 23, {
-        align: 'center',
-      })
+      if (userDetails?.tipo_documento !== 'autorizacao_intermediacao') {
+        d.setFontSize(9)
+        d.setTextColor(212, 175, 55) // Ouro
+        d.text('Assessoria Jurídica Imobiliária', margin, 23)
+
+        d.setFontSize(10)
+        d.setTextColor(12, 35, 64)
+        d.text('MINUTA DE CONTRATO', pageWidth / 2, 23, {
+          align: 'center',
+        })
+      }
 
       d.setDrawColor(212, 175, 55) // Ouro
       d.setLineWidth(0.5)

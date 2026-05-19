@@ -99,7 +99,14 @@ export default function ContractView() {
       }
 
       if (newText && newText !== minuta) {
-        setMinuta(newText)
+        let text = newText
+        if (e.record.tipo_documento === 'autorizacao_intermediacao') {
+          text = text.replace(/<p[^>]*>\s*Assessoria Jurídica Imobiliária\s*<\/p>/gi, '')
+          text = text.replace(/<p[^>]*>\s*MINUTA DE CONTRATO\s*<\/p>/gi, '')
+          text = text.replace(/Assessoria Jurídica Imobiliária/gi, '')
+          text = text.replace(/MINUTA DE CONTRATO/gi, '')
+        }
+        setMinuta(text)
         setContract(e.record)
         setApiError(false)
         setGenerating(false)
@@ -124,6 +131,12 @@ export default function ContractView() {
         text = ''
       } else {
         setApiError(false)
+        if (data.tipo_documento === 'autorizacao_intermediacao') {
+          text = text.replace(/<p[^>]*>\s*Assessoria Jurídica Imobiliária\s*<\/p>/gi, '')
+          text = text.replace(/<p[^>]*>\s*MINUTA DE CONTRATO\s*<\/p>/gi, '')
+          text = text.replace(/Assessoria Jurídica Imobiliária/gi, '')
+          text = text.replace(/MINUTA DE CONTRATO/gi, '')
+        }
       }
       setMinuta(text)
 
@@ -190,7 +203,7 @@ export default function ContractView() {
       }
 
       const res = await regenerateContract(id!, payloadForAi)
-      const newMinuta = res?.minuta_texto || ''
+      let newMinuta = res?.minuta_texto || ''
 
       if (newMinuta) {
         if (newMinuta.includes('Erro no provedor') || newMinuta.includes('Minuta não gerada')) {
@@ -198,6 +211,15 @@ export default function ContractView() {
           setMinuta('')
           toast.error('Falha na geração com a IA.')
         } else {
+          if (contract.tipo_documento === 'autorizacao_intermediacao') {
+            newMinuta = newMinuta.replace(
+              /<p[^>]*>\s*Assessoria Jurídica Imobiliária\s*<\/p>/gi,
+              '',
+            )
+            newMinuta = newMinuta.replace(/<p[^>]*>\s*MINUTA DE CONTRATO\s*<\/p>/gi, '')
+            newMinuta = newMinuta.replace(/Assessoria Jurídica Imobiliária/gi, '')
+            newMinuta = newMinuta.replace(/MINUTA DE CONTRATO/gi, '')
+          }
           setMinuta(newMinuta)
           setStatus('finalizado')
           await updateContractData(id!, {
@@ -245,6 +267,7 @@ export default function ContractView() {
         header_content: headerContent,
         footer_content: footerContent,
         user_details: user,
+        tipo_documento: contract.tipo_documento,
       })
 
       if (res?.url) {
@@ -279,6 +302,7 @@ export default function ContractView() {
         ...user,
         header_content: headerContent,
         footer_content: footerContent,
+        tipo_documento: contract.tipo_documento,
       })
       toast.success('PDF gerado com sucesso!')
     } catch (error) {
