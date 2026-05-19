@@ -91,6 +91,12 @@ export const saveContractDraft = async (
     data_quitacao: safeDate(data.data_quitacao),
   }
 
+  if (data.imovel_desocupado) {
+    payload.imovel_ocupado = false
+    payload.ocupacao_imovel = 'Imóvel desocupado'
+  }
+  delete payload.imovel_desocupado
+
   // Add files
   const appendFile = (field: string, fileData: any) => {
     if (!fileData) return

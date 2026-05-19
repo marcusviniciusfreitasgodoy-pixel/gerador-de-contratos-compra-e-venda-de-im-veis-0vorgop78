@@ -227,6 +227,7 @@ CRECI: ${contratadoCreci}
     if (imovel_financiado) details.push('financiado/alienado')
     if (imovel_inventario) details.push('em processo de inventário')
     if (imovel_locado) details.push('atualmente locado')
+    if (data.imovel_desocupado) details.push('desocupado')
     if (possui_onus) details.push('com ônus pendentes informados')
     if (situacao_juridica_imovel) details.push(situacao_juridica_imovel)
     onusText += details.join(', ') + '.\n\n'

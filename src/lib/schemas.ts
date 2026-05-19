@@ -100,6 +100,7 @@ export const contractSchema = z
     possui_box: z.boolean().default(false),
     tipo_imovel: z.string().optional(),
     imovel_ocupado: z.boolean().default(false),
+    imovel_desocupado: z.boolean().default(false),
     imovel_locado: z.boolean().default(false),
     imovel_financiado: z.boolean().default(false),
     imovel_inventario: z.boolean().default(false),

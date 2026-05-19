@@ -178,7 +178,7 @@ function CompradorTab() {
 }
 
 function VendedorTab() {
-  const { watch, control } = useFormContext()
+  const { watch, control, setValue } = useFormContext()
   const vendPj = watch('vendedor_pj')
   const estCivilV = watch('estado_civil_vendedor')
   const inventario = watch('imovel_inventario')
@@ -245,6 +245,7 @@ function VendedorTab() {
             { name: 'imovel_locado', label: 'Imóvel Locado' },
             { name: 'imovel_financiado', label: 'Imóvel Financiado' },
             { name: 'imovel_ocupado', label: 'Imóvel Ocupado' },
+            { name: 'imovel_desocupado', label: 'Imóvel desocupado' },
             { name: 'possui_usufruto', label: 'Possui Usufruto' },
           ].map((fieldData) => (
             <FormField
@@ -254,7 +255,18 @@ function VendedorTab() {
               render={({ field }) => (
                 <FormItem className="flex items-center space-x-2 border p-3 rounded-md cursor-pointer">
                   <FormControl>
-                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={(val) => {
+                        field.onChange(val)
+                        if (fieldData.name === 'imovel_ocupado' && val) {
+                          setValue('imovel_desocupado', false)
+                        }
+                        if (fieldData.name === 'imovel_desocupado' && val) {
+                          setValue('imovel_ocupado', false)
+                        }
+                      }}
+                    />
                   </FormControl>
                   <FormLabel className="!mt-0 cursor-pointer">{fieldData.label}</FormLabel>
                 </FormItem>
@@ -639,6 +651,7 @@ export function ContractForm({
       posse_imediata: false,
       imovel_inventario: false,
       imovel_locado: false,
+      imovel_desocupado: false,
       havera_parcelas: false,
       clausula_lgpd: false,
     } as any,
@@ -702,6 +715,7 @@ export function ContractForm({
       imovel_locado: false,
       imovel_financiado: false,
       imovel_ocupado: false,
+      imovel_desocupado: true,
       possui_usufruto: false,
 
       tipo_imovel: 'Apartamento',
@@ -933,6 +947,8 @@ export function ContractForm({
           situacao_juridica: {
             locado: values.imovel_locado,
             inventario: values.imovel_inventario,
+            desocupado: values.imovel_desocupado,
+            ocupado: values.imovel_ocupado,
           },
         },
         negociacao: {
