@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -12,10 +12,10 @@ import {
   Download,
   Trash2,
   FileDown,
+  Users,
 } from 'lucide-react'
 import { getMyContracts, deleteContract, generateContractDocx } from '@/services/contracts'
 import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
 import { Badge } from '@/components/ui/badge'
 import {
   DropdownMenu,
@@ -26,19 +26,38 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { generateMinutaPDF } from '@/lib/pdf-generator'
 import { toast } from 'sonner'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
+import { useRealtime } from '@/hooks/use-realtime'
+
+const TIPO_DOCUMENTO_LABELS: Record<string, string> = {
+  ficha_cadastral: 'Ficha Cadastral',
+  checklist_documental: 'Checklist Documental',
+  recibo_sinal: 'Recibo de Sinal',
+  promessa_compra_venda: 'Promessa de Compra e Venda',
+  contrato_particular: 'Contrato Particular',
+  termo_entrega_chaves: 'Termo de Entrega de Chaves',
+  termo_posse: 'Termo de Posse',
+  declaracoes_complementares: 'Declarações Complementares',
+  autorizacao_intermediacao: 'Autorização de Intermediação',
+  distrato: 'Distrato',
+}
+
+const getLabel = (tipo: string) =>
+  TIPO_DOCUMENTO_LABELS[tipo] || (tipo === 'sem_tipo' ? 'Outros' : tipo.replace(/_/g, ' '))
 
 export default function MyContracts() {
   const navigate = useNavigate()
   const [contracts, setContracts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    loadContracts()
-  }, [])
-
   const loadContracts = async () => {
     try {
-      const data = await getMyContracts(1, 50)
+      const data = await getMyContracts(1, 500)
       setContracts(data.items || [])
     } catch (error) {
       console.error(error)
@@ -46,6 +65,14 @@ export default function MyContracts() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    loadContracts()
+  }, [])
+
+  useRealtime('contracts', () => {
+    loadContracts()
+  })
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Tem certeza que deseja excluir este contrato?')) return
@@ -119,6 +146,21 @@ export default function MyContracts() {
     }
   }
 
+  const groupedContracts = useMemo(() => {
+    const sorted = [...contracts].sort(
+      (a, b) => new Date(b.created).getTime() - new Date(a.created).getTime(),
+    )
+    return sorted.reduce(
+      (acc, contract) => {
+        const tipo = contract.tipo_documento || 'sem_tipo'
+        if (!acc[tipo]) acc[tipo] = []
+        acc[tipo].push(contract)
+        return acc
+      },
+      {} as Record<string, any[]>,
+    )
+  }, [contracts])
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-12">
@@ -127,12 +169,16 @@ export default function MyContracts() {
     )
   }
 
+  const defaultAccordionValue = Object.keys(groupedContracts)
+
   return (
     <div className="container mx-auto py-8 px-4 max-w-5xl animate-in fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold text-slate-800">Meus Contratos</h1>
-          <p className="text-slate-600 mt-2">Gerencie e visualize seus contratos gerados.</p>
+          <p className="text-slate-600 mt-2">
+            Gerencie e visualize seus contratos gerados, agrupados por tipo.
+          </p>
         </div>
         <Button onClick={() => navigate('/contratos/novo')} className="gap-2 shadow-sm">
           <Plus className="w-4 h-4" />
@@ -155,86 +201,129 @@ export default function MyContracts() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4">
-          {contracts.map((contract) => (
-            <Card key={contract.id} className="hover:shadow-md transition-all border-slate-200">
-              <CardContent className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-start gap-4">
-                  <div className="p-3 bg-primary/10 rounded-xl hidden sm:block">
-                    <FileText className="w-6 h-6 text-primary" />
+        <Accordion type="multiple" defaultValue={defaultAccordionValue} className="space-y-4">
+          {Object.entries(groupedContracts).map(([tipo, items]) => (
+            <AccordionItem
+              key={tipo}
+              value={tipo}
+              className="border rounded-xl bg-white shadow-sm overflow-hidden px-2 data-[state=open]:border-primary/20"
+            >
+              <AccordionTrigger className="hover:no-underline px-4 py-5 group">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary/10 rounded-lg text-primary group-hover:bg-primary/20 transition-colors">
+                    <FileText className="w-5 h-5" />
                   </div>
-                  <div>
-                    <div className="flex items-center gap-3 mb-1">
-                      <h3 className="font-semibold text-lg text-slate-800 capitalize">
-                        {contract.tipo_documento
-                          ? contract.tipo_documento.replace(/_/g, ' ')
-                          : 'Contrato Sem Tipo'}
-                      </h3>
-                      {getStatusBadge(contract.status)}
-                    </div>
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500">
-                      <span className="flex items-center gap-1.5">
-                        <Calendar className="w-4 h-4" />
-                        {format(new Date(contract.created), "dd 'de' MMM, yyyy", {
-                          locale: ptBR,
-                        })}
-                      </span>
-                      <span className="hidden sm:inline text-slate-300">•</span>
-                      <span>
-                        Comprador:{' '}
-                        <span className="font-medium text-slate-700">
-                          {contract.nome_comprador || 'Não informado'}
-                        </span>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 w-full sm:w-auto mt-4 sm:mt-0">
-                  <Button
+                  <h2 className="text-lg font-semibold text-slate-800">{getLabel(tipo)}</h2>
+                  <Badge
                     variant="secondary"
-                    onClick={() => navigate(`/contratos/${contract.id}`)}
-                    className="gap-2 flex-1 sm:flex-none"
+                    className="rounded-full px-2.5 bg-slate-100 text-slate-600"
                   >
-                    <Edit className="w-4 h-4" />
-                    <span className="hidden sm:inline">Editar / Visualizar</span>
-                    <span className="sm:hidden">Editar</span>
-                  </Button>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="icon" className="shrink-0 bg-white">
-                        <MoreVertical className="w-5 h-5 text-slate-600" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem
-                        onClick={() => handleExportPDF(contract)}
-                        className="cursor-pointer"
-                      >
-                        <FileDown className="w-4 h-4 mr-2" />
-                        Baixar PDF
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleExportWord(contract)}
-                        className="cursor-pointer"
-                      >
-                        <Download className="w-4 h-4 mr-2" />
-                        Baixar Word
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => handleDelete(contract.id)}
-                        className="text-red-600 focus:bg-red-50 focus:text-red-700 cursor-pointer"
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Excluir
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                    {items.length}
+                  </Badge>
                 </div>
-              </CardContent>
-            </Card>
+              </AccordionTrigger>
+              <AccordionContent className="px-4 pb-5 pt-1">
+                <div className="grid gap-3">
+                  {items.map((contract) => (
+                    <Card
+                      key={contract.id}
+                      className="hover:shadow-md transition-all border-slate-200"
+                    >
+                      <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div className="flex items-start gap-4 flex-1">
+                          <div className="flex flex-col gap-2 w-full">
+                            <div className="flex items-center gap-3">
+                              {getStatusBadge(contract.status)}
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 text-sm text-slate-600">
+                              <div className="flex items-center gap-2">
+                                <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
+                                <span>
+                                  Criado em:{' '}
+                                  <span className="font-medium text-slate-800">
+                                    {format(new Date(contract.created), 'dd/MM/yyyy')}
+                                  </span>
+                                </span>
+                              </div>
+
+                              {(contract.nome_comprador || contract.nome_vendedor) && (
+                                <div className="flex items-start gap-2">
+                                  <Users className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                                  <span className="line-clamp-2">
+                                    {contract.nome_comprador && (
+                                      <>
+                                        <span className="text-slate-500">Comprador:</span>{' '}
+                                        <span className="font-medium text-slate-800">
+                                          {contract.nome_comprador}
+                                        </span>
+                                      </>
+                                    )}
+                                    {contract.nome_comprador && contract.nome_vendedor && <br />}
+                                    {contract.nome_vendedor && (
+                                      <>
+                                        <span className="text-slate-500">Vendedor:</span>{' '}
+                                        <span className="font-medium text-slate-800">
+                                          {contract.nome_vendedor}
+                                        </span>
+                                      </>
+                                    )}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0 pt-4 border-t sm:border-0 sm:pt-0 shrink-0">
+                          <Button
+                            variant="secondary"
+                            onClick={() => navigate(`/contratos/${contract.id}`)}
+                            className="gap-2 flex-1 sm:flex-none"
+                          >
+                            <Edit className="w-4 h-4" />
+                            <span className="hidden sm:inline">Editar / Visualizar</span>
+                            <span className="sm:hidden">Editar</span>
+                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="outline" size="icon" className="shrink-0 bg-white">
+                                <MoreVertical className="w-5 h-5 text-slate-600" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48">
+                              <DropdownMenuItem
+                                onClick={() => handleExportPDF(contract)}
+                                className="cursor-pointer"
+                              >
+                                <FileDown className="w-4 h-4 mr-2" />
+                                Baixar PDF
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleExportWord(contract)}
+                                className="cursor-pointer"
+                              >
+                                <Download className="w-4 h-4 mr-2" />
+                                Baixar Word
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={() => handleDelete(contract.id)}
+                                className="text-red-600 focus:bg-red-50 focus:text-red-700 cursor-pointer"
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Excluir
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
           ))}
-        </div>
+        </Accordion>
       )}
     </div>
   )
