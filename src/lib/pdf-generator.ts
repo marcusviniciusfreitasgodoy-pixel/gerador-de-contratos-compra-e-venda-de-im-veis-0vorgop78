@@ -1,11 +1,16 @@
 import { jsPDF } from 'jspdf'
 import { format } from 'date-fns'
+import { generateChecklistPDFTemplate } from './checklist-generator'
 
 export async function generateMinutaPDF(
   minutaText: string,
   fileName: string,
   userDetails?: any,
 ): Promise<void> {
+  if (minutaText.includes('<!-- CHECKLIST_FORMAT -->')) {
+    return generateChecklistPDFTemplate(minutaText, fileName, userDetails)
+  }
+
   return new Promise((resolve) => {
     const doc = new jsPDF()
     let y = 40

@@ -89,6 +89,8 @@ export const saveContractDraft = async (
     data_nascimento_vendedor: safeDate(data.data_nascimento_vendedor),
     data_assinatura: safeDate(data.data_assinatura),
     data_quitacao: safeDate(data.data_quitacao),
+    vendedor_uniao_estavel: data.vendedor_uniao_estavel ?? false,
+    comprador_uniao_estavel: data.comprador_uniao_estavel ?? false,
   }
 
   if (data.imovel_desocupado) {

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-19T15:16:50.905Z",
+  "generatedAt": "2026-05-19T15:35:54.395Z",
   "collections": [
     {
       "name": "users",
@@ -1133,6 +1133,18 @@
           "required": false,
           "system": false,
           "selectValues": ["com_exclusiva", "sem_exclusiva"]
+        },
+        {
+          "name": "vendedor_uniao_estavel",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "comprador_uniao_estavel",
+          "type": "bool",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": []

@@ -34,6 +34,7 @@ import { cn } from '@/lib/utils'
 import { ESTADO_CIVIL_OPTIONS, REGIME_BENS_OPTIONS, PLATAFORMA_OPTIONS } from '@/lib/constants'
 
 const WIZARD_STEPS_ALL = [
+  { id: 'perfil_checklist', title: 'Perfil da Checklist' },
   { id: 'comprador', title: 'Comprador' },
   { id: 'vendedor', title: 'Vendedor' },
   { id: 'imovel', title: 'Imóvel' },
@@ -41,6 +42,73 @@ const WIZARD_STEPS_ALL = [
   { id: 'compliance', title: 'Compliance Jurídico' },
   { id: 'preview', title: 'Minuta' },
 ]
+
+function PerfilChecklistTab() {
+  const { control } = useFormContext()
+  return (
+    <div className="space-y-6 animate-in fade-in">
+      <h3 className="font-semibold text-lg border-b pb-2">Perfil da Checklist (Due Diligence)</h3>
+      <p className="text-sm text-slate-500 mb-4">
+        Preencha os perfis abaixo para gerar uma checklist condicional e personalizada.
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <Card className="p-4 bg-slate-50 shadow-sm border-slate-200">
+          <h4 className="font-medium text-primary mb-4 flex items-center gap-2">
+            Perfil do Vendedor
+          </h4>
+          <FormField
+            control={control}
+            name="vendedor_pj"
+            render={({ field }) => (
+              <FormItem className="flex items-center space-x-2 mb-4">
+                <FormControl>
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                </FormControl>
+                <FormLabel className="!mt-0 cursor-pointer">
+                  Vendedor é Empresário / Pessoa Jurídica
+                </FormLabel>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name="vendedor_uniao_estavel"
+            render={({ field }) => (
+              <FormItem className="flex items-center space-x-2">
+                <FormControl>
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                </FormControl>
+                <FormLabel className="!mt-0 cursor-pointer">Vendedor em União Estável</FormLabel>
+              </FormItem>
+            )}
+          />
+        </Card>
+        <Card className="p-4 bg-slate-50 shadow-sm border-slate-200">
+          <h4 className="font-medium text-primary mb-4 flex items-center gap-2">
+            Perfil do Comprador
+          </h4>
+          <FormField
+            control={control}
+            name="comprador_uniao_estavel"
+            render={({ field }) => (
+              <FormItem className="flex items-center space-x-2 mb-4">
+                <FormControl>
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                </FormControl>
+                <FormLabel className="!mt-0 cursor-pointer">Comprador em União Estável</FormLabel>
+              </FormItem>
+            )}
+          />
+          <FormSelect
+            name="regime_bens_comprador"
+            label="Regime de Bens do Comprador"
+            options={REGIME_BENS_OPTIONS}
+          />
+        </Card>
+      </div>
+    </div>
+  )
+}
 
 function PreviewTab({ user }: { user: any }) {
   const { getValues } = useFormContext()
@@ -634,13 +702,16 @@ export function ContractForm({
   onBack: () => void
 }) {
   const activeSteps = WIZARD_STEPS_ALL.filter((s) => {
+    if (tipoDocumento === 'checklist_documental') {
+      return ['perfil_checklist', 'comprador', 'vendedor', 'imovel', 'compliance'].includes(s.id)
+    }
     if (tipoDocumento === 'autorizacao_intermediacao') {
       return ['vendedor', 'imovel', 'negociacao'].includes(s.id)
     }
-    if (['ficha_cadastral', 'checklist_documental'].includes(tipoDocumento)) {
-      return s.id !== 'negociacao' && s.id !== 'preview'
+    if (['ficha_cadastral'].includes(tipoDocumento)) {
+      return s.id !== 'negociacao' && s.id !== 'preview' && s.id !== 'perfil_checklist'
     }
-    return s.id !== 'preview'
+    return s.id !== 'preview' && s.id !== 'perfil_checklist'
   })
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
@@ -657,6 +728,8 @@ export function ContractForm({
     defaultValues: {
       tipo_comprador: 'pf',
       vendedor_pj: false,
+      vendedor_uniao_estavel: false,
+      comprador_uniao_estavel: false,
       tipo_documento: tipoDocumento,
       status: 'rascunho',
       financiamento_comprador: false,
@@ -724,6 +797,8 @@ export function ContractForm({
       cpf_vendedor: '111.222.333-44',
       rg_vendedor: '11.222.333-4',
       estado_civil_vendedor: 'Divorciado',
+      vendedor_uniao_estavel: false,
+      comprador_uniao_estavel: false,
 
       imovel_inventario: false,
       imovel_locado: false,
@@ -783,7 +858,14 @@ export function ContractForm({
     let isValid = false
     const stepId = currentStepData.id
 
-    if (stepId === 'comprador') {
+    if (stepId === 'perfil_checklist') {
+      if (form.getValues('comprador_uniao_estavel') && !form.getValues('regime_bens_comprador')) {
+        toast.error('Informe o regime de bens do comprador para a União Estável.')
+        isValid = false
+      } else {
+        isValid = true
+      }
+    } else if (stepId === 'comprador') {
       isValid = await form.trigger(['nome_comprador'])
       const estC = form.getValues('estado_civil_comprador')
       if (estC === 'Casado' || estC === 'Casada') {
@@ -962,6 +1044,21 @@ export function ContractForm({
         },
       }
 
+      let instrucoes_checklist = ''
+      if (tipoDocumento === 'checklist_documental') {
+        instrucoes_checklist =
+          "INSTRUÇÕES OBRIGATÓRIAS PARA O CHECKLIST:\n- Formatar como uma lista clara e estruturada.\n- INCLUIR OBRIGATORIAMENTE: Certidão do Funesbom (Corpo de Bombeiros), Certidão do 2º Ofício de Distribuidor, Certidão de Interdições e Tutelas.\n- INCLUIR UMA SEÇÃO DE: 'Informações Bancárias Detalhadas'.\n"
+        if (values.vendedor_pj) {
+          instrucoes_checklist +=
+            '- EXIGIR: CNPJ, Contrato Social/Estatuto, Últimas Alterações Contratuais (Vendedor PJ).\n'
+        }
+        if (values.vendedor_uniao_estavel || values.comprador_uniao_estavel) {
+          instrucoes_checklist +=
+            '- EXIGIR: RG, CPF e Comprovante de Residência do(a) companheiro(a) devido à União Estável.\n'
+        }
+        jsonMestre.instrucoes_checklist = instrucoes_checklist
+      }
+
       const payloadForAi = { ...values, json_mestre: jsonMestre } as any
       delete payloadForAi.matricula_file
       delete payloadForAi.iptu_file
@@ -1075,6 +1172,7 @@ export function ContractForm({
         <CardContent className="p-8">
           <Form {...form}>
             <form className="space-y-6">
+              {currentStepData.id === 'perfil_checklist' && <PerfilChecklistTab />}
               {currentStepData.id === 'comprador' && <CompradorTab />}
               {currentStepData.id === 'vendedor' && <VendedorTab />}
               {currentStepData.id === 'imovel' && <ImovelTab />}

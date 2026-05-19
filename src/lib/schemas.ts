@@ -45,6 +45,9 @@ export const contractSchema = z
     financiamento_comprador: z.boolean().default(false),
     fgts_comprador: z.boolean().default(false),
 
+    vendedor_uniao_estavel: z.boolean().default(false),
+    comprador_uniao_estavel: z.boolean().default(false),
+
     // Parties - Vendedor
     vendedor_pj: z.boolean().default(false),
     nome_vendedor: z.string().min(1, 'Obrigatório'),
