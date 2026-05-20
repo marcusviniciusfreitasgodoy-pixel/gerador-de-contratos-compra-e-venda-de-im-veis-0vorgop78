@@ -23,6 +23,8 @@ import {
   ShieldAlert,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
+import iconUrl from '@/assets/gold-f6482.png'
+import logoUrl from '@/assets/logotipo-negativo-01-8be70.png'
 
 export function AppSidebar() {
   const { pathname } = useLocation()
@@ -30,18 +32,16 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader className="h-16 flex justify-center px-4 border-b border-sidebar-border bg-sidebar text-primary">
-        <Link to="/" className="flex items-center gap-2 font-bold text-xl uppercase tracking-wide">
-          <div className="w-8 h-8 bg-secondary flex items-center justify-center rounded-sm text-primary">
-            <span>G</span>
-          </div>
-          <span className="truncate">Prime Realty</span>
+      <SidebarHeader className="h-16 flex justify-center px-4 border-b border-sidebar-border bg-sidebar text-white">
+        <Link to="/" className="flex items-center gap-2">
+          <img src={iconUrl} alt="Prime Realty Icon" className="w-8 h-8 object-contain" />
+          <img src={logoUrl} alt="Prime Realty Logo" className="h-6 object-contain" />
         </Link>
       </SidebarHeader>
       <SidebarContent>
         {/* Operacional */}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs uppercase tracking-wider font-semibold text-slate-500 mb-1">
+          <SidebarGroupLabel className="text-xs uppercase tracking-wider font-semibold text-white/70 mb-1">
             Operacional
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -84,7 +84,7 @@ export function AppSidebar() {
 
         {/* Compliance & Gestão */}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs uppercase tracking-wider font-semibold text-slate-500 mb-1 mt-4">
+          <SidebarGroupLabel className="text-xs uppercase tracking-wider font-semibold text-white/70 mb-1 mt-4">
             Compliance & Gestão
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -119,7 +119,7 @@ export function AppSidebar() {
 
         {/* Configurações */}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs uppercase tracking-wider font-semibold text-slate-500 mb-1 mt-4">
+          <SidebarGroupLabel className="text-xs uppercase tracking-wider font-semibold text-white/70 mb-1 mt-4">
             Configurações
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -145,7 +145,7 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="border-t border-sidebar-border p-4">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 text-sm text-white/80">
           <UserCircle className="w-4 h-4" />
           <span className="truncate font-medium">{user?.name || user?.email}</span>
         </div>
