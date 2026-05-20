@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-20T15:58:17.623Z",
+  "generatedAt": "2026-05-20T16:18:05.664Z",
   "collections": [
     {
       "name": "users",
@@ -776,7 +776,14 @@
           "type": "select",
           "required": false,
           "system": false,
-          "selectValues": ["Apartamento", "Casa", "Terreno", "Comercial"]
+          "selectValues": [
+            "Apartamento",
+            "Casa",
+            "Terreno",
+            "Comercial",
+            "Cobertura",
+            "Sala Comercial"
+          ]
         },
         {
           "name": "possui_usufruto",

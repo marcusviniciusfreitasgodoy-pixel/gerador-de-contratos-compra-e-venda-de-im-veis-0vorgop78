@@ -392,6 +392,8 @@ function ImovelTab() {
             { label: 'Casa', value: 'Casa' },
             { label: 'Terreno', value: 'Terreno' },
             { label: 'Comercial', value: 'Comercial' },
+            { label: 'Cobertura', value: 'Cobertura' },
+            { label: 'Sala Comercial', value: 'Sala Comercial' },
           ]}
         />
         <FormInput name="matricula_imovel" label="Nº da Matrícula *" />
@@ -1314,7 +1316,7 @@ export function ContractForm({
                       ) : (
                         <>
                           <FileText className="mr-2 w-5 h-5 text-primary" />
-                          <span className="text-primary">Visualizar Prévia</span>
+                          <span className="text-primary">Visualizar PDF</span>
                         </>
                       )}
                     </Button>
