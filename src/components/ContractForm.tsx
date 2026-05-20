@@ -732,6 +732,7 @@ export function ContractForm({
   const [previewModalOpen, setPreviewModalOpen] = useState(false)
   const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null)
   const [isPreviewing, setIsPreviewing] = useState(false)
+  const [previewError, setPreviewError] = useState<string | null>(null)
   const [currentMinuta, setCurrentMinuta] = useState<string>('')
   const form = useForm<ContractFormValues>({
     resolver: zodResolver(contractSchema),
@@ -1086,6 +1087,7 @@ export function ContractForm({
     if (!data) return
 
     setIsPreviewing(true)
+    setPreviewError(null)
     setPreviewModalOpen(true)
 
     try {
@@ -1094,15 +1096,28 @@ export function ContractForm({
         body: JSON.stringify(data.payloadForAi),
       })
 
-      let text = res?.minuta_texto || ''
+      if (!res?.minuta_texto) {
+        throw new Error(
+          'O contrato não retornou um texto válido. Verifique os dados e tente novamente.',
+        )
+      }
+
+      let text = res.minuta_texto
+      text = text.replace(/<p[^>]*>\s*Assessoria Jurídica Imobiliária\s*<\/p>/gi, '')
+      text = text.replace(/Assessoria Jurídica Imobiliária/gi, '')
       if (tipoDocumento === 'autorizacao_intermediacao') {
-        text = text.replace(/<p[^>]*>\s*Assessoria Jurídica Imobiliária\s*<\/p>/gi, '')
         text = text.replace(/<p[^>]*>\s*MINUTA DE CONTRATO\s*<\/p>/gi, '')
-        text = text.replace(/Assessoria Jurídica Imobiliária/gi, '')
         text = text.replace(/MINUTA DE CONTRATO/gi, '')
       }
 
       setCurrentMinuta(text)
+
+      const record = await saveContractDraft(
+        { ...data.values, used_clauses: res?.used_clauses, status: 'rascunho' },
+        draftId,
+        text,
+      )
+      setDraftId(record.id)
 
       const replaceBrandingPlaceholders = (txt?: string) => {
         if (!txt || !user) return ''
@@ -1119,12 +1134,16 @@ export function ContractForm({
         tipo_documento: tipoDocumento,
       })
 
+      if (!url) {
+        throw new Error('Falha ao renderizar o PDF (Blob URL inválida).')
+      }
+
       setPreviewPdfUrl(url)
     } catch (err) {
-      toast.error('Erro ao gerar prévia.', {
-        description: getErrorMessage(err),
-      })
-      setPreviewModalOpen(false)
+      console.error(err)
+      setPreviewError(
+        getErrorMessage(err) || 'Ocorreu um erro ao processar a prévia. Tente novamente.',
+      )
     } finally {
       setIsPreviewing(false)
     }
@@ -1166,10 +1185,14 @@ export function ContractForm({
         body: JSON.stringify(payloadForAi),
       })
 
+      let text = res?.minuta_texto || ''
+      text = text.replace(/<p[^>]*>\s*Assessoria Jurídica Imobiliária\s*<\/p>/gi, '')
+      text = text.replace(/Assessoria Jurídica Imobiliária/gi, '')
+
       await saveContractDraft(
         { ...values, used_clauses: res?.used_clauses, status: 'finalizado' },
         draftId,
-        res?.minuta_texto,
+        text,
       )
 
       toast.success('Contrato gerado com sucesso!')
@@ -1316,7 +1339,7 @@ export function ContractForm({
                       ) : (
                         <>
                           <FileText className="mr-2 w-5 h-5 text-primary" />
-                          <span className="text-primary">Visualizar PDF</span>
+                          <span className="text-primary">Visualização Prévia</span>
                         </>
                       )}
                     </Button>
@@ -1352,6 +1375,7 @@ export function ContractForm({
         pdfUrl={previewPdfUrl}
         loading={isPreviewing}
         onDownload={handleDownloadPreviewPDF}
+        error={previewError}
       />
     </div>
   )

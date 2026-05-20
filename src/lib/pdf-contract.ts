@@ -102,6 +102,8 @@ export function generateContractPDF(text: string, fileName: string) {
     const lineHeight = 6
 
     const cleanText = String(text || '')
+      .replace(/<p[^>]*>\s*Assessoria Jurídica Imobiliária\s*<\/p>/gi, '')
+      .replace(/Assessoria Jurídica Imobiliária/gi, '')
       .replace(/<br\s*[/]?>/gi, '\n')
       .replace(/<\/div>/gi, '\n')
       .replace(/<\/p>/gi, '\n')

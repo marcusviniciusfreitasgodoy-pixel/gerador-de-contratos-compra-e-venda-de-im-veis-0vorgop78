@@ -49,7 +49,16 @@ export function buildPdfDoc(minutaText: string, userDetails?: any): jsPDF {
   doc.setFontSize(11)
   doc.setTextColor(51, 65, 85)
 
-  let cleanText = minutaText
+  let preClean = minutaText
+    .replace(/<p[^>]*>\s*Assessoria Jurídica Imobiliária\s*<\/p>/gi, '')
+    .replace(/Assessoria Jurídica Imobiliária/gi, '')
+
+  if (userDetails?.tipo_documento === 'autorizacao_intermediacao') {
+    preClean = preClean.replace(/<p[^>]*>\s*MINUTA DE CONTRATO\s*<\/p>/gi, '')
+    preClean = preClean.replace(/MINUTA DE CONTRATO/gi, '')
+  }
+
+  let cleanText = preClean
     .replace(/<br\s*[/]?>/gi, '\n')
     .replace(/<\/div>/gi, '\n')
     .replace(/<\/p>/gi, '\n')
@@ -169,7 +178,16 @@ export async function generateMinutaPDF(
     doc.setFontSize(11)
     doc.setTextColor(51, 65, 85)
 
-    let cleanText = minutaText
+    let preClean = minutaText
+      .replace(/<p[^>]*>\s*Assessoria Jurídica Imobiliária\s*<\/p>/gi, '')
+      .replace(/Assessoria Jurídica Imobiliária/gi, '')
+
+    if (userDetails?.tipo_documento === 'autorizacao_intermediacao') {
+      preClean = preClean.replace(/<p[^>]*>\s*MINUTA DE CONTRATO\s*<\/p>/gi, '')
+      preClean = preClean.replace(/MINUTA DE CONTRATO/gi, '')
+    }
+
+    let cleanText = preClean
       .replace(/<br\s*[/]?>/gi, '\n')
       .replace(/<\/div>/gi, '\n')
       .replace(/<\/p>/gi, '\n')
