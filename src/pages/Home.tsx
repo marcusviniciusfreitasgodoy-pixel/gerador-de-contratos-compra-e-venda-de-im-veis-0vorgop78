@@ -1,135 +1,93 @@
-import { useNavigate } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import {
-  UserCheck,
-  FileText,
-  ShieldCheck,
-  CheckCircle,
-  Lightbulb,
-  AlertTriangle,
-  ArrowRight,
-} from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ShieldCheck, ArrowRight, AlertCircle } from 'lucide-react'
+import { documentPhases, scenarios } from '@/components/dashboard/dashboard-data'
+import { PhaseCard } from '@/components/dashboard/phase-card'
+import { ScenarioList } from '@/components/dashboard/scenario-list'
 
 export default function Home() {
-  const navigate = useNavigate()
-
   return (
-    <div className="container mx-auto py-10 px-4 max-w-5xl animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="text-center mb-16 space-y-6">
-        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900">
+    <div className="container mx-auto py-8 px-4 max-w-5xl animate-fade-in-up">
+      {/* Hero Section */}
+      <div className="mb-10 text-center max-w-3xl mx-auto pt-4">
+        <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-4 text-foreground">
           Bem-vindo. Do primeiro contato ao fechamento, com tudo no lugar.
         </h1>
-        <p className="text-lg md:text-xl text-slate-600 max-w-4xl mx-auto leading-relaxed">
-          Cada venda passa por etapas. E em cada etapa existe um documento que protege o negócio.
-          Quando um deles fica de fora ou sai errado, é aí que a venda trava ou vira dor de cabeça
-          depois. Esta ferramenta acompanha você na jornada inteira. Ela monta o documento certo, na
-          hora certa, com as cláusulas que não podem faltar. Você chega preparado em cada fase e
-          passa segurança pro cliente.
+        <p className="text-lg text-muted-foreground leading-relaxed">
+          Acompanhe e gere os instrumentos legais certos em cada uma das 4 fases da transação
+          imobiliária para garantir segurança jurídica e uma experiência profissional para os seus
+          clientes.
         </p>
       </div>
 
-      {/* 4 Phases Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
-        <Card className="border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center gap-4 pb-2">
-            <div className="bg-blue-100 p-3 rounded-xl text-blue-700">
-              <UserCheck className="w-6 h-6" />
-            </div>
-            <CardTitle className="text-xl text-slate-800">Captação e Cadastro</CardTitle>
-          </CardHeader>
-          <CardContent className="text-slate-600 leading-relaxed">
-            O começo de tudo. Ficha cadastral, checklist de documentos e a autorização de
-            intermediação. É aqui que você organiza o imóvel e garante o seu direito de trabalhar a
-            venda.
-          </CardContent>
-        </Card>
-
-        <Card className="border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center gap-4 pb-2">
-            <div className="bg-purple-100 p-3 rounded-xl text-purple-700">
-              <FileText className="w-6 h-6" />
-            </div>
-            <CardTitle className="text-xl text-slate-800">Contratual</CardTitle>
-          </CardHeader>
-          <CardContent className="text-slate-600 leading-relaxed">
-            O coração do negócio. Sinal, promessa de compra e venda, contrato preliminar e
-            definitivo. É aqui que entra preço, prazo, forma de pagamento e o que acontece se alguém
-            desistir.
-          </CardContent>
-        </Card>
-
-        <Card className="border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center gap-4 pb-2">
-            <div className="bg-amber-100 p-3 rounded-xl text-amber-700">
-              <ShieldCheck className="w-6 h-6" />
-            </div>
-            <CardTitle className="text-xl text-slate-800">Aditivos e Complementares</CardTitle>
-          </CardHeader>
-          <CardContent className="text-slate-600 leading-relaxed">
-            Os detalhes que blindam o negócio. Declarações de estado civil, termo de entrega de
-            chaves e termo de posse, o momento em que o imóvel passa de fato para o comprador.
-          </CardContent>
-        </Card>
-
-        <Card className="border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center gap-4 pb-2">
-            <div className="bg-emerald-100 p-3 rounded-xl text-emerald-700">
-              <CheckCircle className="w-6 h-6" />
-            </div>
-            <CardTitle className="text-xl text-slate-800">Finalização</CardTitle>
-          </CardHeader>
-          <CardContent className="text-slate-600 leading-relaxed">
-            O encerramento. Quando o negócio não segue, o distrato encerra tudo de forma organizada
-            e sem briga.
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Educational Highlight */}
-      <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-6 md:p-8 mb-10 flex flex-col md:flex-row gap-5 items-start shadow-sm">
-        <div className="bg-indigo-100 p-3 rounded-full text-indigo-700 shrink-0">
-          <Lightbulb className="w-7 h-7" />
-        </div>
-        <div>
-          <h3 className="text-xl font-bold text-indigo-900 mb-3">Uma coisa que vale guardar</h3>
-          <p className="text-indigo-800 leading-relaxed text-lg">
-            O contrato cria as obrigações entre as partes. Mas quem transfere o imóvel de verdade é
-            o registro na matrícula, lá no final. Antes dele, ninguém é dono, por mais que o
-            dinheiro já tenha sido pago. Por isso a peça mais importante costuma ser a promessa do
-            começo, não a escritura do fim. É nela que tudo se decide.
-          </p>
+      {/* Regra de Ouro */}
+      <div className="mb-10 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border-l-4 border-amber-500 p-6 rounded-r-xl shadow-sm dark:from-amber-900/30">
+        <div className="flex flex-col md:flex-row items-start gap-4">
+          <div className="bg-amber-100 p-3 rounded-full dark:bg-amber-900/50 shadow-sm shrink-0">
+            <ShieldCheck className="h-8 w-8 text-amber-600 dark:text-amber-400" />
+          </div>
+          <div>
+            <h3 className="font-bold text-xl text-amber-800 dark:text-amber-400">Regra de Ouro</h3>
+            <p className="text-amber-700 dark:text-amber-300 mt-2 text-base md:text-lg leading-relaxed">
+              A <strong>Promessa de Compra e Venda</strong> é o único instrumento que nunca deve ser
+              pulado. É a sua principal garantia jurídica e o documento do qual todos os outros
+              derivam.
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Safety Disclaimer */}
-      <Alert className="mb-14 border-orange-200 bg-orange-50 shadow-sm">
-        <AlertTriangle className="h-5 w-5 text-orange-600" />
-        <AlertTitle className="text-orange-900 font-bold text-base">
-          Como usar com segurança
-        </AlertTitle>
-        <AlertDescription className="text-orange-800 mt-2 text-base leading-relaxed">
-          A ferramenta monta os documentos com base técnica sólida e te deixa pronto pra conduzir
-          cada etapa. Ela não substitui o advogado. Cada negócio tem um detalhe que muda tudo, então
-          quando o caso for mais complexo, mande a versão final pra revisão de um profissional do
-          direito.
-        </AlertDescription>
-      </Alert>
+      {/* Tabs das Fases */}
+      <div className="mb-16">
+        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">Jornada de Contratos</h2>
+        <Tabs defaultValue="captacao" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 h-auto gap-2 bg-transparent p-0">
+            {documentPhases.map((phase) => (
+              <TabsTrigger
+                key={phase.id}
+                value={phase.id}
+                className="text-xs md:text-sm py-3 px-2 md:px-4 text-center whitespace-normal h-full bg-muted/50 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md"
+              >
+                {phase.title}
+              </TabsTrigger>
+            ))}
+          </TabsList>
 
-      {/* Call to Action */}
-      <div className="text-center space-y-8 bg-slate-50 py-10 px-6 rounded-3xl border border-slate-100">
-        <p className="text-xl font-semibold text-slate-800 max-w-2xl mx-auto">
-          Corretor que entende o que está assinando fecha mais negócio. É esse corretor que a gente
-          quer te ajudar a ser.
+          {documentPhases.map((phase) => (
+            <TabsContent key={phase.id} value={phase.id} className="space-y-6 mt-8 animate-fade-in">
+              <div className="mb-6">
+                <h3 className="text-2xl font-semibold text-foreground">{phase.title}</h3>
+                <p className="text-muted-foreground mt-1 text-lg">{phase.description}</p>
+              </div>
+              <div className="grid grid-cols-1 gap-6">
+                {phase.docs.map((doc) => (
+                  <PhaseCard key={doc.id} doc={doc} />
+                ))}
+              </div>
+            </TabsContent>
+          ))}
+        </Tabs>
+      </div>
+
+      {/* Caminhos por Cenário */}
+      <div className="mb-16">
+        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+          <ArrowRight className="w-6 h-6 text-primary" /> Caminhos por Cenário
+        </h2>
+        <ScenarioList scenarios={scenarios} />
+      </div>
+
+      {/* Legal Disclaimer */}
+      <div className="mb-8 bg-muted/40 p-6 rounded-xl border border-border/60">
+        <div className="flex items-center gap-3 mb-3">
+          <AlertCircle className="w-6 h-6 text-muted-foreground" />
+          <h4 className="font-semibold text-lg text-muted-foreground">Como usar com segurança</h4>
+        </div>
+        <p className="text-base text-muted-foreground leading-relaxed">
+          Este painel fornece um guia padronizado para as transações imobiliárias mais comuns. No
+          entanto, negócios que envolvam permutas complexas, inventários não finalizados, disputas
+          judiciais ou estruturação societária (holding patrimonial) exigem a análise de um advogado
+          especialista em Direito Imobiliário. Em caso de dúvida, não assuma o risco.
         </p>
-        <Button
-          size="lg"
-          className="h-14 px-10 text-lg rounded-full shadow-lg hover:shadow-xl transition-all hover:-translate-y-1"
-          onClick={() => navigate('/dashboard')}
-        >
-          Começar <ArrowRight className="ml-2 w-5 h-5" />
-        </Button>
       </div>
     </div>
   )
