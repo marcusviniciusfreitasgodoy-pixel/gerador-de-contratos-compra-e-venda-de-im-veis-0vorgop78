@@ -11,17 +11,18 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import { Home, FileText, History, Bot, UserCircle, Settings, Files } from 'lucide-react'
+import {
+  Home,
+  FileText,
+  History,
+  Bot,
+  UserCircle,
+  Settings,
+  Files,
+  Scale,
+  ShieldAlert,
+} from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
-
-const navigation = [
-  { title: 'Dashboard', url: '/', icon: Home },
-  { title: 'Novo Contrato', url: '/contratos/novo', icon: FileText },
-  { title: 'Meus Contratos', url: '/contratos', icon: Files },
-  { title: 'Histórico de Análises', url: '/history', icon: History },
-  { title: 'Análise IA', url: '/analysis', icon: Bot },
-  { title: 'Meu Perfil', url: '/profile', icon: UserCircle },
-]
 
 export function AppSidebar() {
   const { pathname } = useLocation()
@@ -38,33 +39,104 @@ export function AppSidebar() {
         </Link>
       </SidebarHeader>
       <SidebarContent>
+        {/* Operacional */}
         <SidebarGroup>
-          <SidebarGroupLabel>Menu Principal</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-xs uppercase tracking-wider font-semibold text-slate-500 mb-1">
+            Operacional
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navigation.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={pathname === item.url}>
-                    <Link to={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === '/'}>
+                  <Link to="/">
+                    <Home />
+                    <span>Dashboard</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === '/contratos/novo'}>
+                  <Link to="/contratos/novo">
+                    <FileText />
+                    <span>Novo Contrato</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === '/contratos'}>
+                  <Link to="/contratos">
+                    <Files />
+                    <span>Meus Contratos</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === '/analysis'}>
+                  <Link to="/analysis">
+                    <Bot />
+                    <span>Análise IA</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
+        {/* Compliance & Gestão */}
         <SidebarGroup>
-          <SidebarGroupLabel>Administração</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-xs uppercase tracking-wider font-semibold text-slate-500 mb-1 mt-4">
+            Compliance & Gestão
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/admin')}>
+                <SidebarMenuButton asChild isActive={pathname === '/admin/knowledge'}>
+                  <Link to="/admin/knowledge">
+                    <Scale />
+                    <span>Base Jurídica</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === '/admin/audit-logs'}>
+                  <Link to="/admin/audit-logs">
+                    <ShieldAlert />
+                    <span>Histórico de Auditoria</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === '/history'}>
+                  <Link to="/history">
+                    <History />
+                    <span>Histórico de Análises</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Configurações */}
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-xs uppercase tracking-wider font-semibold text-slate-500 mb-1 mt-4">
+            Configurações
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === '/profile'}>
+                  <Link to="/profile">
+                    <UserCircle />
+                    <span>Perfil & Branding</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === '/admin'}>
                   <Link to="/admin">
                     <Settings />
-                    <span>Administrador</span>
+                    <span>Painel Administrativo</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

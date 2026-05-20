@@ -5,7 +5,7 @@ export interface AuditLog {
   user: string
   knowledge_item: string
   action: string
-  changes: Record<string, any>
+  changes: any
   created: string
   updated: string
   expand?: {
@@ -13,12 +13,18 @@ export interface AuditLog {
       name: string
       email: string
     }
+    knowledge_item?: {
+      title: string
+    }
   }
 }
 
-export const getKnowledgeAuditLogs = (knowledgeItemId: string) =>
-  pb.collection('knowledge_audit_logs').getFullList<AuditLog>({
-    filter: `knowledge_item = '${knowledgeItemId}'`,
+export async function getKnowledgeAuditLogs(knowledgeItemId?: string): Promise<AuditLog[]> {
+  const filter = knowledgeItemId ? `knowledge_item = "${knowledgeItemId}"` : ''
+  const records = await pb.collection('knowledge_audit_logs').getFullList({
     sort: '-created',
-    expand: 'user',
+    filter,
+    expand: 'user,knowledge_item',
   })
+  return records as unknown as AuditLog[]
+}

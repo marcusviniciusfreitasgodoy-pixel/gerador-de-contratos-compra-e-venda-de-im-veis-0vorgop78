@@ -435,7 +435,14 @@ function ImovelTab() {
       </div>
 
       <div className="pt-4 border-t space-y-4">
-        <h3 className="font-semibold text-lg border-b pb-2">Upload de Documentos (Compliance)</h3>
+        <h3 className="font-semibold text-lg border-b pb-2">
+          Upload de Documentos (Compliance - Lei 7.433/85)
+        </h3>
+        <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-lg mb-4 text-sm">
+          A ausência da <strong>Matrícula Atualizada</strong> (com ônus e ações) ou certidões
+          exigidas pela Lei 7.433/85 (distribuidor, interdições e tutelas, fiscais) pode gerar
+          alertas de risco na auditoria do contrato. Recomenda-se o upload prévio.
+        </div>
         <div className="grid grid-cols-2 gap-4">
           <FormFileInput
             name="matricula_file"
@@ -675,7 +682,15 @@ function ComplianceTab() {
       </div>
 
       <div className="pt-4 border-t space-y-4">
-        <h3 className="font-semibold text-lg border-b pb-2">LGPD</h3>
+        <h3 className="font-semibold text-lg border-b pb-2 flex items-center gap-2">
+          <ShieldCheck className="w-5 h-5 text-emerald-600" />
+          Conformidade e LGPD
+        </h3>
+        <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-lg mb-4 text-sm">
+          <strong>Compliance Legal (Lei 7.433/85):</strong> Lembre-se de anexar as certidões
+          necessárias na aba "Imóvel" ou certifique-se de realizar a Due Diligence completa antes de
+          finalizar. Documentos faltantes podem atrasar a geração e validação da minuta.
+        </div>
         <FormField
           control={control}
           name="clausula_lgpd"
