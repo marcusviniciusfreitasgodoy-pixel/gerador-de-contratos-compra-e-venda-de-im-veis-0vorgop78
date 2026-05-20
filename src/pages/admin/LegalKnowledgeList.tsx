@@ -56,6 +56,9 @@ export default function LegalKnowledgeList() {
     clausula_fixa: 'Cláusula Fixa',
     clausula_condicional: 'Cláusula Condicional',
     protecao_comercial: 'Proteção Comercial',
+    distrato: 'Distrato',
+    permuta: 'Permuta',
+    checklist_documental: 'Checklist Documental',
   }
 
   return (

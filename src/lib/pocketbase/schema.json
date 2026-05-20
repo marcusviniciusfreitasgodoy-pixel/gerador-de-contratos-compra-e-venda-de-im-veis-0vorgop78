@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-20T17:38:35.391Z",
+  "generatedAt": "2026-05-20T18:00:18.235Z",
   "collections": [
     {
       "name": "users",
@@ -1190,7 +1190,10 @@
             "boas_praticas",
             "clausula_fixa",
             "clausula_condicional",
-            "protecao_comercial"
+            "protecao_comercial",
+            "distrato",
+            "permuta",
+            "checklist_documental"
           ]
         },
         {

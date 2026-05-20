@@ -12,6 +12,7 @@ routerAdd(
       metadata: {
         versao_sistema: '1.0',
         tipo_contrato: tipoDocumento,
+        tipo_negociacao: body.tipo_negociacao || '',
       },
       comprador: {
         nome: body.nome_comprador || '',
@@ -102,6 +103,7 @@ routerAdd(
       financeiro: {
         valor_total: Number(body.valor_total) || 0,
         valor_sinal: Number(body.valor_sinal) || 0,
+        valor_torna: Number(body.possui_torna) || 0,
         valor_fgts: Number(body.valor_fgts) || 0,
         valor_financiamento: Number(body.valor_financiamento) || 0,
         valor_recursos_proprios: Number(body.valor_recursos_proprios) || 0,
@@ -289,7 +291,7 @@ CRECI: ________________`
 
     const clauses = $app.findRecordsByFilter(
       'legal_knowledge',
-      "category = 'clausula_fixa' || category = 'clausula_condicional' || category = 'protecao_comercial'",
+      "category = 'clausula_fixa' || category = 'clausula_condicional' || category = 'protecao_comercial' || category = 'distrato' || category = 'permuta' || category = 'checklist_documental'",
       'priority',
       1000,
       0,
@@ -332,11 +334,9 @@ CRECI: ________________`
     let availableClauses = []
 
     // Automated filtering of the legal knowledge base
-    const isSimpleDocument = [
-      'declaracoes_complementares',
-      'autorizacao_intermediacao',
-      'distrato',
-    ].includes(tipoDocumento)
+    const isSimpleDocument = ['declaracoes_complementares', 'autorizacao_intermediacao'].includes(
+      tipoDocumento,
+    )
 
     if (!isSimpleDocument) {
       clauses.forEach((m) => {
@@ -345,8 +345,18 @@ CRECI: ________________`
 
         let include = true
 
-        if (cat === 'clausula_condicional' && trigger) {
+        if (trigger) {
           include = triggerLogicEval(trigger, master_data)
+        } else {
+          if (cat === 'distrato' && master_data.metadata.tipo_contrato !== 'distrato')
+            include = false
+          if (cat === 'permuta' && master_data.metadata.tipo_negociacao !== 'permuta')
+            include = false
+          if (
+            cat === 'checklist_documental' &&
+            master_data.metadata.tipo_contrato !== 'checklist_documental'
+          )
+            include = false
         }
 
         if (include) {
@@ -404,7 +414,10 @@ Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 2 
 GODOY PRIME REALTY
 CHECKLIST DOCUMENTAL
 
-Liste os documentos exigidos do Vendedor (ex: certidões negativas, matrícula), Comprador e Imóvel com base na situação informada. Organize em tópicos numéricos para facilitar a conferência.
+Regras Específicas:
+1. Utilize AS INFORMAÇÕES FORNECIDAS na "Available Clauses Library" (ex: Lei 7.433/85) para complementar a lista.
+2. Liste os documentos exigidos do Vendedor (ex: certidões negativas, matrícula), Comprador e Imóvel com base na situação informada. 
+3. Organize em tópicos numéricos para facilitar a conferência.
 `
     } else if (tipoDocumento === 'termo_entrega_chaves' || tipoDocumento === 'termo_posse') {
       systemPrompt += `
@@ -449,10 +462,11 @@ GODOY PRIME REALTY
 DISTRATO DE COMPRA E VENDA
 
 Regras Específicas:
-1. Foque na rescisão do contrato original, devolução de valores (se houver, com base nos dados de multa/inadimplência informados), e na quitação mútua e irrevogável de obrigações.
-2. Mencione as partes, o imóvel objeto do distrato e as condições do desfazimento do negócio.
-3. NÃO é necessário montar a estrutura descritiva completa de um contrato de venda (como detalhamento exaustivo de financiamento futuro, posse futura etc).
-4. Estruture as cláusulas sequencialmente utilizando numeração ordinal em caixa alta.
+1. Utilize AS CLÁUSULAS FORNECIDAS na "Available Clauses Library" (especialmente as relativas à Lei do Distrato) para compor o documento.
+2. Foque na rescisão do contrato original, devolução de valores (se houver, com base nos dados de multa/inadimplência informados), e na quitação mútua e irrevogável de obrigações.
+3. Mencione as partes, o imóvel objeto do distrato e as condições do desfazimento do negócio.
+4. NÃO é necessário montar a estrutura descritiva completa de um contrato de venda (como detalhamento exaustivo de financiamento futuro, posse futura etc).
+5. Estruture as cláusulas sequencialmente utilizando numeração ordinal em caixa alta.
 `
     } else if (tipoDocumento === 'declaracoes_complementares') {
       systemPrompt += `

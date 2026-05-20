@@ -147,6 +147,9 @@ export default function LegalKnowledgeForm() {
                 <SelectItem value="clausula_fixa">Cláusula Fixa</SelectItem>
                 <SelectItem value="clausula_condicional">Cláusula Condicional</SelectItem>
                 <SelectItem value="protecao_comercial">Proteção Comercial</SelectItem>
+                <SelectItem value="distrato">Distrato</SelectItem>
+                <SelectItem value="permuta">Permuta</SelectItem>
+                <SelectItem value="checklist_documental">Checklist Documental</SelectItem>
               </SelectContent>
             </Select>
           </div>
