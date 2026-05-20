@@ -1,8 +1,28 @@
 import { jsPDF } from 'jspdf'
 import { format } from 'date-fns'
 import { generateChecklistPDFTemplate } from './checklist-generator'
+import pb from '@/lib/pocketbase/client'
 
-export function buildPdfDoc(minutaText: string, userDetails?: any): jsPDF {
+async function getLogoBase64(userDetails: any): Promise<string | null> {
+  if (!userDetails?.imobiliaria_logo || !userDetails?.collectionId || !userDetails?.id) {
+    return null
+  }
+  try {
+    const logoUrl = pb.files.getURL(userDetails, userDetails.imobiliaria_logo)
+    const res = await fetch(logoUrl)
+    const blob = await res.blob()
+    return new Promise((resolve) => {
+      const reader = new FileReader()
+      reader.onloadend = () => resolve(reader.result as string)
+      reader.readAsDataURL(blob)
+    })
+  } catch (e) {
+    console.error('Failed to load logo', e)
+    return null
+  }
+}
+
+export async function buildPdfDoc(minutaText: string, userDetails?: any): Promise<jsPDF> {
   const doc = new jsPDF()
   let y = 40
   const margin = 20
@@ -10,16 +30,35 @@ export function buildPdfDoc(minutaText: string, userDetails?: any): jsPDF {
   const contentWidth = pageWidth - margin * 2
   const pageHeight = 297
 
+  const logoBase64 = await getLogoBase64(userDetails)
+
   const headerTitle = userDetails?.imobiliaria_nome || 'GODOY PRIME REALTY'
   const headerContentLines = userDetails?.header_content
     ? doc.splitTextToSize(userDetails.header_content, contentWidth)
     : []
 
   const addHeader = (d: jsPDF) => {
+    let startY = 18
+    let titleX = margin
+
+    if (logoBase64) {
+      try {
+        d.addImage(logoBase64, 'PNG', margin, 8, 25, 15, undefined, 'FAST')
+        titleX = margin + 30
+      } catch (err) {
+        try {
+          d.addImage(logoBase64, 'JPEG', margin, 8, 25, 15, undefined, 'FAST')
+          titleX = margin + 30
+        } catch {
+          /* intentionally ignored */
+        }
+      }
+    }
+
     d.setFont('helvetica', 'bold')
     d.setFontSize(12)
     d.setTextColor(12, 35, 64) // Marinho
-    d.text(headerTitle, margin, 18)
+    d.text(headerTitle, titleX, startY)
 
     if (userDetails?.tipo_documento !== 'autorizacao_intermediacao') {
       d.setFontSize(10)
@@ -115,11 +154,9 @@ export function buildPdfDoc(minutaText: string, userDetails?: any): jsPDF {
 }
 
 export async function getMinutaPDFBlobUrl(minutaText: string, userDetails?: any): Promise<string> {
-  return new Promise((resolve) => {
-    const doc = buildPdfDoc(minutaText, userDetails)
-    // @ts-expect-error
-    resolve(doc.output('bloburl'))
-  })
+  const doc = await buildPdfDoc(minutaText, userDetails)
+  // @ts-expect-error
+  return doc.output('bloburl')
 }
 
 export async function generateMinutaPDF(
@@ -131,118 +168,8 @@ export async function generateMinutaPDF(
     return generateChecklistPDFTemplate(minutaText, fileName, userDetails)
   }
 
-  return new Promise((resolve) => {
-    const doc = buildPdfDoc(minutaText, userDetails)
-    let y = 40
-    const margin = 20
-    const pageWidth = 210
-    const contentWidth = pageWidth - margin * 2
-    const pageHeight = 297
-
-    const headerTitle = userDetails?.imobiliaria_nome || 'GODOY PRIME REALTY'
-    const headerContentLines = userDetails?.header_content
-      ? doc.splitTextToSize(userDetails.header_content, contentWidth)
-      : []
-
-    const addHeader = (d: jsPDF) => {
-      d.setFont('helvetica', 'bold')
-      d.setFontSize(12)
-      d.setTextColor(12, 35, 64) // Marinho
-      d.text(headerTitle, margin, 18)
-
-      if (userDetails?.tipo_documento !== 'autorizacao_intermediacao') {
-        d.setFontSize(10)
-        d.setTextColor(12, 35, 64)
-        d.text('MINUTA DE CONTRATO', pageWidth / 2, 23, {
-          align: 'center',
-        })
-      }
-
-      d.setDrawColor(212, 175, 55) // Ouro
-      d.setLineWidth(0.5)
-      d.line(margin, 28, pageWidth - margin, 28)
-
-      let currentY = 35
-      if (headerContentLines.length > 0) {
-        d.setFont('helvetica', 'bold')
-        d.setFontSize(10)
-        d.setTextColor(80, 80, 80)
-        d.text(headerContentLines, margin, currentY)
-        currentY += headerContentLines.length * 5 + 5
-      }
-      return currentY
-    }
-
-    y = addHeader(doc)
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(11)
-    doc.setTextColor(51, 65, 85)
-
-    let preClean = minutaText
-      .replace(/<p[^>]*>\s*Assessoria Jurídica Imobiliária\s*<\/p>/gi, '')
-      .replace(/Assessoria Jurídica Imobiliária/gi, '')
-
-    if (userDetails?.tipo_documento === 'autorizacao_intermediacao') {
-      preClean = preClean.replace(/<p[^>]*>\s*MINUTA DE CONTRATO\s*<\/p>/gi, '')
-      preClean = preClean.replace(/MINUTA DE CONTRATO/gi, '')
-    }
-
-    let cleanText = preClean
-      .replace(/<br\s*[/]?>/gi, '\n')
-      .replace(/<\/div>/gi, '\n')
-      .replace(/<\/p>/gi, '\n')
-      .replace(/<[^>]+>/g, '')
-      .replace(/&nbsp;/g, ' ')
-      .replace(/\n\s*\n/g, '\n\n')
-
-    const lines = doc.splitTextToSize(cleanText, contentWidth)
-
-    for (let i = 0; i < lines.length; i++) {
-      if (y > pageHeight - 35) {
-        doc.addPage()
-        y = addHeader(doc)
-      }
-      const line = lines[i]
-      if (line.trim() === line.trim().toUpperCase() && line.trim().length > 0) {
-        doc.setFont('helvetica', 'bold')
-        doc.setTextColor(12, 35, 64)
-      } else {
-        doc.setFont('helvetica', 'normal')
-        doc.setTextColor(51, 65, 85)
-      }
-      doc.text(line, margin, y)
-      y += 6
-    }
-
-    const footerContentLines = userDetails?.footer_content
-      ? doc.splitTextToSize(userDetails.footer_content, contentWidth)
-      : []
-
-    // Add pagination and footer
-    const totalPages = doc.getNumberOfPages()
-    for (let i = 1; i <= totalPages; i++) {
-      doc.setPage(i)
-
-      if (footerContentLines.length > 0) {
-        doc.setDrawColor(200, 200, 200)
-        doc.setLineWidth(0.2)
-        doc.line(margin, pageHeight - 25, pageWidth - margin, pageHeight - 25)
-
-        doc.setFont('helvetica', 'normal')
-        doc.setFontSize(8)
-        doc.setTextColor(120, 120, 120)
-        doc.text(footerContentLines, margin, pageHeight - 20)
-      }
-
-      doc.setFont('helvetica', 'normal')
-      doc.setFontSize(8)
-      doc.setTextColor(12, 35, 64)
-      doc.text(`Página ${i} de ${totalPages}`, pageWidth / 2, pageHeight - 10, { align: 'center' })
-    }
-
-    doc.save(`${fileName}_${format(new Date(), 'yyyy-MM-dd')}.pdf`)
-    resolve()
-  })
+  const doc = await buildPdfDoc(minutaText, userDetails)
+  doc.save(`${fileName}_${format(new Date(), 'yyyy-MM-dd')}.pdf`)
 }
 
 export async function generateAnalysisPDF(report: any, contract: any): Promise<void> {

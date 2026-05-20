@@ -249,6 +249,12 @@ export default function ContractView() {
     }
   }
 
+  const getFileName = () => {
+    const tipo = contract.tipo_documento ? contract.tipo_documento.replace(/_/g, ' ') : 'Contrato'
+    const pessoa = contract.nome_comprador || contract.nome_vendedor || 'Cliente'
+    return `${tipo}_${pessoa}`.replace(/\s+/g, '_')
+  }
+
   const replaceBrandingPlaceholders = (text?: string) => {
     if (!text || !user) return ''
     return text
@@ -283,7 +289,7 @@ export default function ContractView() {
       } else if (res?.base64) {
         const link = document.createElement('a')
         link.href = `data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,${res.base64}`
-        link.download = `Contrato_${contract.id}.docx`
+        link.download = `${getFileName()}.docx`
         link.click()
       } else {
         toast.success('Documento preparado para download.')
@@ -301,10 +307,12 @@ export default function ContractView() {
       return
     }
     try {
+      setDownloading(true)
+      toast.info('Gerando arquivo PDF...')
       const headerContent = replaceBrandingPlaceholders(user?.header_content)
       const footerContent = replaceBrandingPlaceholders(user?.footer_content)
 
-      await generateMinutaPDF(minuta, `Contrato_${contract.id}`, {
+      await generateMinutaPDF(minuta, getFileName(), {
         ...user,
         header_content: headerContent,
         footer_content: footerContent,
@@ -313,6 +321,8 @@ export default function ContractView() {
       toast.success('PDF gerado com sucesso!')
     } catch (error) {
       toast.error('Erro ao gerar PDF.')
+    } finally {
+      setDownloading(false)
     }
   }
 
@@ -545,8 +555,12 @@ export default function ContractView() {
               disabled={downloading || !minuta}
               className="bg-white"
             >
-              <FileDown className="w-4 h-4 mr-2 text-red-600" />
-              Baixar PDF
+              {downloading ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <FileDown className="w-4 h-4 mr-2 text-red-600" />
+              )}
+              Exportar PDF
             </Button>
             <Button
               variant="secondary"
@@ -559,7 +573,7 @@ export default function ContractView() {
               ) : (
                 <Download className="w-4 h-4 mr-2 text-blue-600" />
               )}
-              Word
+              Exportar Word (Editável)
             </Button>
           </div>
         </CardHeader>
