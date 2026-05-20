@@ -13,6 +13,7 @@ interface PreviewPDFModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   pdfUrl: string | null
+  content?: string | null
   loading: boolean
   onDownload: () => void
   title?: string
@@ -23,11 +24,25 @@ export function PreviewPDFModal({
   open,
   onOpenChange,
   pdfUrl,
+  content,
   loading,
   onDownload,
   title = 'Visualização Prévia do Documento',
   error = null,
 }: PreviewPDFModalProps) {
+  const cleanContent = content
+    ? content
+        .replace(/<br\s*[/]?>/gi, '\n')
+        .replace(/<\/div>/gi, '\n')
+        .replace(/<\/p>/gi, '\n')
+        .replace(/<[^>]+>/g, '')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/#/g, '')
+        .replace(/\n\s*\n/g, '\n\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim()
+    : ''
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-5xl w-[95vw] h-[90vh] flex flex-col p-0 overflow-hidden">
@@ -60,12 +75,36 @@ export function PreviewPDFModal({
                 Voltar para Edição
               </Button>
             </div>
+          ) : content ? (
+            <div className="w-full h-full overflow-y-auto bg-slate-200/50 p-4 sm:p-8 flex justify-center animate-in fade-in">
+              <div
+                className="bg-white shadow-md w-full max-w-[800px] min-h-[1056px] p-8 sm:p-12 text-slate-800 text-sm leading-relaxed"
+                style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}
+              >
+                <div className="border-b-2 border-[#D4AF37] pb-4 mb-8 text-center">
+                  <h2 className="text-xl font-bold text-[#0C2340] mb-2">PRÉVIA DO DOCUMENTO</h2>
+                  <p className="text-xs text-slate-500">
+                    O documento final em PDF conterá a formatação oficial e os cabeçalhos/rodapés da
+                    imobiliária.
+                  </p>
+                </div>
+                <div className="whitespace-pre-wrap max-w-none text-slate-700 font-medium text-justify">
+                  {cleanContent}
+                </div>
+              </div>
+            </div>
           ) : pdfUrl ? (
-            <iframe
-              src={`${pdfUrl}#toolbar=0`}
+            <object
+              data={`${pdfUrl}#toolbar=0`}
+              type="application/pdf"
               className="w-full h-full border-0 animate-in fade-in"
-              title="PDF Preview"
-            />
+            >
+              <iframe
+                src={`${pdfUrl}#toolbar=0`}
+                className="w-full h-full border-0"
+                title="PDF Preview"
+              />
+            </object>
           ) : (
             <div className="flex flex-col items-center justify-center text-center p-6">
               <p className="text-slate-500 font-medium">A prévia não está disponível no momento.</p>

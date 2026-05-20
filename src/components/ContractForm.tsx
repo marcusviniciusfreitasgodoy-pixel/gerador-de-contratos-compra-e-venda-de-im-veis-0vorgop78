@@ -1373,6 +1373,7 @@ export function ContractForm({
         open={previewModalOpen}
         onOpenChange={setPreviewModalOpen}
         pdfUrl={previewPdfUrl}
+        content={currentMinuta}
         loading={isPreviewing}
         onDownload={handleDownloadPreviewPDF}
         error={previewError}

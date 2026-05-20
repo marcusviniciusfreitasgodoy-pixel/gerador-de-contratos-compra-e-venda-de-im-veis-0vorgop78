@@ -46,11 +46,17 @@ export function PDFPreviewModal({ open, onOpenChange, pdfUrl, onDownload }: PDFP
         </DialogHeader>
         <div className="flex-1 w-full bg-slate-100 relative overflow-hidden rounded-b-lg">
           {pdfUrl ? (
-            <iframe
-              src={`${pdfUrl}#toolbar=0`}
+            <object
+              data={`${pdfUrl}#toolbar=0`}
+              type="application/pdf"
               className="w-full h-full border-0"
-              title="PDF Preview"
-            />
+            >
+              <iframe
+                src={`${pdfUrl}#toolbar=0`}
+                className="w-full h-full border-0"
+                title="PDF Preview"
+              />
+            </object>
           ) : (
             <div className="flex flex-col items-center justify-center h-full text-slate-500">
               <span className="text-lg font-medium">Carregando prévia...</span>
