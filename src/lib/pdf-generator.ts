@@ -22,10 +22,6 @@ export function buildPdfDoc(minutaText: string, userDetails?: any): jsPDF {
     d.text(headerTitle, margin, 18)
 
     if (userDetails?.tipo_documento !== 'autorizacao_intermediacao') {
-      d.setFontSize(9)
-      d.setTextColor(212, 175, 55) // Ouro
-      d.text('Assessoria Jurídica Imobiliária', margin, 23)
-
       d.setFontSize(10)
       d.setTextColor(12, 35, 64)
       d.text('MINUTA DE CONTRATO', pageWidth / 2, 23, {
@@ -146,10 +142,6 @@ export async function generateMinutaPDF(
       d.text(headerTitle, margin, 18)
 
       if (userDetails?.tipo_documento !== 'autorizacao_intermediacao') {
-        d.setFontSize(9)
-        d.setTextColor(212, 175, 55) // Ouro
-        d.text('Assessoria Jurídica Imobiliária', margin, 23)
-
         d.setFontSize(10)
         d.setTextColor(12, 35, 64)
         d.text('MINUTA DE CONTRATO', pageWidth / 2, 23, {
@@ -250,9 +242,6 @@ export async function generateAnalysisPDF(report: any, contract: any): Promise<v
         d.setFontSize(12)
         d.setTextColor(12, 35, 64) // Marinho
         d.text('GODOY PRIME REALTY', margin, 18)
-        d.setFontSize(9)
-        d.setTextColor(212, 175, 55) // Ouro
-        d.text('Assessoria Jurídica Imobiliária', margin, 23)
 
         d.setFontSize(10)
         d.setTextColor(12, 35, 64)
@@ -346,16 +335,10 @@ export async function generateAnalysisPDF(report: any, contract: any): Promise<v
       doc.setFontSize(28)
       doc.text('GODOY PRIME REALTY', pageWidth / 2, pageHeight / 3, { align: 'center' })
 
-      doc.setFontSize(14)
-      doc.setFont('helvetica', 'normal')
-      doc.text('ASSESSORIA JURÍDICA IMOBILIÁRIA', pageWidth / 2, pageHeight / 3 + 12, {
-        align: 'center',
-      })
-
       doc.setTextColor(255, 255, 255)
       doc.setFontSize(16)
       doc.setFont('helvetica', 'bold')
-      doc.text('RELATÓRIO DE ANÁLISE DE COMPLIANCE JURÍDICO', pageWidth / 2, pageHeight / 3 + 40, {
+      doc.text('RELATÓRIO DE ANÁLISE DE COMPLIANCE JURÍDICO', pageWidth / 2, pageHeight / 3 + 24, {
         align: 'center',
       })
 

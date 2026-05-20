@@ -14,9 +14,6 @@ export function generateContractPDF(text: string, fileName: string) {
       d.setFontSize(12)
       d.setTextColor(12, 35, 64) // Marinho
       d.text('GODOY PRIME REALTY', margin, 18)
-      d.setFontSize(9)
-      d.setTextColor(212, 175, 55) // Ouro
-      d.text('Assessoria Jurídica Imobiliária', margin, 23)
 
       d.setFontSize(10)
       d.setTextColor(12, 35, 64)
@@ -71,19 +68,13 @@ export function generateContractPDF(text: string, fileName: string) {
     doc.setFontSize(28)
     doc.text('GODOY PRIME REALTY', pageWidth / 2, pageHeight / 3, { align: 'center' })
 
-    doc.setFontSize(14)
-    doc.setFont('helvetica', 'normal')
-    doc.text('ASSESSORIA JURÍDICA IMOBILIÁRIA', pageWidth / 2, pageHeight / 3 + 12, {
-      align: 'center',
-    })
-
     doc.setTextColor(255, 255, 255)
     doc.setFontSize(16)
     doc.setFont('helvetica', 'bold')
     doc.text(
       'CONTRATO PARTICULAR DE COMPRA E VENDA DE IMÓVEL',
       pageWidth / 2,
-      pageHeight / 3 + 40,
+      pageHeight / 3 + 24,
       { align: 'center' },
     )
 

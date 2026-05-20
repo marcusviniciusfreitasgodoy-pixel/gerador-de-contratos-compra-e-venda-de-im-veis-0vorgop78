@@ -125,22 +125,18 @@ export async function generateChecklistPDFTemplate(
       d.setTextColor(12, 35, 64)
       d.text(userDetails?.imobiliaria_nome || 'GODOY PRIME REALTY', margin, 20)
 
-      d.setFontSize(10)
-      d.setTextColor(212, 175, 55)
-      d.text('Assessoria Jurídica Imobiliária', margin, 25)
-
       d.setFontSize(14)
       d.setTextColor(12, 35, 64)
-      d.text('CHECKLIST DE DUE DILIGENCE', pageWidth / 2, 35, { align: 'center' })
+      d.text('CHECKLIST DE DUE DILIGENCE', pageWidth / 2, 30, { align: 'center' })
 
       // Progress Bar (Visual Indicator)
       d.setDrawColor(226, 232, 240)
       d.setLineWidth(4)
-      d.line(margin, 42, pageWidth - margin, 42)
+      d.line(margin, 38, pageWidth - margin, 38)
       d.setDrawColor(212, 175, 55)
-      d.line(margin, 42, margin + contentWidth * 0.33, 42) // Progress visual
+      d.line(margin, 38, margin + contentWidth * 0.33, 38) // Progress visual
 
-      return 52
+      return 48
     }
 
     y = addHeader(doc)

@@ -204,7 +204,7 @@ CRECI: ${contratadoCreci}
         ? 'RECIBO DE SINAL E PRINCÍPIO DE PAGAMENTO'
         : 'INSTRUMENTO PARTICULAR DE COMPRA E VENDA DE IMÓVEL'
 
-  baseText = `GODOY PRIME REALTY\nAssessoria Jurídica Imobiliária\nMINUTA DE CONTRATO\n\n`
+  baseText = `GODOY PRIME REALTY\nMINUTA DE CONTRATO\n\n`
   baseText += `${titulo}\n\n`
   baseText += `VENDEDOR: ${vendedorQualificacao}\n\n`
   if (vendedor_casado && tipo_vendedor === 'pf') {

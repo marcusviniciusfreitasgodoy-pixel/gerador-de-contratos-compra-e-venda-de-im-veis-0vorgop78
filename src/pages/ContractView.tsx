@@ -105,10 +105,11 @@ export default function ContractView() {
 
       if (newText && newText !== minuta) {
         let text = newText
+        text = text.replace(/<p[^>]*>\s*Assessoria Jurídica Imobiliária\s*<\/p>/gi, '')
+        text = text.replace(/Assessoria Jurídica Imobiliária/gi, '')
+
         if (e.record.tipo_documento === 'autorizacao_intermediacao') {
-          text = text.replace(/<p[^>]*>\s*Assessoria Jurídica Imobiliária\s*<\/p>/gi, '')
           text = text.replace(/<p[^>]*>\s*MINUTA DE CONTRATO\s*<\/p>/gi, '')
-          text = text.replace(/Assessoria Jurídica Imobiliária/gi, '')
           text = text.replace(/MINUTA DE CONTRATO/gi, '')
         }
         setMinuta(text)
@@ -136,10 +137,11 @@ export default function ContractView() {
         text = ''
       } else {
         setApiError(false)
+        text = text.replace(/<p[^>]*>\s*Assessoria Jurídica Imobiliária\s*<\/p>/gi, '')
+        text = text.replace(/Assessoria Jurídica Imobiliária/gi, '')
+
         if (data.tipo_documento === 'autorizacao_intermediacao') {
-          text = text.replace(/<p[^>]*>\s*Assessoria Jurídica Imobiliária\s*<\/p>/gi, '')
           text = text.replace(/<p[^>]*>\s*MINUTA DE CONTRATO\s*<\/p>/gi, '')
-          text = text.replace(/Assessoria Jurídica Imobiliária/gi, '')
           text = text.replace(/MINUTA DE CONTRATO/gi, '')
         }
       }
@@ -216,13 +218,11 @@ export default function ContractView() {
           setMinuta('')
           toast.error('Falha na geração com a IA.')
         } else {
+          newMinuta = newMinuta.replace(/<p[^>]*>\s*Assessoria Jurídica Imobiliária\s*<\/p>/gi, '')
+          newMinuta = newMinuta.replace(/Assessoria Jurídica Imobiliária/gi, '')
+
           if (contract.tipo_documento === 'autorizacao_intermediacao') {
-            newMinuta = newMinuta.replace(
-              /<p[^>]*>\s*Assessoria Jurídica Imobiliária\s*<\/p>/gi,
-              '',
-            )
             newMinuta = newMinuta.replace(/<p[^>]*>\s*MINUTA DE CONTRATO\s*<\/p>/gi, '')
-            newMinuta = newMinuta.replace(/Assessoria Jurídica Imobiliária/gi, '')
             newMinuta = newMinuta.replace(/MINUTA DE CONTRATO/gi, '')
           }
           setMinuta(newMinuta)
@@ -255,6 +255,7 @@ export default function ContractView() {
       .replace(/{{imobiliaria_nome}}/g, user.imobiliaria_nome || '')
       .replace(/{{creci}}/g, user.creci || '')
       .replace(/{{imobiliaria_documento}}/g, user.imobiliaria_documento || '')
+      .replace(/Assessoria Jurídica Imobiliária/gi, '')
   }
 
   const handleExportWord = async () => {

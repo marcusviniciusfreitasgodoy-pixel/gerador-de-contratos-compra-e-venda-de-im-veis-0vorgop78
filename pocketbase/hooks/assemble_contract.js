@@ -390,9 +390,8 @@ CRECI: ________________`
       systemPrompt += `
 Sua função é gerar uma FICHA CADASTRAL estruturada contendo os dados do comprador, vendedor e do imóvel.
 Geração em TEXTO PURO (Plain Text). É ESTRITAMENTE PROIBIDO o uso de Markdown.
-Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 3 linhas:
+Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 2 linhas:
 GODOY PRIME REALTY
-Assessoria Jurídica Imobiliária
 FICHA CADASTRAL
 
 Use os dados do Master JSON para preencher a ficha, organizando de forma clara (dados pessoais, contatos, dados do imóvel). Não inclua cláusulas contratuais.
@@ -401,9 +400,8 @@ Use os dados do Master JSON para preencher a ficha, organizando de forma clara (
       systemPrompt += `
 Sua função é gerar um CHECKLIST DOCUMENTAL relacionando todos os documentos necessários para a transação imobiliária com base no perfil das partes e do imóvel.
 Geração em TEXTO PURO (Plain Text). É ESTRITAMENTE PROIBIDO o uso de Markdown.
-Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 3 linhas:
+Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 2 linhas:
 GODOY PRIME REALTY
-Assessoria Jurídica Imobiliária
 CHECKLIST DOCUMENTAL
 
 Liste os documentos exigidos do Vendedor (ex: certidões negativas, matrícula), Comprador e Imóvel com base na situação informada. Organize em tópicos numéricos para facilitar a conferência.
@@ -412,9 +410,8 @@ Liste os documentos exigidos do Vendedor (ex: certidões negativas, matrícula),
       systemPrompt += `
 Sua função é gerar um ${documentTitle.toUpperCase()} formalizando a entrega das chaves e a imissão na posse do imóvel.
 Geração em TEXTO PURO (Plain Text). É ESTRITAMENTE PROIBIDO o uso de Markdown.
-Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 3 linhas:
+Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 2 linhas:
 GODOY PRIME REALTY
-Assessoria Jurídica Imobiliária
 ${documentTitle.toUpperCase()}
 
 Inclua a qualificação das partes, a descrição do imóvel, a data da posse e a declaração de que o comprador vistoriou o imóvel. Inclua espaço para assinaturas ao final.
@@ -423,9 +420,8 @@ Inclua a qualificação das partes, a descrição do imóvel, a data da posse e 
       systemPrompt += `
 Sua função é gerar um RECIBO DE SINAL formalizando o pagamento do princípio de pagamento (arras).
 Geração em TEXTO PURO (Plain Text). É ESTRITAMENTE PROIBIDO o uso de Markdown.
-Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 3 linhas:
+Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 2 linhas:
 GODOY PRIME REALTY
-Assessoria Jurídica Imobiliária
 RECIBO DE SINAL E PRINCÍPIO DE PAGAMENTO
 
 Inclua a qualificação das partes, o valor do sinal explicitado, a referência ao imóvel e as condições básicas das arras. Inclua espaço para assinatura de quem recebe.
@@ -434,9 +430,8 @@ Inclua a qualificação das partes, o valor do sinal explicitado, a referência 
       systemPrompt += `
 Sua função é gerar uma AUTORIZAÇÃO DE INTERMEDIAÇÃO IMOBILIÁRIA.
 Geração em TEXTO PURO (Plain Text). É ESTRITAMENTE PROIBIDO o uso de Markdown.
-Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 3 linhas:
+Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 2 linhas:
 GODOY PRIME REALTY
-Assessoria Jurídica Imobiliária
 AUTORIZAÇÃO DE INTERMEDIAÇÃO IMOBILIÁRIA
 
 Regras Específicas:
@@ -449,9 +444,8 @@ Regras Específicas:
       systemPrompt += `
 Sua função é gerar um DISTRATO DE COMPRA E VENDA.
 Geração em TEXTO PURO (Plain Text). É ESTRITAMENTE PROIBIDO o uso de Markdown.
-Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 3 linhas:
+Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 2 linhas:
 GODOY PRIME REALTY
-Assessoria Jurídica Imobiliária
 DISTRATO DE COMPRA E VENDA
 
 Regras Específicas:
@@ -464,9 +458,8 @@ Regras Específicas:
       systemPrompt += `
 Sua função é gerar DECLARAÇÕES COMPLEMENTARES para a transação imobiliária.
 Geração em TEXTO PURO (Plain Text). É ESTRITAMENTE PROIBIDO o uso de Markdown.
-Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 3 linhas:
+Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 2 linhas:
 GODOY PRIME REALTY
-Assessoria Jurídica Imobiliária
 DECLARAÇÕES COMPLEMENTARES
 
 Regras Específicas:
@@ -483,9 +476,8 @@ Regras Obrigatórias (Hard Rules):
 2. NEVER alter the legal meaning of the provided clauses. You may adjust grammar to connect them smoothly.
 3. Replace any remaining placeholders like {{variable_name}} with the corresponding values from the Master JSON data.
 4. Geração em TEXTO PURO (Plain Text). É ESTRITAMENTE PROIBIDO o uso de Markdown (como #, ##, **, _, etc). Não use formatação em markdown em NENHUMA parte do texto.
-5. Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 3 linhas:
+5. Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 2 linhas:
 GODOY PRIME REALTY
-Assessoria Jurídica Imobiliária
 ${documentTitle.toUpperCase()}
 
 6. Numeração Formal de Cláusulas: Estruture as cláusulas sequencialmente utilizando numeração ordinal em caixa alta (ex: CLÁUSULA PRIMEIRA - [TÍTULO], CLÁUSULA SEGUNDA - [TÍTULO]). As seções "Objeto do Contrato" e "Descrição do Imóvel" devem seguir esta mesma sequência numérica formal.

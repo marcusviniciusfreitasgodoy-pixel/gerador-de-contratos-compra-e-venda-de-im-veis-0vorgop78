@@ -271,14 +271,16 @@ routerAdd(
 
     let finalHtml = bodyContent
     if (header_content) {
+      const sanitizedHeader = header_content.replace(/Assessoria Jurídica Imobiliária/gi, '')
       finalHtml =
-        `<div style="text-align: center; margin-bottom: 30px; font-weight: bold; color: #555;">${header_content.replace(/\n/g, '<br>')}</div>` +
+        `<div style="text-align: center; margin-bottom: 30px; font-weight: bold; color: #555;">${sanitizedHeader.replace(/\n/g, '<br>')}</div>` +
         finalHtml
     }
     if (footer_content) {
+      const sanitizedFooter = footer_content.replace(/Assessoria Jurídica Imobiliária/gi, '')
       finalHtml =
         finalHtml +
-        `<div style="text-align: center; margin-top: 50px; border-top: 1px solid #ccc; padding-top: 10px; font-size: 12px; color: #777;">${footer_content.replace(/\n/g, '<br>')}</div>`
+        `<div style="text-align: center; margin-top: 50px; border-top: 1px solid #ccc; padding-top: 10px; font-size: 12px; color: #777;">${sanitizedFooter.replace(/\n/g, '<br>')}</div>`
     }
 
     const html = `
