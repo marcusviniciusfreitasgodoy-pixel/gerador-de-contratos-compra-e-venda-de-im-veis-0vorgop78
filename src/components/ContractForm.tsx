@@ -15,6 +15,7 @@ import {
   ChevronRight,
   ChevronLeft,
   Wand2,
+  FileText,
 } from 'lucide-react'
 import { saveContractDraft } from '@/services/contracts'
 import { generateDraftText } from '@/lib/draft-template'
@@ -32,6 +33,8 @@ import pb from '@/lib/pocketbase/client'
 import { getErrorMessage } from '@/lib/pocketbase/errors'
 import { cn } from '@/lib/utils'
 import { ESTADO_CIVIL_OPTIONS, REGIME_BENS_OPTIONS, PLATAFORMA_OPTIONS } from '@/lib/constants'
+import { PreviewPDFModal } from './PreviewPDFModal'
+import { getMinutaPDFBlobUrl, generateMinutaPDF } from '@/lib/pdf-generator'
 
 const WIZARD_STEPS_ALL = [
   { id: 'perfil_checklist', title: 'Perfil da Checklist' },
@@ -723,6 +726,11 @@ export function ContractForm({
 
   const navigate = useNavigate()
   const { user } = useAuth()
+
+  const [previewModalOpen, setPreviewModalOpen] = useState(false)
+  const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null)
+  const [isPreviewing, setIsPreviewing] = useState(false)
+  const [currentMinuta, setCurrentMinuta] = useState<string>('')
   const form = useForm<ContractFormValues>({
     resolver: zodResolver(contractSchema),
     defaultValues: {
@@ -960,7 +968,7 @@ export function ContractForm({
     setCurrentStepIndex((s) => s + 1)
   }
 
-  const initiateGeneration = async () => {
+  const validateFormAndGetPayload = async () => {
     const valid = await form.trigger()
 
     const rawValues = form.getValues()
@@ -1005,64 +1013,152 @@ export function ContractForm({
       form.clearErrors('valor_financiamento')
     }
 
-    if (!valid || !customValid) return toast.error('Preencha todos os campos obrigatórios.')
+    if (!valid || !customValid) {
+      toast.error('Preencha todos os campos obrigatórios.')
+      return null
+    }
 
     const lgpd = values.clausula_lgpd
-    if (!lgpd) return toast.error('O consentimento da LGPD é obrigatório.')
+    if (!lgpd) {
+      toast.error('O consentimento da LGPD é obrigatório.')
+      return null
+    }
 
     if (tipoDocumento === 'autorizacao_intermediacao' && !values.gestao_exclusiva) {
-      return toast.error('O tipo de gestão (Exclusividade) é obrigatório.')
+      toast.error('O tipo de gestão (Exclusividade) é obrigatório.')
+      return null
     }
+
+    const jsonMestre = {
+      comprador: {
+        nome: values.nome_comprador,
+        cpf: values.cpf_comprador,
+        estado_civil: values.estado_civil_comprador,
+        regime_bens: values.regime_bens_comprador,
+        financeiro: {
+          financiamento: values.financiamento_comprador,
+          fgts: values.fgts_comprador,
+        },
+      },
+      imovel: {
+        situacao_juridica: {
+          locado: values.imovel_locado,
+          inventario: values.imovel_inventario,
+          desocupado: values.imovel_desocupado,
+          ocupado: values.imovel_ocupado,
+        },
+      },
+      negociacao: {
+        valor_total: parseCurrencySafe(values.valor_total),
+        posse: {
+          imediata: values.posse_imediata,
+          data: values.data_posse,
+        },
+      },
+    }
+
+    let instrucoes_checklist = ''
+    if (tipoDocumento === 'checklist_documental') {
+      instrucoes_checklist =
+        "INSTRUÇÕES OBRIGATÓRIAS PARA O CHECKLIST:\n- Formatar como uma lista clara e estruturada.\n- INCLUIR OBRIGATORIAMENTE: Certidão do Funesbom (Corpo de Bombeiros), Certidão do 2º Ofício de Distribuidor, Certidão de Interdições e Tutelas.\n- INCLUIR UMA SEÇÃO DE: 'Informações Bancárias Detalhadas'.\n"
+      if (values.vendedor_pj) {
+        instrucoes_checklist +=
+          '- EXIGIR: CNPJ, Contrato Social/Estatuto, Últimas Alterações Contratuais (Vendedor PJ).\n'
+      }
+      if (values.vendedor_uniao_estavel || values.comprador_uniao_estavel) {
+        instrucoes_checklist +=
+          '- EXIGIR: RG, CPF e Comprovante de Residência do(a) companheiro(a) devido à União Estável.\n'
+      }
+      ;(jsonMestre as any).instrucoes_checklist = instrucoes_checklist
+    }
+
+    const payloadForAi = { ...values, json_mestre: jsonMestre } as any
+    delete payloadForAi.matricula_file
+    delete payloadForAi.iptu_file
+
+    return { payloadForAi, values }
+  }
+
+  const handlePreviewBeforeGenerate = async () => {
+    const data = await validateFormAndGetPayload()
+    if (!data) return
+
+    setIsPreviewing(true)
+    setPreviewModalOpen(true)
+
+    try {
+      const res = await pb.send('/backend/v1/assemble-contract', {
+        method: 'POST',
+        body: JSON.stringify(data.payloadForAi),
+      })
+
+      let text = res?.minuta_texto || ''
+      if (tipoDocumento === 'autorizacao_intermediacao') {
+        text = text.replace(/<p[^>]*>\s*Assessoria Jurídica Imobiliária\s*<\/p>/gi, '')
+        text = text.replace(/<p[^>]*>\s*MINUTA DE CONTRATO\s*<\/p>/gi, '')
+        text = text.replace(/Assessoria Jurídica Imobiliária/gi, '')
+        text = text.replace(/MINUTA DE CONTRATO/gi, '')
+      }
+
+      setCurrentMinuta(text)
+
+      const replaceBrandingPlaceholders = (txt?: string) => {
+        if (!txt || !user) return ''
+        return txt
+          .replace(/{{imobiliaria_nome}}/g, user.imobiliaria_nome || '')
+          .replace(/{{creci}}/g, user.creci || '')
+          .replace(/{{imobiliaria_documento}}/g, user.imobiliaria_documento || '')
+      }
+
+      const url = await getMinutaPDFBlobUrl(text, {
+        ...user,
+        header_content: replaceBrandingPlaceholders(user?.header_content),
+        footer_content: replaceBrandingPlaceholders(user?.footer_content),
+        tipo_documento: tipoDocumento,
+      })
+
+      setPreviewPdfUrl(url)
+    } catch (err) {
+      toast.error('Erro ao gerar prévia.', {
+        description: getErrorMessage(err),
+      })
+      setPreviewModalOpen(false)
+    } finally {
+      setIsPreviewing(false)
+    }
+  }
+
+  const handleDownloadPreviewPDF = async () => {
+    if (!currentMinuta) return
+    try {
+      const replaceBrandingPlaceholders = (txt?: string) => {
+        if (!txt || !user) return ''
+        return txt
+          .replace(/{{imobiliaria_nome}}/g, user.imobiliaria_nome || '')
+          .replace(/{{creci}}/g, user.creci || '')
+          .replace(/{{imobiliaria_documento}}/g, user.imobiliaria_documento || '')
+      }
+
+      await generateMinutaPDF(currentMinuta, `Contrato_Previa`, {
+        ...user,
+        header_content: replaceBrandingPlaceholders(user?.header_content),
+        footer_content: replaceBrandingPlaceholders(user?.footer_content),
+        tipo_documento: tipoDocumento,
+      })
+      toast.success('PDF baixado com sucesso!')
+    } catch (error) {
+      toast.error('Erro ao gerar PDF.')
+    }
+  }
+
+  const initiateGeneration = async () => {
+    const data = await validateFormAndGetPayload()
+    if (!data) return
+
+    const { payloadForAi, values } = data
 
     setIsGenerating(true)
     try {
-      const jsonMestre = {
-        comprador: {
-          nome: values.nome_comprador,
-          cpf: values.cpf_comprador,
-          estado_civil: values.estado_civil_comprador,
-          regime_bens: values.regime_bens_comprador,
-          financeiro: {
-            financiamento: values.financiamento_comprador,
-            fgts: values.fgts_comprador,
-          },
-        },
-        imovel: {
-          situacao_juridica: {
-            locado: values.imovel_locado,
-            inventario: values.imovel_inventario,
-            desocupado: values.imovel_desocupado,
-            ocupado: values.imovel_ocupado,
-          },
-        },
-        negociacao: {
-          valor_total: parseCurrencySafe(values.valor_total),
-          posse: {
-            imediata: values.posse_imediata,
-            data: values.data_posse,
-          },
-        },
-      }
-
-      let instrucoes_checklist = ''
-      if (tipoDocumento === 'checklist_documental') {
-        instrucoes_checklist =
-          "INSTRUÇÕES OBRIGATÓRIAS PARA O CHECKLIST:\n- Formatar como uma lista clara e estruturada.\n- INCLUIR OBRIGATORIAMENTE: Certidão do Funesbom (Corpo de Bombeiros), Certidão do 2º Ofício de Distribuidor, Certidão de Interdições e Tutelas.\n- INCLUIR UMA SEÇÃO DE: 'Informações Bancárias Detalhadas'.\n"
-        if (values.vendedor_pj) {
-          instrucoes_checklist +=
-            '- EXIGIR: CNPJ, Contrato Social/Estatuto, Últimas Alterações Contratuais (Vendedor PJ).\n'
-        }
-        if (values.vendedor_uniao_estavel || values.comprador_uniao_estavel) {
-          instrucoes_checklist +=
-            '- EXIGIR: RG, CPF e Comprovante de Residência do(a) companheiro(a) devido à União Estável.\n'
-        }
-        jsonMestre.instrucoes_checklist = instrucoes_checklist
-      }
-
-      const payloadForAi = { ...values, json_mestre: jsonMestre } as any
-      delete payloadForAi.matricula_file
-      delete payloadForAi.iptu_file
-
       const res = await pb.send('/backend/v1/assemble-contract', {
         method: 'POST',
         body: JSON.stringify(payloadForAi),
@@ -1202,30 +1298,59 @@ export function ContractForm({
                     Próximo <ChevronRight className="ml-2 w-4 h-4" />
                   </Button>
                 ) : (
-                  <Button
-                    type="button"
-                    onClick={initiateGeneration}
-                    className="bg-secondary hover:bg-secondary/90 text-secondary-foreground min-w-[200px] font-bold shadow-lg"
-                    disabled={isGenerating}
-                  >
-                    {isGenerating ? (
-                      <>
-                        <Loader2 className="mr-2 w-5 h-5 animate-spin text-primary" />{' '}
-                        <span className="text-primary">Processando IA...</span>
-                      </>
-                    ) : (
-                      <>
-                        <ShieldCheck className="mr-2 w-5 h-5 text-primary" />{' '}
-                        <span className="text-primary">Validar e Gerar Contrato</span>
-                      </>
-                    )}
-                  </Button>
+                  <div className="flex gap-3 flex-wrap">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handlePreviewBeforeGenerate}
+                      disabled={isGenerating || isPreviewing}
+                      className="border-primary text-primary hover:bg-primary/5 min-w-[150px] font-semibold shadow-sm"
+                    >
+                      {isPreviewing ? (
+                        <>
+                          <Loader2 className="mr-2 w-5 h-5 animate-spin text-primary" />
+                          <span className="text-primary">Carregando...</span>
+                        </>
+                      ) : (
+                        <>
+                          <FileText className="mr-2 w-5 h-5 text-primary" />
+                          <span className="text-primary">Visualizar Prévia</span>
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={initiateGeneration}
+                      className="bg-secondary hover:bg-secondary/90 text-secondary-foreground min-w-[200px] font-bold shadow-lg"
+                      disabled={isGenerating || isPreviewing}
+                    >
+                      {isGenerating ? (
+                        <>
+                          <Loader2 className="mr-2 w-5 h-5 animate-spin text-primary" />
+                          <span className="text-primary">Processando IA...</span>
+                        </>
+                      ) : (
+                        <>
+                          <ShieldCheck className="mr-2 w-5 h-5 text-primary" />
+                          <span className="text-primary">Validar e Gerar Contrato</span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 )}
               </div>
             </form>
           </Form>
         </CardContent>
       </Card>
+
+      <PreviewPDFModal
+        open={previewModalOpen}
+        onOpenChange={setPreviewModalOpen}
+        pdfUrl={previewPdfUrl}
+        loading={isPreviewing}
+        onDownload={handleDownloadPreviewPDF}
+      />
     </div>
   )
 }

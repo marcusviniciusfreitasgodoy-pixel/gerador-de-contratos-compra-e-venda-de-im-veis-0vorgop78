@@ -41,7 +41,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { generateMinutaPDF } from '@/lib/pdf-generator'
+import { generateMinutaPDF, getMinutaPDFBlobUrl } from '@/lib/pdf-generator'
+import { PreviewPDFModal } from '@/components/PreviewPDFModal'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { useAuth } from '@/hooks/use-auth'
 import { useRealtime } from '@/hooks/use-realtime'
@@ -59,6 +60,10 @@ export default function ContractView() {
   const [saving, setSaving] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [downloading, setDownloading] = useState(false)
+
+  const [previewModalOpen, setPreviewModalOpen] = useState(false)
+  const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null)
+  const [generatingPreview, setGeneratingPreview] = useState(false)
 
   const [emailModalOpen, setEmailModalOpen] = useState(false)
   const [sendingEmail, setSendingEmail] = useState(false)
@@ -310,6 +315,34 @@ export default function ContractView() {
     }
   }
 
+  const handlePreviewPDF = async () => {
+    if (!minuta) {
+      toast.error('Não há texto para visualizar.')
+      return
+    }
+    try {
+      setPreviewModalOpen(true)
+      setGeneratingPreview(true)
+
+      const headerContent = replaceBrandingPlaceholders(user?.header_content)
+      const footerContent = replaceBrandingPlaceholders(user?.footer_content)
+
+      const url = await getMinutaPDFBlobUrl(minuta, {
+        ...user,
+        header_content: headerContent,
+        footer_content: footerContent,
+        tipo_documento: contract.tipo_documento,
+      })
+
+      setPreviewPdfUrl(url)
+    } catch (error) {
+      toast.error('Erro ao gerar prévia do PDF.')
+      setPreviewModalOpen(false)
+    } finally {
+      setGeneratingPreview(false)
+    }
+  }
+
   const handleOpenEmailModal = () => {
     let destinatario = contract.email_comprador || contract.email_vendedor || ''
     let assunto = `${user?.imobiliaria_nome || 'Imobiliária'} - Documento: ${contract.tipo_documento ? contract.tipo_documento.replace(/_/g, ' ') : 'Contrato'}`
@@ -497,12 +530,22 @@ export default function ContractView() {
             <Button
               variant="outline"
               size="sm"
+              onClick={handlePreviewPDF}
+              disabled={downloading || !minuta}
+              className="bg-white"
+            >
+              <FileText className="w-4 h-4 mr-2 text-primary" />
+              Visualizar Prévia
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={handleExportPDF}
               disabled={downloading || !minuta}
               className="bg-white"
             >
               <FileDown className="w-4 h-4 mr-2 text-red-600" />
-              PDF
+              Baixar PDF
             </Button>
             <Button
               variant="secondary"
@@ -592,6 +635,14 @@ export default function ContractView() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <PreviewPDFModal
+        open={previewModalOpen}
+        onOpenChange={setPreviewModalOpen}
+        pdfUrl={previewPdfUrl}
+        loading={generatingPreview}
+        onDownload={handleExportPDF}
+      />
     </div>
   )
 }

@@ -2,6 +2,121 @@ import { jsPDF } from 'jspdf'
 import { format } from 'date-fns'
 import { generateChecklistPDFTemplate } from './checklist-generator'
 
+export function buildPdfDoc(minutaText: string, userDetails?: any): jsPDF {
+  const doc = new jsPDF()
+  let y = 40
+  const margin = 20
+  const pageWidth = 210
+  const contentWidth = pageWidth - margin * 2
+  const pageHeight = 297
+
+  const headerTitle = userDetails?.imobiliaria_nome || 'GODOY PRIME REALTY'
+  const headerContentLines = userDetails?.header_content
+    ? doc.splitTextToSize(userDetails.header_content, contentWidth)
+    : []
+
+  const addHeader = (d: jsPDF) => {
+    d.setFont('helvetica', 'bold')
+    d.setFontSize(12)
+    d.setTextColor(12, 35, 64) // Marinho
+    d.text(headerTitle, margin, 18)
+
+    if (userDetails?.tipo_documento !== 'autorizacao_intermediacao') {
+      d.setFontSize(9)
+      d.setTextColor(212, 175, 55) // Ouro
+      d.text('Assessoria Jurídica Imobiliária', margin, 23)
+
+      d.setFontSize(10)
+      d.setTextColor(12, 35, 64)
+      d.text('MINUTA DE CONTRATO', pageWidth / 2, 23, {
+        align: 'center',
+      })
+    }
+
+    d.setDrawColor(212, 175, 55) // Ouro
+    d.setLineWidth(0.5)
+    d.line(margin, 28, pageWidth - margin, 28)
+
+    let currentY = 35
+    if (headerContentLines.length > 0) {
+      d.setFont('helvetica', 'bold')
+      d.setFontSize(10)
+      d.setTextColor(80, 80, 80)
+      d.text(headerContentLines, margin, currentY)
+      currentY += headerContentLines.length * 5 + 5
+    }
+    return currentY
+  }
+
+  y = addHeader(doc)
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(11)
+  doc.setTextColor(51, 65, 85)
+
+  let cleanText = minutaText
+    .replace(/<br\s*[/]?>/gi, '\n')
+    .replace(/<\/div>/gi, '\n')
+    .replace(/<\/p>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/\n\s*\n/g, '\n\n')
+
+  const lines = doc.splitTextToSize(cleanText, contentWidth)
+
+  for (let i = 0; i < lines.length; i++) {
+    if (y > pageHeight - 35) {
+      doc.addPage()
+      y = addHeader(doc)
+    }
+    const line = lines[i]
+    if (line.trim() === line.trim().toUpperCase() && line.trim().length > 0) {
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(12, 35, 64)
+    } else {
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(51, 65, 85)
+    }
+    doc.text(line, margin, y)
+    y += 6
+  }
+
+  const footerContentLines = userDetails?.footer_content
+    ? doc.splitTextToSize(userDetails.footer_content, contentWidth)
+    : []
+
+  // Add pagination and footer
+  const totalPages = doc.getNumberOfPages()
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i)
+
+    if (footerContentLines.length > 0) {
+      doc.setDrawColor(200, 200, 200)
+      doc.setLineWidth(0.2)
+      doc.line(margin, pageHeight - 25, pageWidth - margin, pageHeight - 25)
+
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(8)
+      doc.setTextColor(120, 120, 120)
+      doc.text(footerContentLines, margin, pageHeight - 20)
+    }
+
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(8)
+    doc.setTextColor(12, 35, 64)
+    doc.text(`Página ${i} de ${totalPages}`, pageWidth / 2, pageHeight - 10, { align: 'center' })
+  }
+
+  return doc
+}
+
+export async function getPreviewPdfUrl(minutaText: string, userDetails?: any): Promise<string> {
+  return new Promise((resolve) => {
+    const doc = buildPdfDoc(minutaText, userDetails)
+    // @ts-expect-error
+    resolve(doc.output('bloburl'))
+  })
+}
+
 export async function generateMinutaPDF(
   minutaText: string,
   fileName: string,
@@ -12,7 +127,7 @@ export async function generateMinutaPDF(
   }
 
   return new Promise((resolve) => {
-    const doc = new jsPDF()
+    const doc = buildPdfDoc(minutaText, userDetails)
     let y = 40
     const margin = 20
     const pageWidth = 210
