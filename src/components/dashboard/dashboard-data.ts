@@ -1,4 +1,4 @@
-export type DocumentStatusType = 'optional' | 'mandatory' | 'core' | 'conditional'
+export type DocumentStatusType = 'optional' | 'mandatory'
 
 export interface DocumentInfo {
   id: string
@@ -9,6 +9,7 @@ export interface DocumentInfo {
   status: string
   statusType: DocumentStatusType
   typeId: string
+  goldenRule?: boolean
 }
 
 export interface PhaseInfo {
@@ -27,7 +28,7 @@ export interface ScenarioInfo {
 export const documentPhases: PhaseInfo[] = [
   {
     id: 'captacao',
-    title: '1. Captação e Cadastro',
+    title: 'Fase 1: Captação e Cadastro',
     description: 'A base sólida da transação começa aqui.',
     docs: [
       {
@@ -36,9 +37,9 @@ export const documentPhases: PhaseInfo[] = [
         subtitle: 'Todas as informações do imóvel e das partes, reunidas antes de qualquer coisa.',
         description:
           'Formulário para coleta estruturada de dados das partes e do imóvel. Serve de base para a elaboração de todos os outros documentos.',
-        tip: 'Envie este formulário ao cliente logo no primeiro contato mais quente. Quanto mais cedo tiver os dados, mais ágil será a emissão dos contratos.',
-        status: 'Pode ser pulado',
-        statusType: 'optional',
+        tip: 'Peça todos os dados logo no primeiro contato. Corretor que volta pra pedir documento passa impressão de desorganização.',
+        status: 'Obrigatório',
+        statusType: 'mandatory',
         typeId: 'ficha_cadastral',
       },
       {
@@ -47,7 +48,7 @@ export const documentPhases: PhaseInfo[] = [
         subtitle: 'Tudo o que precisa ser apresentado antes de fechar negócio.',
         description:
           'Relação das certidões e documentos exigidos do vendedor, comprador e imóvel para garantir a segurança jurídica da transação.',
-        tip: 'Compartilhe esta lista com os clientes o mais cedo possível, pois a emissão de certidões pode demorar.',
+        tip: 'Mande o checklist pro cliente logo cedo. Quanto antes ele começar a juntar, menos atraso na hora do contrato.',
         status: 'Obrigatório',
         statusType: 'mandatory',
         typeId: 'checklist_documental',
@@ -58,7 +59,7 @@ export const documentPhases: PhaseInfo[] = [
         subtitle: 'O documento que garante o seu direito de trabalhar a venda.',
         description:
           'Formaliza a prestação de serviços do corretor, estabelecendo exclusividade (ou não), valor da comissão e regras de pagamento.',
-        tip: 'Nunca inicie a divulgação ou visitas sem este documento assinado. É a sua proteção de comissionamento.',
+        tip: 'Nunca comece a divulgar um imóvel sem essa autorização assinada. Ela é a sua segurança, não a do proprietário.',
         status: 'Obrigatório',
         statusType: 'mandatory',
         typeId: 'autorizacao_intermediacao',
@@ -67,61 +68,63 @@ export const documentPhases: PhaseInfo[] = [
   },
   {
     id: 'contratual',
-    title: '2. Contratual',
+    title: 'Fase 2: Contratual',
     description: 'A essência jurídica e financeira do negócio.',
     docs: [
       {
         id: 'recibo_sinal',
         title: 'Recibo de Sinal (Arras)',
-        subtitle: 'Confirmação do interesse e princípio de pagamento.',
+        subtitle: 'A formalização do sinal e do compromisso inicial entre as partes.',
         description:
-          'Documento simples que formaliza o recebimento de um valor inicial. É vital detalhar a diferença entre arras confirmatórias (não permitem arrependimento) e penitenciais (permitem arrependimento com multa).',
-        tip: 'Use para travar o negócio rapidamente enquanto os contratos mais densos são elaborados.',
-        status: 'Pode ser pulado',
+          'Documento simples que formaliza o recebimento de um valor inicial e fixa o princípio de pagamento.',
+        tip: 'O ideal é que o sinal esteja dentro do compromisso de compra e venda. Use o recibo avulso apenas quando precisar travar o negócio com urgência.',
+        status: 'Opcional',
         statusType: 'optional',
         typeId: 'recibo_sinal',
       },
       {
         id: 'contrato_preliminar',
         title: 'Contrato Particular Preliminar',
-        subtitle: 'Estabelece as bases do negócio antes da assinatura definitiva.',
+        subtitle: 'Quando as partes precisam se comprometer antes de fechar todas as condições.',
         description:
           'Utilizado principalmente para fixar condições suspensivas, como a aprovação de um financiamento ou a regularização de uma averbação na matrícula.',
-        tip: 'Essencial quando o negócio depende de um fator externo para acontecer de fato.',
-        status: 'Pode ser pulado',
+        tip: 'Use quando o negócio tem uma pendência concreta que impede a assinatura da promessa definitiva. Não use como substituto da promessa por preguiça.',
+        status: 'Opcional',
         statusType: 'optional',
         typeId: 'contrato_particular',
       },
       {
         id: 'promessa_cv',
         title: 'Promessa de Compra e Venda',
-        subtitle: 'O compromisso firme de transferir a propriedade.',
+        subtitle: 'O contrato que trava o negócio e define todas as regras da transação.',
         description:
           'O principal instrumento da transação. Gera o "direito real de aquisição" e detalha todas as obrigações, prazos, multas e condições do negócio.',
-        tip: 'A promessa de compra e venda é a sua garantia principal. Quando registrada na matrícula, impede que o imóvel seja vendido a terceiros.',
-        status: 'Obrigatório em quase todo cenário',
-        statusType: 'core',
+        tip: 'Dedique tempo a esse documento. É ele que resolve ou cria 90% dos problemas de uma transação.',
+        status: 'Obrigatório',
+        statusType: 'mandatory',
         typeId: 'promessa_compra_venda',
+        goldenRule: true,
       },
       {
         id: 'contrato_particular',
         title: 'Contrato Particular de Compra e Venda',
-        subtitle: 'Transferência sem escritura pública (em casos específicos).',
+        subtitle:
+          'O instrumento definitivo entre as partes, quando a escritura pública ainda não é possível.',
         description:
           'Instrumento com força de escritura, aplicável apenas quando o imóvel é financiado pelo SFH ou quando o valor é inferior ao limite legal.',
-        tip: 'Só utilize como instrumento definitivo se tiver certeza do enquadramento nas exceções legais.',
-        status: 'Só em financiamento ou valor dentro do limite',
-        statusType: 'conditional',
+        tip: 'Use quando houver financiamento ou quando a lei expressamente permitir.',
+        status: 'Opcional',
+        statusType: 'optional',
         typeId: 'contrato_particular',
       },
       {
         id: 'contrato_definitivo',
         title: 'Contrato Definitivo de Compra e Venda',
-        subtitle: 'A escritura pública (ou equivalente) que transfere a propriedade.',
+        subtitle: 'O fechamento do negócio, pronto para virar escritura e registro.',
         description:
           'Ato final da transação, lavrado em cartório (ou pelo banco), essencial para o registro na matrícula e transferência da titularidade.',
-        tip: 'Acompanhe a lavratura para garantir que reflita exatamente o que foi acordado na Promessa.',
-        status: 'Obrigatório para fechar',
+        tip: 'Não assine o definitivo sem que todas as pendências do checklist documental estejam resolvidas.',
+        status: 'Obrigatório',
         statusType: 'mandatory',
         typeId: 'contrato_particular',
       },
@@ -129,27 +132,28 @@ export const documentPhases: PhaseInfo[] = [
   },
   {
     id: 'aditivos',
-    title: '3. Aditivos e Complementares',
+    title: 'Fase 3: Aditivos e Complementares',
     description: 'Ajustes finais e formalização da entrega.',
     docs: [
       {
         id: 'declaracoes_comp',
         title: 'Declarações Complementares',
-        subtitle: 'Documentos auxiliares de declaração de fatos.',
+        subtitle:
+          'Informações pessoais e patrimoniais que precisam constar formalmente na transação.',
         description:
-          'Incluem declarações sobre união estável, capacidade financeira ou origem lícita dos recursos, exigidas pelos bancos ou cartórios.',
-        tip: 'Verifique antecipadamente as exigências do cartório de notas escolhido.',
-        status: 'Pode ser pulado',
-        statusType: 'optional',
+          'Incluem declarações sobre união estável, capacidade financeira ou origem lícita dos recursos.',
+        tip: 'Não trate como formalidade. Um imóvel vendido sem a anuência do cônjuge pode ser anulado.',
+        status: 'Obrigatório',
+        statusType: 'mandatory',
         typeId: 'declaracoes_complementares',
       },
       {
         id: 'termo_chaves',
         title: 'Termo de Entrega de Chaves',
-        subtitle: 'Formaliza a entrega física do imóvel ao comprador.',
+        subtitle: 'O registro formal de que o imóvel foi entregue ao comprador.',
         description:
           'Documento que atesta o recebimento das chaves, o estado de conservação do imóvel e a transferência da responsabilidade pelo pagamento de taxas e impostos.',
-        tip: 'Faça uma vistoria fotográfica e anexe a este termo.',
+        tip: 'Faça a entrega com um checklist de vistoria na mão. Registre tudo por escrito e por foto.',
         status: 'Obrigatório',
         statusType: 'mandatory',
         typeId: 'termo_entrega_chaves',
@@ -157,19 +161,19 @@ export const documentPhases: PhaseInfo[] = [
       {
         id: 'termo_posse',
         title: 'Termo de Posse',
-        subtitle: 'Transferência do uso e gozo do imóvel.',
+        subtitle: 'A transferência formal da posse do imóvel, com todos os seus efeitos legais.',
         description:
-          'Formaliza a imissão na posse. Se a entrega das chaves e a posse ocorrerem no mesmo ato, podem ser unificados. Mas se o imóvel estiver locado, a posse transfere o direito de receber aluguéis.',
-        tip: "Regra Prática: Se chaves e posse ocorrem no mesmo dia, unifique no 'Termo de Entrega de Chaves e Transferência de Posse'.",
-        status: 'Obrigatório',
-        statusType: 'mandatory',
+          'Formaliza a imissão na posse. Se o imóvel estiver locado, a posse transfere o direito de receber aluguéis.',
+        tip: "Se chaves e posse acontecem no mesmo dia, unifique num documento só e chame de 'Termo de Entrega de Chaves e Transferência de Posse'.",
+        status: 'Opcional',
+        statusType: 'optional',
         typeId: 'termo_posse',
       },
     ],
   },
   {
     id: 'finalizacao',
-    title: '4. Finalização',
+    title: 'Fase 4: Finalização',
     description: 'Encerramento e garantias.',
     docs: [
       {
@@ -178,9 +182,9 @@ export const documentPhases: PhaseInfo[] = [
         subtitle: 'O encerramento formal do negócio, quando a transação não vai mais seguir.',
         description:
           'Rescisão amigável do contrato anterior, prevendo a devolução (ou retenção) de valores e estabelecendo quitação mútua plena.',
-        tip: 'É fundamental garantir a quitação mútua plena, evitando processos judiciais futuros.',
-        status: 'Se aplicável',
-        statusType: 'conditional',
+        tip: 'Mesmo que a saída seja amigável, formalize por escrito. Inclua sempre uma cláusula de quitação mútua.',
+        status: 'Opcional',
+        statusType: 'optional',
         typeId: 'distrato',
       },
     ],
@@ -189,35 +193,36 @@ export const documentPhases: PhaseInfo[] = [
 
 export const scenarios: ScenarioInfo[] = [
   {
-    title: 'Venda à vista (Sem financiamento)',
+    title: 'À vista, sem pendências',
     description: 'Para transações limpas, sem pendências e com pagamento com recursos próprios.',
-    steps: [
-      'Checklist Documental',
-      'Promessa de Compra e Venda',
-      'Escritura Pública Definitiva',
-      'Termo de Entrega de Chaves',
-    ],
+    steps: ['Recibo de Sinal', 'Promessa de Compra e Venda', 'Contrato Definitivo'],
   },
   {
-    title: 'Venda com Financiamento Bancário',
+    title: 'Com financiamento bancário',
     description: 'Quando parte do valor será pago via instituição financeira.',
     steps: [
-      'Checklist Documental',
+      'Recibo de Sinal',
+      'Contrato Preliminar',
       'Promessa de Compra e Venda',
-      'Contrato Particular (com força de Escritura)',
-      'Termo de Entrega de Chaves',
+      'Contrato Particular',
+      'Contrato Definitivo',
     ],
   },
   {
-    title: 'Imóvel com Pendência Documental',
+    title: 'Imóvel com pendência documental',
     description:
       'Quando o negócio depende da regularização prévia (ex: averbação de obra, inventário em curso).',
-    steps: ['Contrato Particular Preliminar', 'Promessa de Compra e Venda', 'Escritura Pública'],
+    steps: [
+      'Recibo de Sinal',
+      'Contrato Preliminar',
+      'Promessa de Compra e Venda',
+      'Contrato Definitivo',
+    ],
   },
   {
-    title: 'Urgência de Travamento',
+    title: 'Urgência de travamento',
     description:
       'Quando é necessário segurar o negócio rapidamente enquanto se elabora a promessa completa.',
-    steps: ['Recibo de Sinal (Arras)', 'Promessa de Compra e Venda', 'Escritura Pública'],
+    steps: ['Recibo de Sinal', 'Promessa de Compra e Venda', 'Contrato Definitivo'],
   },
 ]
