@@ -5,6 +5,7 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import { AuthProvider } from '@/hooks/use-auth'
 import Layout from '@/components/Layout'
 import Home from '@/pages/Home'
+import Dashboard from '@/pages/Dashboard'
 import NewContract from '@/pages/NewContract'
 import Profile from '@/pages/Profile'
 import Login from '@/pages/Login'
@@ -37,6 +38,7 @@ export default function App() {
               }
             >
               <Route path="/" element={<Home />} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/contratos/novo" element={<NewContract />} />
               <Route path="/contratos" element={<MyContracts />} />
               <Route path="/contratos/:id" element={<ContractView />} />
