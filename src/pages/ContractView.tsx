@@ -33,6 +33,10 @@ import {
   updateContractData,
   generateContractDocx,
 } from '@/services/contracts'
+import {
+  getAnalysisReportsByContract,
+  type AnalysisReportRecord,
+} from '@/services/analysis_reports'
 import { RichTextEditor } from '@/components/RichTextEditor'
 import {
   Select,
@@ -71,6 +75,7 @@ export default function ContractView() {
 
   const [hasKeys, setHasKeys] = useState(true)
   const [apiError, setApiError] = useState(false)
+  const [analysisReport, setAnalysisReport] = useState<AnalysisReportRecord | null>(null)
 
   useEffect(() => {
     const checkKeys = async () => {
@@ -92,8 +97,23 @@ export default function ContractView() {
     }
   }, [id])
 
+  const loadAnalysisReport = async () => {
+    try {
+      const reports = await getAnalysisReportsByContract(id!)
+      if (reports.length > 0) {
+        setAnalysisReport(reports[0])
+      } else {
+        setAnalysisReport(null)
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
   useRealtime<any>('contracts', (e) => {
     if (e.action === 'update' && e.record.id === id) {
+      loadAnalysisReport()
+
       const newText = e.record.minuta_texto || ''
 
       if (newText.includes('Erro no provedor') || newText.includes('Minuta não gerada')) {
@@ -151,6 +171,8 @@ export default function ContractView() {
       if (st === 'em_elaboracao') st = 'rascunho'
       if (st === 'concluido') st = 'finalizado'
       setStatus(st)
+
+      await loadAnalysisReport()
     } catch (error) {
       toast.error('Erro ao carregar contrato')
     } finally {
@@ -502,6 +524,57 @@ export default function ContractView() {
             >
               Configurar Chaves
             </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {analysisReport && (
+        <Alert
+          variant={analysisReport.risk_level === 'baixo' ? 'default' : 'destructive'}
+          className={`mb-6 animate-in slide-in-from-top-2 ${
+            analysisReport.risk_level === 'baixo'
+              ? 'bg-green-50 border-green-200'
+              : analysisReport.risk_level === 'medio'
+                ? 'bg-yellow-50 border-yellow-200 text-yellow-800'
+                : 'bg-red-50 border-red-200 text-red-800'
+          }`}
+        >
+          <AlertCircle
+            className={`h-5 w-5 ${analysisReport.risk_level === 'baixo' ? 'text-green-600' : ''}`}
+          />
+          <AlertTitle className="capitalize font-bold text-lg">
+            Compliance Documental (Lei 7.433/85)
+          </AlertTitle>
+          <AlertDescription className="mt-2 flex flex-col gap-3">
+            <span className="text-base">{analysisReport.summary}</span>
+            {contract?.compliance_checklist && (
+              <div className="flex gap-4 mt-2 p-3 bg-white/50 rounded-md border border-black/10">
+                <div className="flex items-center gap-2">
+                  {contract.compliance_checklist.matricula ? (
+                    <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                      ✓
+                    </div>
+                  ) : (
+                    <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center text-red-600">
+                      ✗
+                    </div>
+                  )}
+                  <span className="font-medium text-sm">Matrícula Atualizada</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {contract.compliance_checklist.iptu ? (
+                    <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                      ✓
+                    </div>
+                  ) : (
+                    <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center text-red-600">
+                      ✗
+                    </div>
+                  )}
+                  <span className="font-medium text-sm">Certidão IPTU</span>
+                </div>
+              </div>
+            )}
           </AlertDescription>
         </Alert>
       )}
