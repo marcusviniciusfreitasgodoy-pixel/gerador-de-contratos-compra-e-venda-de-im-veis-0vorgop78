@@ -109,7 +109,7 @@ export function buildPdfDoc(minutaText: string, userDetails?: any): jsPDF {
   return doc
 }
 
-export async function getPreviewPdfUrl(minutaText: string, userDetails?: any): Promise<string> {
+export async function getMinutaPDFBlobUrl(minutaText: string, userDetails?: any): Promise<string> {
   return new Promise((resolve) => {
     const doc = buildPdfDoc(minutaText, userDetails)
     // @ts-expect-error
