@@ -85,29 +85,19 @@ export default function AIAnalysis() {
               'Adicionar o número exato de vagas e sua vinculação à matrícula no registro de imóveis.',
           },
         ],
-        omissao: [
+        omissoes: [
           {
-            gravidade: 'medio',
-            descricao: 'Ausência de cláusula de tolerância para atraso na entrega.',
-            impacto:
-              'Em caso de atraso na entrega das chaves por qualquer motivo, o vendedor pode ser imediatamente processado.',
-            sugestao_inclusao:
-              'Inserir cláusula prevendo prazo de tolerância de 180 dias para a entrega do imóvel.',
+            clausula: 'Cláusula de Tolerância',
+            importancia: 'RECOMENDADA',
+            redacaoPadrao:
+              'Fica estipulado o prazo de tolerância de 180 (cento e oitenta) dias para a entrega do imóvel.',
           },
         ],
-        conformidade: [
-          {
-            status: 'nok',
-            requisito: 'LGPD - Lei Geral de Proteção de Dados',
-            observacao:
-              'O contrato não possui termo de consentimento explícito para tratamento de dados pessoais das partes.',
-          },
-          {
-            status: 'ok',
-            requisito: 'Qualificação das Partes',
-            observacao:
-              'Qualificação do comprador e vendedor atende aos requisitos do Código Civil.',
-          },
+        conformidade: 'risco',
+        clausulas_encontradas: ['Qualificação das Partes', 'Do Objeto', 'Da Multa Rescisória'],
+        clausulas_faltando: [
+          'LGPD - Lei Geral de Proteção de Dados',
+          'Prevenção à Lavagem de Dinheiro (PLD-FT)',
         ],
       },
     }

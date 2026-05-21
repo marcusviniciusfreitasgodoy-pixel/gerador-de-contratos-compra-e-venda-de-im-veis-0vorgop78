@@ -315,7 +315,25 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
           } else if (content.includes('```')) {
             clean = content.split('```')[1].split('```')[0]
           }
-          analysisResult = JSON.parse(clean.trim())
+          let parsed = JSON.parse(clean.trim())
+
+          analysisResult = {
+            conformidade: {
+              status:
+                typeof parsed.conformidade === 'string'
+                  ? parsed.conformidade
+                  : parsed.conformidade?.status || 'conforme',
+              clausulasEncontradas:
+                parsed.clausulas_encontradas || parsed.clausulasEncontradas || [],
+              clausulasFaltando: parsed.clausulas_faltando || parsed.clausulasFaltando || [],
+            },
+            riscos: parsed.riscos || [],
+            omissoes: parsed.omissoes || parsed.omissoesImportantes || [],
+            clausulasAbusivas: parsed.clausulas_abusivas || parsed.clausulasAbusivas || [],
+            recomendacoes: parsed.recomendacoes || { imediatas: [], recomendadas: [] },
+            alerta_coaf: !!parsed.alerta_coaf,
+          }
+
           analysisResult.usedModel = modelName
           usedModel = modelName
           success = true
@@ -488,23 +506,16 @@ Responda ESTRITAMENTE no seguinte formato JSON (sem markdown de bloco de código
 
         let summaryText = ''
         if (analysisResult.conformidade) {
-          const statusVal =
-            typeof analysisResult.conformidade === 'string'
-              ? analysisResult.conformidade
-              : analysisResult.conformidade.status
+          const statusVal = analysisResult.conformidade.status || 'desconhecido'
           summaryText = `Status geral: ${statusVal}. Riscos: ${analysisResult.riscos ? analysisResult.riscos.length : 0}`
         }
         reportRecord.set('summary', summaryText)
 
         let risk = 'baixo'
         if (analysisResult.conformidade) {
-          const s = (
-            typeof analysisResult.conformidade === 'string'
-              ? analysisResult.conformidade
-              : analysisResult.conformidade.status || ''
-          ).toLowerCase()
-          if (s === 'critico' || s === 'crítico') risk = 'critico'
-          else if (s === 'risco') risk = 'alto'
+          const s = (analysisResult.conformidade.status || '').toLowerCase()
+          if (s === 'critico' || s === 'crítico' || s === 'crítica') risk = 'critico'
+          else if (s === 'risco' || s === 'alto') risk = 'alto'
           else risk = 'baixo'
         }
         reportRecord.set('risk_level', risk)

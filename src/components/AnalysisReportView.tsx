@@ -28,23 +28,33 @@ import { Loader2 } from 'lucide-react'
 import { generateAnalysisPDF } from '@/lib/pdf-generator'
 
 export interface AnalysisReport {
-  conformidade: {
-    status: 'conforme' | 'risco' | 'critico' | string
-    clausulasEncontradas: string[]
-    clausulasFaltando: string[]
-  }
+  conformidade: any
+  clausulas_encontradas?: string[]
+  clausulas_faltando?: string[]
+  clausulasEncontradas?: string[]
+  clausulasFaltando?: string[]
   riscos: Array<{
     titulo: string
     descricao: string
     severidade: 'ALTO' | 'MEDIO' | 'BAIXO' | string
     embasamento: string
   }>
-  omissoes: Array<{
+  omissoes?: Array<{
     clausula: string
     importancia: 'CRITICA' | 'IMPORTANTE' | 'RECOMENDADA' | string
     redacaoPadrao: string
   }>
-  clausulasAbusivas: Array<{
+  omissoesImportantes?: Array<{
+    clausula: string
+    importancia: 'CRITICA' | 'IMPORTANTE' | 'RECOMENDADA' | string
+    redacaoPadrao: string
+  }>
+  clausulasAbusivas?: Array<{
+    texto: string
+    motivo: string
+    recomendacao: string
+  }>
+  clausulas_abusivas?: Array<{
     texto: string
     motivo: string
     recomendacao: string
@@ -66,7 +76,29 @@ export function AnalysisReportView({
   contract?: any
 }) {
   const [isGenerating, setIsGenerating] = useState(false)
-  const generalStatus = report.conformidade?.status?.toUpperCase() || 'DESCONHECIDO'
+
+  const conformidadeObj = {
+    status:
+      typeof report.conformidade === 'string'
+        ? report.conformidade
+        : report.conformidade?.status || 'DESCONHECIDO',
+    clausulasEncontradas:
+      typeof report.conformidade === 'string'
+        ? report.clausulas_encontradas || report.clausulasEncontradas || []
+        : report.conformidade?.clausulasEncontradas ||
+          report.clausulas_encontradas ||
+          report.clausulasEncontradas ||
+          [],
+    clausulasFaltando:
+      typeof report.conformidade === 'string'
+        ? report.clausulas_faltando || report.clausulasFaltando || []
+        : report.conformidade?.clausulasFaltando ||
+          report.clausulas_faltando ||
+          report.clausulasFaltando ||
+          [],
+  }
+
+  const generalStatus = conformidadeObj.status?.toUpperCase() || 'DESCONHECIDO'
 
   const handleDownloadPDF = async () => {
     try {
@@ -259,7 +291,7 @@ export function AnalysisReportView({
                 </h4>
                 <ScrollArea className="h-[200px] pr-4">
                   <ul className="space-y-2">
-                    {report.conformidade?.clausulasEncontradas?.map((c, i) => (
+                    {conformidadeObj.clausulasEncontradas?.map((c: string, i: number) => (
                       <li
                         key={i}
                         className="text-sm text-green-900 flex items-start gap-2 bg-white p-2 rounded shadow-sm border border-green-50"
@@ -268,7 +300,7 @@ export function AnalysisReportView({
                         {c}
                       </li>
                     ))}
-                    {!report.conformidade?.clausulasEncontradas?.length && (
+                    {!conformidadeObj.clausulasEncontradas?.length && (
                       <li className="text-sm text-slate-500 italic">
                         Nenhuma cláusula identificada.
                       </li>
@@ -282,7 +314,7 @@ export function AnalysisReportView({
                 </h4>
                 <ScrollArea className="h-[200px] pr-4">
                   <ul className="space-y-2">
-                    {report.conformidade?.clausulasFaltando?.map((c, i) => (
+                    {conformidadeObj.clausulasFaltando?.map((c: string, i: number) => (
                       <li
                         key={i}
                         className="text-sm text-red-900 flex items-start gap-2 bg-white p-2 rounded shadow-sm border border-red-50"
@@ -291,7 +323,7 @@ export function AnalysisReportView({
                         {c}
                       </li>
                     ))}
-                    {!report.conformidade?.clausulasFaltando?.length && (
+                    {!conformidadeObj.clausulasFaltando?.length && (
                       <li className="text-sm text-slate-500 italic">Nenhuma cláusula ausente.</li>
                     )}
                   </ul>
@@ -381,7 +413,7 @@ export function AnalysisReportView({
             </div>
           </AccordionTrigger>
           <AccordionContent className="pt-2 pb-6 space-y-4">
-            {report.omissoes?.map((omission, idx) => (
+            {(report.omissoes || report.omissoesImportantes || [])?.map((omission, idx) => (
               <Card key={idx} className="border-amber-200 shadow-sm">
                 <CardHeader className="bg-amber-50/30 pb-4 flex flex-row items-center justify-between">
                   <CardTitle className="text-base text-amber-900 flex items-center gap-2">
@@ -412,7 +444,8 @@ export function AnalysisReportView({
                 </CardContent>
               </Card>
             ))}
-            {(!report.omissoes || report.omissoes.length === 0) && (
+            {(!(report.omissoes || report.omissoesImportantes) ||
+              (report.omissoes || report.omissoesImportantes)?.length === 0) && (
               <div className="py-8 text-center text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-200">
                 <CheckCircle className="w-10 h-10 text-green-400 mx-auto mb-2" /> Nenhuma omissão
                 crítica identificada.
@@ -432,8 +465,8 @@ export function AnalysisReportView({
             </div>
           </AccordionTrigger>
           <AccordionContent className="pt-2 pb-6 space-y-4">
-            {report.clausulasAbusivas?.length > 0 ? (
-              report.clausulasAbusivas.map((item, idx) => (
+            {(report.clausulasAbusivas || report.clausulas_abusivas || [])?.length > 0 ? (
+              (report.clausulasAbusivas || report.clausulas_abusivas || []).map((item, idx) => (
                 <Card key={idx} className="border-red-200 shadow-sm">
                   <CardHeader className="bg-red-50/50 pb-4 border-b border-red-100">
                     <CardTitle className="text-base text-red-800 flex items-center gap-2">
