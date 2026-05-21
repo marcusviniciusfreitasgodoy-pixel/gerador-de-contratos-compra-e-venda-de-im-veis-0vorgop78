@@ -35,7 +35,7 @@ export default function Login() {
             <img src={logoUrl} alt="Godoy Prime Realty" className="h-16 object-contain" />
           </div>
           <CardTitle className="text-2xl text-white font-display font-medium tracking-wide">
-            Bem-vindo
+            GPR - Gerador de Contratos
           </CardTitle>
           <CardDescription className="text-base mt-2 text-white/70">
             Faça login para acessar o sistema
