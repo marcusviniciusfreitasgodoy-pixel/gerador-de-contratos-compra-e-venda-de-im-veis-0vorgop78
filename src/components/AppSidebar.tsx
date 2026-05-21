@@ -34,6 +34,7 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader className="h-16 flex justify-center px-4 border-b border-sidebar-border bg-sidebar text-white">
         <Link to="/" className="flex items-center gap-2">
+          e de&nbsp;
           <img src={iconUrl} alt="Prime Realty Icon" className="w-8 h-8 object-contain" />
           <img src={logoUrl} alt="Prime Realty Logo" className="h-6 object-contain" />
         </Link>

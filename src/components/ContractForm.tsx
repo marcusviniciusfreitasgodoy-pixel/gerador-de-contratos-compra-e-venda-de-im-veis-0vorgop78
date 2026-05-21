@@ -586,7 +586,7 @@ export function ContractForm({
               ) : (
                 <FileText className="w-4 h-4 sm:mr-2" />
               )}
-              <span className="hidden sm:inline">Prévia</span>
+              <span className="hidden sm:inline">Gerar Ficha&nbsp;&nbsp;</span>
             </Button>
             <Button
               type="button"
