@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-21T21:08:57.027Z",
+  "generatedAt": "2026-05-21T21:10:51.060Z",
   "collections": [
     {
       "name": "users",
@@ -29,19 +29,14 @@
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": [
-            "onCreate"
-          ]
+          "autodateTriggers": ["onCreate"]
         },
         {
           "name": "updated",
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": [
-            "onCreate",
-            "onUpdate"
-          ]
+          "autodateTriggers": ["onCreate", "onUpdate"]
         },
         {
           "name": "imobiliaria_nome",
@@ -162,19 +157,14 @@
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": [
-            "onCreate"
-          ]
+          "autodateTriggers": ["onCreate"]
         },
         {
           "name": "updated",
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": [
-            "onCreate",
-            "onUpdate"
-          ]
+          "autodateTriggers": ["onCreate", "onUpdate"]
         },
         {
           "name": "tipo",
@@ -499,13 +489,7 @@
           "type": "select",
           "required": false,
           "system": false,
-          "selectValues": [
-            "a_vista",
-            "financiamento",
-            "investidor",
-            "alto_padrao",
-            "permuta"
-          ]
+          "selectValues": ["a_vista", "financiamento", "investidor", "alto_padrao", "permuta"]
         },
         {
           "name": "tipo_documento",
@@ -530,20 +514,14 @@
           "type": "select",
           "required": false,
           "system": false,
-          "selectValues": [
-            "pf",
-            "pj"
-          ]
+          "selectValues": ["pf", "pj"]
         },
         {
           "name": "tipo_comprador",
           "type": "select",
           "required": false,
           "system": false,
-          "selectValues": [
-            "pf",
-            "pj"
-          ]
+          "selectValues": ["pf", "pj"]
         },
         {
           "name": "cnpj_vendedor",
@@ -908,12 +886,7 @@
           "type": "select",
           "required": false,
           "system": false,
-          "selectValues": [
-            "Clicksign",
-            "ZapSign",
-            "Docusign",
-            "Autentique"
-          ]
+          "selectValues": ["Clicksign", "ZapSign", "Docusign", "Autentique"]
         },
         {
           "name": "clausula_lgpd",
@@ -1172,10 +1145,7 @@
           "type": "select",
           "required": false,
           "system": false,
-          "selectValues": [
-            "com_exclusiva",
-            "sem_exclusiva"
-          ]
+          "selectValues": ["com_exclusiva", "sem_exclusiva"]
         },
         {
           "name": "vendedor_uniao_estavel",
@@ -1245,19 +1215,14 @@
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": [
-            "onCreate"
-          ]
+          "autodateTriggers": ["onCreate"]
         },
         {
           "name": "updated",
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": [
-            "onCreate",
-            "onUpdate"
-          ]
+          "autodateTriggers": ["onCreate", "onUpdate"]
         },
         {
           "name": "version",
@@ -1340,31 +1305,21 @@
           "type": "select",
           "required": false,
           "system": false,
-          "selectValues": [
-            "baixo",
-            "medio",
-            "alto",
-            "critico"
-          ]
+          "selectValues": ["baixo", "medio", "alto", "critico"]
         },
         {
           "name": "created",
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": [
-            "onCreate"
-          ]
+          "autodateTriggers": ["onCreate"]
         },
         {
           "name": "updated",
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": [
-            "onCreate",
-            "onUpdate"
-          ]
+          "autodateTriggers": ["onCreate", "onUpdate"]
         }
       ],
       "indexes": []
@@ -1411,19 +1366,14 @@
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": [
-            "onCreate"
-          ]
+          "autodateTriggers": ["onCreate"]
         },
         {
           "name": "updated",
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": [
-            "onCreate",
-            "onUpdate"
-          ]
+          "autodateTriggers": ["onCreate", "onUpdate"]
         }
       ],
       "indexes": []
@@ -1463,19 +1413,14 @@
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": [
-            "onCreate"
-          ]
+          "autodateTriggers": ["onCreate"]
         },
         {
           "name": "updated",
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": [
-            "onCreate",
-            "onUpdate"
-          ]
+          "autodateTriggers": ["onCreate", "onUpdate"]
         }
       ],
       "indexes": []
@@ -1528,19 +1473,14 @@
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": [
-            "onCreate"
-          ]
+          "autodateTriggers": ["onCreate"]
         },
         {
           "name": "updated",
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": [
-            "onCreate",
-            "onUpdate"
-          ]
+          "autodateTriggers": ["onCreate", "onUpdate"]
         }
       ],
       "indexes": []

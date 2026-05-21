@@ -2,6 +2,130 @@ import { jsPDF } from 'jspdf'
 import { format } from 'date-fns'
 import { getLogoBase64 } from './pdf-utils'
 
+export function getActiveDocs(data: any): string[] {
+  const isVendedorPJ = data.vendedor_pj
+  const isVendedorUniao =
+    data.vendedor_uniao_estavel ||
+    data.estado_civil_vendedor === 'Casado' ||
+    data.estado_civil_vendedor === 'Casada'
+  const isCompradorUniao =
+    data.comprador_uniao_estavel ||
+    data.estado_civil_comprador === 'Casado' ||
+    data.estado_civil_comprador === 'Casada'
+
+  let docs: string[] = []
+
+  // Vendedor
+  if (isVendedorPJ) {
+    docs.push(
+      'Cartão CNPJ',
+      'Contrato Social / Estatuto Social',
+      'Últimas Alterações Contratuais',
+      'Documento de Identidade dos Sócios/Representantes',
+      'CPF dos Sócios/Representantes',
+      'Certidão Negativa de Débitos (CND) Federal, Estadual e Municipal',
+      'Certidão Simplificada da Junta Comercial (atualizada)',
+      'Certidão de Regularidade do FGTS (CRF)',
+    )
+  } else {
+    docs.push(
+      'Documento de Identidade (RG/CNH) - Vendedor',
+      'CPF - Vendedor',
+      'Comprovante de Residência Atualizado - Vendedor',
+      'Certidão de Estado Civil (Nascimento atualizada ou Casamento)',
+    )
+  }
+  if (isVendedorUniao) {
+    docs.push(
+      'Documento de Identidade do Cônjuge/Companheiro(a) - Vendedor',
+      'CPF do Cônjuge/Companheiro(a) - Vendedor',
+      'Pacto Antenupcial (se houver)',
+    )
+  }
+  if (!isVendedorPJ) {
+    docs.push(
+      'Certidões de Protesto de Títulos (domicílio e local do imóvel)',
+      'Certidão de Distribuição Cível e Criminal Estadual',
+      'Certidão Conjunta de Débitos Relativos a Tributos Federais e à Dívida Ativa da União (RFB)',
+    )
+  }
+  docs.push(
+    'Certidão do 2º Ofício de Distribuidor',
+    'Certidão de Interdições e Tutelas',
+    'Certidão da Justiça Federal',
+    'Certidão da Justiça do Trabalho',
+  )
+
+  // Comprador
+  docs.push(
+    'Documento de Identidade (RG/CNH) - Comprador',
+    'CPF - Comprador',
+    'Comprovante de Residência Atualizado - Comprador',
+  )
+  if (data.estado_civil_comprador) {
+    docs.push(`Comprovante de Estado Civil (${data.estado_civil_comprador})`)
+  } else {
+    docs.push('Comprovante de Estado Civil')
+  }
+
+  if (isCompradorUniao) {
+    docs.push(
+      'Documento de Identidade do Cônjuge/Companheiro(a) - Comprador',
+      'CPF do Cônjuge/Companheiro(a) - Comprador',
+      'Certidão de Casamento/União Estável',
+    )
+  }
+
+  // Imóvel
+  docs.push(
+    'Matrícula Atualizada (com ônus e ações)',
+    'Capa do carnê de IPTU',
+    'Certidão de Quitação Fiscal e Enfitêutica',
+    'Declaração de Quitação Condominial (assinada pelo síndico)',
+    'Cópia da Ata de Eleição do Síndico',
+    'Certidão do Funesbom (Corpo de Bombeiros)',
+  )
+
+  if (data.imovel_inventario) {
+    docs.push(
+      'Certidão de Óbito',
+      'Certidão de Inventariante',
+      'Formal de Partilha ou Escritura Pública de Inventário',
+      'Alvará Judicial (se o processo estiver em curso)',
+    )
+  }
+
+  if (data.imovel_locado) {
+    docs.push(
+      'Cópia do Contrato de Locação vigente',
+      'Notificação do Direito de Preferência ao locatário',
+      'Termo de Renúncia ao Direito de Preferência',
+    )
+  }
+
+  if (data.imovel_ocupado) {
+    docs.push(
+      'Laudo de Vistoria com fotos',
+      'Comprovantes de quitação de contas de consumo (Luz, Água, Gás)',
+      'Termo de declaração de desocupação pelo vendedor',
+    )
+  }
+
+  if (data.imovel_desocupado || data.ocupacao_imovel === 'desocupado') {
+    docs.push('Termo de Entrega de Chaves', 'Certidões negativas de débitos de consumo')
+  }
+
+  // Financeiro
+  docs.push(
+    'Dados do Banco (Nome/Código)',
+    'Agência e Conta (com dígito)',
+    'Titularidade e CPF/CNPJ vinculado',
+    'Chave PIX vinculada (se aplicável)',
+  )
+
+  return docs
+}
+
 export function generateChecklistHTML(data: any): string {
   const isVendedorPJ = data.vendedor_pj
   const isVendedorUniao =
@@ -40,6 +164,8 @@ export function generateChecklistHTML(data: any): string {
       'Documento de Identidade dos Sócios/Representantes',
       'CPF dos Sócios/Representantes',
       'Certidão Negativa de Débitos (CND) Federal, Estadual e Municipal',
+      'Certidão Simplificada da Junta Comercial (atualizada)',
+      'Certidão de Regularidade do FGTS (CRF)',
     )
   } else {
     vendedorItems.push(
@@ -54,6 +180,13 @@ export function generateChecklistHTML(data: any): string {
       'Documento de Identidade do Cônjuge/Companheiro(a) - Vendedor',
       'CPF do Cônjuge/Companheiro(a) - Vendedor',
       'Pacto Antenupcial (se houver)',
+    )
+  }
+  if (!isVendedorPJ) {
+    vendedorItems.push(
+      'Certidões de Protesto de Títulos (domicílio e local do imóvel)',
+      'Certidão de Distribuição Cível e Criminal Estadual',
+      'Certidão Conjunta de Débitos Relativos a Tributos Federais e à Dívida Ativa da União (RFB)',
     )
   }
   vendedorItems.push(
@@ -91,6 +224,7 @@ export function generateChecklistHTML(data: any): string {
     'Capa do carnê de IPTU',
     'Certidão de Quitação Fiscal e Enfitêutica',
     'Declaração de Quitação Condominial (assinada pelo síndico)',
+    'Cópia da Ata de Eleição do Síndico',
     'Certidão do Funesbom (Corpo de Bombeiros)',
   ]
 
