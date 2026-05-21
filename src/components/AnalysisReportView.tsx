@@ -9,6 +9,7 @@ import {
   Download,
   ShieldCheck,
   Scale,
+  MapPin,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -71,9 +72,11 @@ export interface AnalysisReport {
 export function AnalysisReportView({
   report,
   contract,
+  onOmissionClick,
 }: {
   report: AnalysisReport
   contract?: any
+  onOmissionClick?: (omission: any) => void
 }) {
   const [isGenerating, setIsGenerating] = useState(false)
 
@@ -273,6 +276,7 @@ export function AnalysisReportView({
             </div>
           </AccordionContent>
         </AccordionItem>
+
         {/* CONFORMIDADE */}
         <AccordionItem
           value="conformidade"
@@ -414,8 +418,11 @@ export function AnalysisReportView({
           </AccordionTrigger>
           <AccordionContent className="pt-2 pb-6 space-y-4">
             {(report.omissoes || report.omissoesImportantes || [])?.map((omission, idx) => (
-              <Card key={idx} className="border-amber-200 shadow-sm">
-                <CardHeader className="bg-amber-50/30 pb-4 flex flex-row items-center justify-between">
+              <Card
+                key={idx}
+                className="border-amber-200 shadow-sm overflow-hidden transition-all hover:shadow-md"
+              >
+                <CardHeader className="bg-amber-50/30 pb-4 flex flex-row items-center justify-between border-b border-amber-100">
                   <CardTitle className="text-base text-amber-900 flex items-center gap-2">
                     <AlertOctagon className="w-5 h-5 text-amber-600" /> {omission.clausula}
                   </CardTitle>
@@ -424,23 +431,35 @@ export function AnalysisReportView({
                   </Badge>
                 </CardHeader>
                 <CardContent className="pt-4 space-y-4">
-                  <div className="bg-white p-4 rounded-lg border border-slate-200 text-sm text-slate-700 shadow-sm">
+                  <div className="bg-white p-4 rounded-lg border border-slate-200 text-sm text-slate-700 shadow-sm relative">
                     <span className="block font-semibold mb-2 text-slate-800">
                       Sugestão de Redação:
                     </span>
                     <p className="whitespace-pre-wrap leading-relaxed">{omission.redacaoPadrao}</p>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full sm:w-auto text-slate-700"
-                    onClick={() => {
-                      navigator.clipboard.writeText(omission.redacaoPadrao)
-                      toast.success('Copiado!')
-                    }}
-                  >
-                    <Copy className="w-4 h-4 mr-2" /> Copiar redação padrão
-                  </Button>
+                  <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full sm:w-auto text-slate-700 hover:bg-slate-50"
+                      onClick={() => {
+                        navigator.clipboard.writeText(omission.redacaoPadrao)
+                        toast.success('Copiado!')
+                      }}
+                    >
+                      <Copy className="w-4 h-4 mr-2" /> Copiar redação padrão
+                    </Button>
+                    {onOmissionClick && (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="w-full sm:w-auto bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200 shadow-sm"
+                        onClick={() => onOmissionClick(omission)}
+                      >
+                        <MapPin className="w-4 h-4 mr-2 text-purple-600" /> Localizar no Documento
+                      </Button>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             ))}

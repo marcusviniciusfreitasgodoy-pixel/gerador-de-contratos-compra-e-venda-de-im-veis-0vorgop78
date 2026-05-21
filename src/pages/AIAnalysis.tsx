@@ -29,6 +29,7 @@ import { AnalysisReportView, type AnalysisReport } from '@/components/AnalysisRe
 import { AnalysisHistoryTable } from '@/components/AnalysisHistoryTable'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
+import { RichTextEditor } from '@/components/RichTextEditor'
 
 export default function AIAnalysis() {
   const { user, loading: authLoading } = useAuth()
@@ -38,6 +39,7 @@ export default function AIAnalysis() {
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [report, setReport] = useState<AnalysisReport | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [selectedOmission, setSelectedOmission] = useState<any>(null)
   const [contractText, setContractText] = useState<string | null>(null)
   const [contractType, setContractType] = useState<string>('a_vista')
   const [contractDetails, setContractDetails] = useState<any>(null)
@@ -153,6 +155,7 @@ export default function AIAnalysis() {
 
   const handleAnalyzeFile = async () => {
     if (!selectedFile && !contractText) return
+    setSelectedOmission(null)
 
     if (selectedFile && selectedFile.size > 15 * 1024 * 1024) {
       toast.error('O arquivo é muito grande. O limite é de 15MB.')
@@ -297,7 +300,12 @@ export default function AIAnalysis() {
   if (!user) return <Navigate to="/login" />
 
   return (
-    <div className="container mx-auto px-4 py-12 max-w-5xl">
+    <div
+      className={cn(
+        'container mx-auto px-4 py-12 transition-all duration-500',
+        report && contractText ? 'max-w-7xl' : 'max-w-5xl',
+      )}
+    >
       <div className="mb-10 text-center">
         <div className="inline-flex items-center justify-center p-3 bg-purple-100 rounded-full mb-4">
           <Bot className="h-8 w-8 text-purple-600" />
@@ -577,10 +585,53 @@ export default function AIAnalysis() {
       )}
 
       {report && !isAnalyzing && !errorMsg && (
-        <AnalysisReportView report={report} contract={contractDetails} />
+        <div className={cn('gap-8', contractText ? 'grid lg:grid-cols-[1fr_1.1fr]' : 'block')}>
+          <div className="space-y-6">
+            <AnalysisReportView
+              report={report}
+              contract={contractDetails}
+              onOmissionClick={
+                contractText ? (omission) => setSelectedOmission(omission) : undefined
+              }
+            />
+          </div>
+
+          {contractText && (
+            <div className="sticky top-6 h-[calc(100vh-6rem)] flex flex-col border rounded-xl overflow-hidden shadow-sm bg-white mb-6">
+              <div className="bg-slate-50 border-b p-4 flex justify-between items-center z-10 shadow-sm">
+                <div>
+                  <h3 className="font-semibold text-slate-800 flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-purple-600" /> Documento Original
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    O texto será destacado com base na seleção do relatório.
+                  </p>
+                </div>
+                {selectedOmission && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedOmission(null)}
+                    className="text-slate-500"
+                  >
+                    Limpar Seleção
+                  </Button>
+                )}
+              </div>
+              <div className="flex-1 relative overflow-y-auto">
+                <RichTextEditor
+                  value={contractText}
+                  onChange={setContractText}
+                  selectedOmission={selectedOmission}
+                  onClearOmission={() => setSelectedOmission(null)}
+                />
+              </div>
+            </div>
+          )}
+        </div>
       )}
 
-      <AnalysisHistoryTable contractId={contractIdParam} />
+      {(!report || !contractText) && <AnalysisHistoryTable contractId={contractIdParam} />}
     </div>
   )
 }

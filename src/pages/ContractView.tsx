@@ -24,6 +24,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { AnalysisReportView } from '@/components/AnalysisReportView'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -72,6 +74,9 @@ export default function ContractView() {
   const [emailModalOpen, setEmailModalOpen] = useState(false)
   const [sendingEmail, setSendingEmail] = useState(false)
   const [emailData, setEmailData] = useState({ destinatario: '', assunto: '', mensagem: '' })
+
+  const [reportSheetOpen, setReportSheetOpen] = useState(false)
+  const [selectedOmission, setSelectedOmission] = useState<any>(null)
 
   const [hasKeys, setHasKeys] = useState(true)
   const [apiError, setApiError] = useState(false)
@@ -531,7 +536,7 @@ export default function ContractView() {
       {analysisReport && (
         <Alert
           variant={analysisReport.risk_level === 'baixo' ? 'default' : 'destructive'}
-          className={`mb-6 animate-in slide-in-from-top-2 ${
+          className={`mb-6 animate-in slide-in-from-top-2 flex flex-col sm:flex-row sm:items-start justify-between gap-4 ${
             analysisReport.risk_level === 'baixo'
               ? 'bg-green-50 border-green-200'
               : analysisReport.risk_level === 'medio'
@@ -539,43 +544,54 @@ export default function ContractView() {
                 : 'bg-red-50 border-red-200 text-red-800'
           }`}
         >
-          <AlertCircle
-            className={`h-5 w-5 ${analysisReport.risk_level === 'baixo' ? 'text-green-600' : ''}`}
-          />
-          <AlertTitle className="capitalize font-bold text-lg">
-            Compliance Documental (Lei 7.433/85)
-          </AlertTitle>
-          <AlertDescription className="mt-2 flex flex-col gap-3">
-            <span className="text-base">{analysisReport.summary}</span>
-            {contract?.compliance_checklist && (
-              <div className="flex gap-4 mt-2 p-3 bg-white/50 rounded-md border border-black/10">
-                <div className="flex items-center gap-2">
-                  {contract.compliance_checklist.matricula ? (
-                    <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-                      ✓
+          <div className="flex gap-3">
+            <AlertCircle
+              className={`h-5 w-5 shrink-0 mt-0.5 ${analysisReport.risk_level === 'baixo' ? 'text-green-600' : ''}`}
+            />
+            <div>
+              <AlertTitle className="capitalize font-bold text-lg">
+                Compliance Documental (Lei 7.433/85)
+              </AlertTitle>
+              <AlertDescription className="mt-1 flex flex-col gap-3">
+                <span className="text-base">{analysisReport.summary}</span>
+                {contract?.compliance_checklist && (
+                  <div className="flex flex-wrap gap-4 mt-1 p-3 bg-white/50 rounded-md border border-black/10">
+                    <div className="flex items-center gap-2">
+                      {contract.compliance_checklist.matricula ? (
+                        <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                          ✓
+                        </div>
+                      ) : (
+                        <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center text-red-600">
+                          ✗
+                        </div>
+                      )}
+                      <span className="font-medium text-sm">Matrícula Atualizada</span>
                     </div>
-                  ) : (
-                    <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center text-red-600">
-                      ✗
+                    <div className="flex items-center gap-2">
+                      {contract.compliance_checklist.iptu ? (
+                        <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                          ✓
+                        </div>
+                      ) : (
+                        <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center text-red-600">
+                          ✗
+                        </div>
+                      )}
+                      <span className="font-medium text-sm">Certidão IPTU</span>
                     </div>
-                  )}
-                  <span className="font-medium text-sm">Matrícula Atualizada</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {contract.compliance_checklist.iptu ? (
-                    <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-                      ✓
-                    </div>
-                  ) : (
-                    <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center text-red-600">
-                      ✗
-                    </div>
-                  )}
-                  <span className="font-medium text-sm">Certidão IPTU</span>
-                </div>
-              </div>
-            )}
-          </AlertDescription>
+                  </div>
+                )}
+              </AlertDescription>
+            </div>
+          </div>
+          <Button
+            onClick={() => setReportSheetOpen(true)}
+            variant="outline"
+            className="shrink-0 bg-white"
+          >
+            Ver Relatório de Riscos
+          </Button>
         </Alert>
       )}
 
@@ -665,7 +681,12 @@ export default function ContractView() {
               </Button>
             </div>
           ) : (
-            <RichTextEditor value={minuta} onChange={setMinuta} />
+            <RichTextEditor
+              value={minuta}
+              onChange={setMinuta}
+              selectedOmission={selectedOmission}
+              onClearOmission={() => setSelectedOmission(null)}
+            />
           )}
         </CardContent>
       </Card>
@@ -731,6 +752,24 @@ export default function ContractView() {
         loading={generatingPreview}
         onDownload={handleExportPDF}
       />
+
+      <Sheet open={reportSheetOpen} onOpenChange={setReportSheetOpen}>
+        <SheetContent className="w-full sm:max-w-xl md:max-w-3xl overflow-y-auto" side="right">
+          <SheetHeader className="mb-6">
+            <SheetTitle>Relatório Completo de Análise</SheetTitle>
+          </SheetHeader>
+          {analysisReport && analysisReport.analysis_result && (
+            <AnalysisReportView
+              report={analysisReport.analysis_result}
+              contract={contract}
+              onOmissionClick={(omission) => {
+                setSelectedOmission(omission)
+                setReportSheetOpen(false)
+              }}
+            />
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }
