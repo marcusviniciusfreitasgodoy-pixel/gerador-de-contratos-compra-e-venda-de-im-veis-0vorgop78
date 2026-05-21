@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf'
 import { format } from 'date-fns'
+import { getLogoBase64 } from './pdf-utils'
 
 export function generateChecklistHTML(data: any): string {
   const isVendedorPJ = data.vendedor_pj
@@ -141,6 +142,8 @@ export async function generateChecklistPDFTemplate(
   fileName: string,
   userDetails: any,
 ): Promise<void> {
+  const logoBase64 = await getLogoBase64(userDetails)
+
   return new Promise((resolve) => {
     const doc = new jsPDF()
     let y = 40
@@ -154,11 +157,19 @@ export async function generateChecklistPDFTemplate(
       d.setFillColor(212, 175, 55)
       d.rect(0, 0, pageWidth, 8, 'F')
 
-      d.setFont('helvetica', 'bold')
-      d.setFontSize(14)
-      d.setTextColor(12, 35, 64)
-      d.text(userDetails?.imobiliaria_nome || 'GODOY PRIME REALTY', margin, 20)
+      if (logoBase64) {
+        try {
+          d.addImage(logoBase64, 'PNG', margin, 12, 25, 15, undefined, 'FAST')
+        } catch (err) {
+          try {
+            d.addImage(logoBase64, 'JPEG', margin, 12, 25, 15, undefined, 'FAST')
+          } catch {
+            /* intentionally ignored */
+          }
+        }
+      }
 
+      d.setFont('helvetica', 'bold')
       d.setFontSize(14)
       d.setTextColor(12, 35, 64)
       d.text('CHECKLIST DE DUE DILIGENCE', pageWidth / 2, 30, { align: 'center' })

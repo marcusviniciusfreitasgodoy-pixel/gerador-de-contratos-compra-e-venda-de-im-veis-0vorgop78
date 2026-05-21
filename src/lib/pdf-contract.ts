@@ -11,10 +11,6 @@ export function generateContractPDF(text: string, fileName: string) {
 
     const addHeader = (d: jsPDF) => {
       d.setFont('helvetica', 'bold')
-      d.setFontSize(12)
-      d.setTextColor(12, 35, 64) // Marinho
-      d.text('GODOY PRIME REALTY', margin, 18)
-
       d.setFontSize(10)
       d.setTextColor(12, 35, 64)
       d.text('CONTRATO DE COMPRA E VENDA DE IMÓVEL', pageWidth / 2, 23, {
@@ -63,20 +59,12 @@ export function generateContractPDF(text: string, fileName: string) {
     doc.setLineWidth(1)
     doc.rect(10, 10, pageWidth - 20, pageHeight - 20)
 
-    doc.setTextColor(212, 175, 55) // Ouro
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(28)
-    doc.text('GODOY PRIME REALTY', pageWidth / 2, pageHeight / 3, { align: 'center' })
-
     doc.setTextColor(255, 255, 255)
     doc.setFontSize(16)
     doc.setFont('helvetica', 'bold')
-    doc.text(
-      'CONTRATO PARTICULAR DE COMPRA E VENDA DE IMÓVEL',
-      pageWidth / 2,
-      pageHeight / 3 + 24,
-      { align: 'center' },
-    )
+    doc.text('CONTRATO PARTICULAR DE COMPRA E VENDA DE IMÓVEL', pageWidth / 2, pageHeight / 3, {
+      align: 'center',
+    })
 
     doc.setFontSize(10)
     doc.setFont('helvetica', 'normal')

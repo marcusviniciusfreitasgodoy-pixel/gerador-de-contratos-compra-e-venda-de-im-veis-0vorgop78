@@ -2,25 +2,7 @@ import { jsPDF } from 'jspdf'
 import { format } from 'date-fns'
 import { generateChecklistPDFTemplate } from './checklist-generator'
 import pb from '@/lib/pocketbase/client'
-
-async function getLogoBase64(userDetails: any): Promise<string | null> {
-  if (!userDetails?.imobiliaria_logo || !userDetails?.collectionId || !userDetails?.id) {
-    return null
-  }
-  try {
-    const logoUrl = pb.files.getURL(userDetails, userDetails.imobiliaria_logo)
-    const res = await fetch(logoUrl)
-    const blob = await res.blob()
-    return new Promise((resolve) => {
-      const reader = new FileReader()
-      reader.onloadend = () => resolve(reader.result as string)
-      reader.readAsDataURL(blob)
-    })
-  } catch (e) {
-    console.error('Failed to load logo', e)
-    return null
-  }
-}
+import { getLogoBase64 } from './pdf-utils'
 
 export async function buildPdfDoc(minutaText: string, userDetails?: any): Promise<jsPDF> {
   const doc = new jsPDF()
@@ -32,38 +14,28 @@ export async function buildPdfDoc(minutaText: string, userDetails?: any): Promis
 
   const logoBase64 = await getLogoBase64(userDetails)
 
-  const headerTitle = userDetails?.imobiliaria_nome || 'GODOY PRIME REALTY'
   const headerContentLines = userDetails?.header_content
     ? doc.splitTextToSize(userDetails.header_content, contentWidth)
     : []
 
   const addHeader = (d: jsPDF) => {
-    let startY = 18
-    let titleX = margin
-
     if (logoBase64) {
       try {
         d.addImage(logoBase64, 'PNG', margin, 8, 25, 15, undefined, 'FAST')
-        titleX = margin + 30
       } catch (err) {
         try {
           d.addImage(logoBase64, 'JPEG', margin, 8, 25, 15, undefined, 'FAST')
-          titleX = margin + 30
         } catch {
           /* intentionally ignored */
         }
       }
     }
 
-    d.setFont('helvetica', 'bold')
-    d.setFontSize(12)
-    d.setTextColor(12, 35, 64) // Marinho
-    d.text(headerTitle, titleX, startY)
-
     if (
       userDetails?.tipo_documento !== 'autorizacao_intermediacao' &&
       userDetails?.tipo_documento !== 'ficha_cadastral'
     ) {
+      d.setFont('helvetica', 'bold')
       d.setFontSize(10)
       d.setTextColor(12, 35, 64)
       d.text('MINUTA DE CONTRATO', pageWidth / 2, 23, {
@@ -190,10 +162,6 @@ export async function generateAnalysisPDF(report: any, contract: any): Promise<v
 
       const addHeader = (d: jsPDF) => {
         d.setFont('helvetica', 'bold')
-        d.setFontSize(12)
-        d.setTextColor(12, 35, 64) // Marinho
-        d.text('GODOY PRIME REALTY', margin, 18)
-
         d.setFontSize(10)
         d.setTextColor(12, 35, 64)
         d.text('ANÁLISE DE COMPLIANCE JURÍDICO', pageWidth / 2, 23, {
@@ -281,15 +249,10 @@ export async function generateAnalysisPDF(report: any, contract: any): Promise<v
       doc.setLineWidth(1)
       doc.rect(10, 10, pageWidth - 20, pageHeight - 20)
 
-      doc.setTextColor(212, 175, 55) // Ouro
-      doc.setFont('helvetica', 'bold')
-      doc.setFontSize(28)
-      doc.text('GODOY PRIME REALTY', pageWidth / 2, pageHeight / 3, { align: 'center' })
-
       doc.setTextColor(255, 255, 255)
       doc.setFontSize(16)
       doc.setFont('helvetica', 'bold')
-      doc.text('RELATÓRIO DE ANÁLISE DE COMPLIANCE JURÍDICO', pageWidth / 2, pageHeight / 3 + 24, {
+      doc.text('RELATÓRIO DE ANÁLISE DE COMPLIANCE JURÍDICO', pageWidth / 2, pageHeight / 3, {
         align: 'center',
       })
 
