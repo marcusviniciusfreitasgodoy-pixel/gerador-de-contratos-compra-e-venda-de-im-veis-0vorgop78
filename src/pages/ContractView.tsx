@@ -14,6 +14,8 @@ import {
   AlertCircle,
   Mail,
   Send,
+  History,
+  Edit3,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -53,6 +55,11 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { useAuth } from '@/hooks/use-auth'
 import { useRealtime } from '@/hooks/use-realtime'
 import pb from '@/lib/pocketbase/client'
+import {
+  getContractAuditLogs,
+  createContractAuditLog,
+  type ContractAuditLog,
+} from '@/services/contract_audit_logs'
 
 export default function ContractView() {
   const { id } = useParams()
@@ -78,6 +85,9 @@ export default function ContractView() {
   const [reportSheetOpen, setReportSheetOpen] = useState(false)
   const [selectedOmission, setSelectedOmission] = useState<any>(null)
 
+  const [auditLogs, setAuditLogs] = useState<ContractAuditLog[]>([])
+  const [historySheetOpen, setHistorySheetOpen] = useState(false)
+
   const [hasKeys, setHasKeys] = useState(true)
   const [apiError, setApiError] = useState(false)
   const [analysisReport, setAnalysisReport] = useState<AnalysisReportRecord | null>(null)
@@ -96,11 +106,29 @@ export default function ContractView() {
     checkKeys()
   }, [user?.id])
 
+  const loadAuditLogs = async () => {
+    if (id) {
+      try {
+        const logs = await getContractAuditLogs(id)
+        setAuditLogs(logs)
+      } catch (e) {
+        console.error('Failed to load audit logs', e)
+      }
+    }
+  }
+
   useEffect(() => {
     if (id) {
       loadContract()
+      loadAuditLogs()
     }
   }, [id])
+
+  useRealtime('contract_audit_logs', (e) => {
+    if (e.record.contract === id) {
+      loadAuditLogs()
+    }
+  })
 
   const loadAnalysisReport = async () => {
     try {
@@ -189,11 +217,39 @@ export default function ContractView() {
     try {
       setSaving(true)
       await updateContractData(id!, { minuta_texto: minuta, status })
+
+      if (user?.id) {
+        await createContractAuditLog({
+          user: user.id,
+          contract: id!,
+          action: 'Edição Manual',
+          description: 'O contrato e sua minuta foram salvos.',
+          changes: { status },
+        }).catch(console.error)
+      }
+
       toast.success('Contrato atualizado com sucesso!')
     } catch (error) {
       toast.error('Erro ao salvar as alterações')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleApplySuggestion = async (text: string, title: string) => {
+    const novaMinuta = minuta + `<br/><br/><strong>${title}</strong><br/>${text}`
+    setMinuta(novaMinuta)
+    setReportSheetOpen(false)
+    toast.success('Sugestão aplicada no final do contrato!')
+
+    if (user?.id && id) {
+      await createContractAuditLog({
+        user: user.id,
+        contract: id,
+        action: 'Sugestão IA Aceita',
+        description: `Cláusula aplicada ao contrato: ${title}`,
+        changes: { applied_text: text },
+      }).catch(console.error)
     }
   }
 
@@ -488,6 +544,10 @@ export default function ContractView() {
             )}
             Salvar
           </Button>
+          <Button variant="outline" className="shadow-sm" onClick={() => setHistorySheetOpen(true)}>
+            <History className="w-4 h-4 mr-2 text-slate-500" />
+            Histórico
+          </Button>
         </div>
       </div>
 
@@ -766,8 +826,52 @@ export default function ContractView() {
                 setSelectedOmission(omission)
                 setReportSheetOpen(false)
               }}
+              onApplySuggestion={handleApplySuggestion}
             />
           )}
+        </SheetContent>
+      </Sheet>
+
+      <Sheet open={historySheetOpen} onOpenChange={setHistorySheetOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
+          <SheetHeader className="mb-6">
+            <SheetTitle className="flex items-center gap-2">
+              <History className="w-5 h-5 text-slate-600" />
+              Histórico de Alterações
+            </SheetTitle>
+            <SheetDescription>
+              Acompanhe as modificações realizadas e as sugestões de IA aplicadas neste contrato.
+            </SheetDescription>
+          </SheetHeader>
+          <div className="space-y-4">
+            {auditLogs.map((log) => (
+              <div key={log.id} className="p-4 border rounded-lg bg-slate-50 shadow-sm">
+                <div className="flex items-center gap-2 mb-2">
+                  {log.action === 'Sugestão IA Aceita' ? (
+                    <Wand2 className="w-4 h-4 text-purple-600" />
+                  ) : (
+                    <Edit3 className="w-4 h-4 text-blue-600" />
+                  )}
+                  <span className="font-semibold text-sm text-slate-800">{log.action}</span>
+                </div>
+                <p className="text-sm text-slate-700 mb-3">{log.description}</p>
+                <div className="flex justify-between items-center text-xs text-slate-500 pt-2 border-t border-slate-200">
+                  <span className="font-medium">
+                    {log.expand?.user?.name || log.expand?.user?.email || 'Usuário'}
+                  </span>
+                  <span>{new Date(log.created).toLocaleString()}</span>
+                </div>
+              </div>
+            ))}
+            {auditLogs.length === 0 && (
+              <div className="text-center py-12 px-4 border border-dashed rounded-lg">
+                <History className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                <p className="text-sm text-slate-500">
+                  Nenhum registro de alteração encontrado para este contrato.
+                </p>
+              </div>
+            )}
+          </div>
         </SheetContent>
       </Sheet>
     </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -24,6 +24,28 @@ import { getErrorMessage } from '@/lib/pocketbase/errors'
 import { cn } from '@/lib/utils'
 import { PreviewPDFModal } from './PreviewPDFModal'
 import { getMinutaPDFBlobUrl, generateMinutaPDF } from '@/lib/pdf-generator'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  getContractTemplates,
+  createContractTemplate,
+  type ContractTemplate,
+} from '@/services/contract_templates'
 
 import { EnvolvidosTab } from './contract/EnvolvidosTab'
 import { ImovelTab } from './contract/ImovelTab'
@@ -66,6 +88,42 @@ export function ContractForm({
   const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null)
   const [isPreviewing, setIsPreviewing] = useState(false)
   const [currentMinuta, setCurrentMinuta] = useState<string>('')
+
+  const [templates, setTemplates] = useState<ContractTemplate[]>([])
+  const [isSaveTemplateOpen, setIsSaveTemplateOpen] = useState(false)
+  const [templateName, setTemplateName] = useState('')
+
+  useEffect(() => {
+    if (user?.is_admin) {
+      getContractTemplates().then(setTemplates).catch(console.error)
+    }
+  }, [user])
+
+  const handleSaveTemplate = async () => {
+    if (!templateName) return toast.error('Nome do template é obrigatório')
+    if (!user?.id) return
+    try {
+      const data = form.getValues()
+      const newTemplate = await createContractTemplate({
+        name: templateName,
+        template_data: data,
+        user: user.id,
+      })
+      setTemplates([newTemplate, ...templates])
+      setIsSaveTemplateOpen(false)
+      setTemplateName('')
+      toast.success('Template salvo com sucesso!')
+    } catch (err) {
+      toast.error('Erro ao salvar template')
+    }
+  }
+
+  const handleLoadTemplate = (templateData: any) => {
+    Object.entries(templateData).forEach(([key, value]) => {
+      form.setValue(key as any, value as any, { shouldValidate: true, shouldDirty: true })
+    })
+    toast.success('Template carregado com sucesso!')
+  }
 
   const form = useForm<ContractFormValues>({
     resolver: zodResolver(contractSchema),
@@ -269,7 +327,7 @@ export function ContractForm({
         </div>
       )}
 
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <Button
           variant="ghost"
           onClick={onBack}
@@ -278,16 +336,44 @@ export function ContractForm({
           <ArrowLeft className="w-4 h-4 mr-2" /> Voltar
         </Button>
         {user?.is_admin && (
-          <Button
-            variant="outline"
-            onClick={handleFillTestData}
-            className="text-[#D4AF37] border-[#D4AF37] hover:bg-[#D4AF37]/10"
-            type="button"
-          >
-            <Beaker className="w-4 h-4 mr-2 hidden sm:block" />
-            <span className="hidden sm:inline">Preencher Teste</span>
-            <span className="inline sm:hidden">Teste</span>
-          </Button>
+          <div className="flex flex-wrap gap-2 items-center">
+            {templates.length > 0 && (
+              <Select
+                onValueChange={(val) => {
+                  const t = templates.find((x) => x.id === val)
+                  if (t) handleLoadTemplate(t.template_data)
+                }}
+              >
+                <SelectTrigger className="w-auto min-w-[180px] h-9 border-[#0C2340]/20">
+                  <SelectValue placeholder="Carregar Template..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {templates.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      {t.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            <Button
+              variant="outline"
+              onClick={() => setIsSaveTemplateOpen(true)}
+              className="text-[#0C2340] border-[#0C2340]/20 h-9"
+              type="button"
+            >
+              Salvar Template
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleFillTestData}
+              className="text-[#D4AF37] border-[#D4AF37] hover:bg-[#D4AF37]/10 h-9"
+              type="button"
+            >
+              <Beaker className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Preencher Teste</span>
+            </Button>
+          </div>
         )}
       </div>
 
@@ -417,6 +503,38 @@ export function ContractForm({
           })
         }}
       />
+
+      <Dialog open={isSaveTemplateOpen} onOpenChange={setIsSaveTemplateOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Salvar como Template</DialogTitle>
+            <DialogDescription>
+              Dê um nome para este template para utilizá-lo facilmente no futuro.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Nome do Template</Label>
+              <Input
+                value={templateName}
+                onChange={(e) => setTemplateName(e.target.value)}
+                placeholder="Ex: Contrato Comercial Padrão"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsSaveTemplateOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSaveTemplate}
+              className="bg-[#0C2340] text-white hover:bg-[#0C2340]/90"
+            >
+              Salvar Template
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

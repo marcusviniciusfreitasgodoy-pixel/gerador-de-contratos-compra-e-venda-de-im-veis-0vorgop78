@@ -73,10 +73,12 @@ export function AnalysisReportView({
   report,
   contract,
   onOmissionClick,
+  onApplySuggestion,
 }: {
   report: AnalysisReport
   contract?: any
   onOmissionClick?: (omission: any) => void
+  onApplySuggestion?: (text: string, title: string) => void
 }) {
   const [isGenerating, setIsGenerating] = useState(false)
 
@@ -457,6 +459,16 @@ export function AnalysisReportView({
                         onClick={() => onOmissionClick(omission)}
                       >
                         <MapPin className="w-4 h-4 mr-2 text-purple-600" /> Localizar no Documento
+                      </Button>
+                    )}
+                    {onApplySuggestion && (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white"
+                        onClick={() => onApplySuggestion(omission.redacaoPadrao, omission.clausula)}
+                      >
+                        <CheckCircle className="w-4 h-4 mr-2" /> Aplicar Sugestão
                       </Button>
                     )}
                   </div>

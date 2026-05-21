@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-21T18:48:17.839Z",
+  "generatedAt": "2026-05-21T18:53:30.298Z",
   "collections": [
     {
       "name": "users",
@@ -1359,6 +1359,113 @@
           "name": "changes",
           "type": "json",
           "required": true,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "name": "contract_templates",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != '' && @request.auth.is_admin = true",
+        "view": "@request.auth.id != '' && @request.auth.is_admin = true",
+        "create": "@request.auth.id != '' && @request.auth.is_admin = true",
+        "update": "@request.auth.id != '' && @request.auth.is_admin = true && user = @request.auth.id",
+        "delete": "@request.auth.id != '' && @request.auth.is_admin = true && user = @request.auth.id"
+      },
+      "fields": [
+        {
+          "name": "name",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "user",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "template_data",
+          "type": "json",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "name": "contract_audit_logs",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != ''",
+        "view": "@request.auth.id != ''",
+        "create": "@request.auth.id != ''",
+        "update": null,
+        "delete": null
+      },
+      "fields": [
+        {
+          "name": "user",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "contract",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "contracts"
+        },
+        {
+          "name": "action",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "changes",
+          "type": "json",
+          "required": false,
           "system": false
         },
         {
