@@ -75,19 +75,19 @@ export default function MyContracts() {
   })
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Tem certeza que deseja excluir este contrato?')) return
+    if (!window.confirm('Tem certeza que deseja excluir este documento?')) return
     try {
       await deleteContract(id)
       setContracts((prev) => prev.filter((c) => c.id !== id))
-      toast.success('Contrato excluído com sucesso.')
+      toast.success('Documento excluído com sucesso.')
     } catch (error) {
-      toast.error('Erro ao excluir contrato.')
+      toast.error('Erro ao excluir documento.')
     }
   }
 
   const handleExportPDF = async (contract: any) => {
     if (!contract.minuta_texto) {
-      toast.error('O contrato não possui texto para exportar.')
+      toast.error('O documento não possui texto para exportar.')
       return
     }
     try {
@@ -175,9 +175,9 @@ export default function MyContracts() {
     <div className="container mx-auto py-8 px-4 max-w-5xl animate-in fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800">Meus Contratos</h1>
+          <h1 className="text-3xl font-bold text-slate-800">Meus Documentos</h1>
           <p className="text-slate-600 mt-2">
-            Gerencie e visualize seus contratos gerados, agrupados por tipo.
+            Gerencie e visualize seus documentos gerados, agrupados por tipo.
           </p>
         </div>
         <Button
@@ -185,7 +185,7 @@ export default function MyContracts() {
           className="gap-2 shadow-sm w-full sm:w-auto min-h-[44px]"
         >
           <Plus className="w-4 h-4" />
-          Novo Contrato
+          Novo Documento
         </Button>
       </div>
 
@@ -193,9 +193,9 @@ export default function MyContracts() {
         <Card className="border-dashed shadow-none bg-slate-50">
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
             <FileText className="w-16 h-16 text-slate-300 mb-4" />
-            <h3 className="text-xl font-semibold text-slate-700">Nenhum contrato encontrado</h3>
+            <h3 className="text-xl font-semibold text-slate-700">Nenhum documento encontrado</h3>
             <p className="text-slate-500 mb-8 max-w-md">
-              Você ainda não gerou nenhum contrato. Comece criando o seu primeiro documento
+              Você ainda não gerou nenhum documento. Comece criando o seu primeiro documento
               personalizado com IA.
             </p>
             <Button
@@ -203,7 +203,7 @@ export default function MyContracts() {
               size="lg"
               className="shadow-sm min-h-[44px] w-full sm:w-auto"
             >
-              Criar Primeiro Contrato
+              Criar Primeiro Documento
             </Button>
           </CardContent>
         </Card>

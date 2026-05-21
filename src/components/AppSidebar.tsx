@@ -58,7 +58,7 @@ export function AppSidebar() {
                 <SidebarMenuButton asChild isActive={pathname === '/contratos/novo'}>
                   <Link to="/contratos/novo">
                     <FileText />
-                    <span>Novo Contrato</span>
+                    <span>Novo Documento</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -66,7 +66,7 @@ export function AppSidebar() {
                 <SidebarMenuButton asChild isActive={pathname === '/contratos'}>
                   <Link to="/contratos">
                     <Files />
-                    <span>Meus Contratos</span>
+                    <span>Meus Documentos</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

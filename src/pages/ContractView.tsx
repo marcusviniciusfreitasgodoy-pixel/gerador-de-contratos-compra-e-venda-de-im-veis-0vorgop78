@@ -207,7 +207,7 @@ export default function ContractView() {
 
       await loadAnalysisReport()
     } catch (error) {
-      toast.error('Erro ao carregar contrato')
+      toast.error('Erro ao carregar documento')
     } finally {
       setLoading(false)
     }
@@ -223,12 +223,12 @@ export default function ContractView() {
           user: user.id,
           contract: id!,
           action: 'Edição Manual',
-          description: 'O contrato e sua minuta foram salvos.',
+          description: 'O documento e sua minuta foram salvos.',
           changes: { status },
         }).catch(console.error)
       }
 
-      toast.success('Contrato atualizado com sucesso!')
+      toast.success('Documento atualizado com sucesso!')
     } catch (error) {
       toast.error('Erro ao salvar as alterações')
     } finally {
@@ -240,14 +240,14 @@ export default function ContractView() {
     const novaMinuta = minuta + `<br/><br/><strong>${title}</strong><br/>${text}`
     setMinuta(novaMinuta)
     setReportSheetOpen(false)
-    toast.success('Sugestão aplicada no final do contrato!')
+    toast.success('Sugestão aplicada no final do documento!')
 
     if (user?.id && id) {
       await createContractAuditLog({
         user: user.id,
         contract: id,
         action: 'Sugestão IA Aceita',
-        description: `Cláusula aplicada ao contrato: ${title}`,
+        description: `Cláusula aplicada ao documento: ${title}`,
         changes: { applied_text: text },
       }).catch(console.error)
     }
@@ -315,7 +315,7 @@ export default function ContractView() {
             used_clauses: res?.used_clauses,
             status: 'finalizado',
           })
-          toast.success('Contrato gerado novamente com sucesso!')
+          toast.success('Documento gerado novamente com sucesso!')
         }
         setGenerating(false)
       } else if (res?.id) {
@@ -483,7 +483,7 @@ export default function ContractView() {
   if (!contract) {
     return (
       <div className="p-8 text-center">
-        <p className="text-slate-500">Contrato não encontrado.</p>
+        <p className="text-slate-500">Documento não encontrado.</p>
         <Button onClick={() => navigate('/contratos')} variant="outline" className="mt-4">
           Voltar
         </Button>
@@ -673,7 +673,8 @@ export default function ContractView() {
               Editor de Minuta
             </CardTitle>
             <CardDescription className="mt-1">
-              Faça ajustes finos no contrato antes de exportar. Lembre-se de salvar suas alterações.
+              Faça ajustes finos no documento antes de exportar. Lembre-se de salvar suas
+              alterações.
             </CardDescription>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -736,8 +737,8 @@ export default function ContractView() {
               <Wand2 className="w-12 h-12 text-slate-300 mb-4" />
               <h3 className="text-lg font-medium text-slate-900 mb-2">Nenhuma minuta gerada</h3>
               <p className="text-slate-500 mb-6 max-w-md">
-                Este contrato ainda não possui um texto de minuta. Clique no botão abaixo para gerar
-                a primeira versão usando Inteligência Artificial.
+                Este documento ainda não possui um texto de minuta. Clique no botão abaixo para
+                gerar a primeira versão usando Inteligência Artificial.
               </p>
               <Button onClick={handleRegenerate} disabled={!hasKeys || generating}>
                 <Wand2 className="w-4 h-4 mr-2" />
@@ -844,7 +845,7 @@ export default function ContractView() {
               Histórico de Alterações
             </SheetTitle>
             <SheetDescription>
-              Acompanhe as modificações realizadas e as sugestões de IA aplicadas neste contrato.
+              Acompanhe as modificações realizadas e as sugestões de IA aplicadas neste documento.
             </SheetDescription>
           </SheetHeader>
           <div className="space-y-4">
@@ -871,7 +872,7 @@ export default function ContractView() {
               <div className="text-center py-12 px-4 border border-dashed rounded-lg">
                 <History className="w-8 h-8 text-slate-300 mx-auto mb-2" />
                 <p className="text-sm text-slate-500">
-                  Nenhum registro de alteração encontrado para este contrato.
+                  Nenhum registro de alteração encontrado para este documento.
                 </p>
               </div>
             )}
