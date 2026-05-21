@@ -21,7 +21,7 @@ export function generateChecklistHTML(data: any): string {
     html += `<h3 style="color: #0C2340; margin-top: 0; border-bottom: 2px solid #D4AF37; padding-bottom: 8px;">${title}</h3>\n`
     html += `<ul style="list-style-type: none; padding-left: 0;">\n`
     items.forEach((item) => {
-      const isChecked = data.compliance_checklist && data.compliance_checklist[item] === true
+      const isChecked = data.checklist_compliance && data.checklist_compliance[item] === true
       const prefix = isChecked ? '✓ COLETADO' : '⚠️ PENDENTE'
       const color = isChecked ? '#16a34a' : '#ea580c'
       html += `<li style="margin-bottom: 8px; display: flex; align-items: center;" data-checked="${isChecked ? 'true' : 'false'}"><strong style="color: ${color}; margin-right: 8px; font-size: 11px;">${prefix}</strong> <span style="font-size: 13px;">- ${item}</span></li>\n`

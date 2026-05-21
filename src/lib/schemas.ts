@@ -22,7 +22,7 @@ export const contractSchema = z
     id: z.string().optional(),
     // Parties - Comprador
     tipo_comprador: z.enum(['pf', 'pj']).default('pf'),
-    nome_comprador: z.string().min(1, 'Obrigatório'),
+    nome_comprador: z.string().optional(),
     cpf_comprador: z.string().optional(),
     rg_comprador: z.string().optional(),
     orgao_emissor_comprador: z.string().optional(),
@@ -50,7 +50,7 @@ export const contractSchema = z
 
     // Parties - Vendedor
     vendedor_pj: z.boolean().default(false),
-    nome_vendedor: z.string().min(1, 'Obrigatório'),
+    nome_vendedor: z.string().optional(),
     cpf_vendedor: z.string().optional(),
     rg_vendedor: z.string().optional(),
     orgao_emissor_vendedor: z.string().optional(),
@@ -84,7 +84,7 @@ export const contractSchema = z
     iptu_file: z.any().optional(),
 
     // Property
-    endereco_imovel: z.string().min(1, 'Obrigatório'),
+    endereco_imovel: z.string().optional(),
     numero_imovel: z.string().optional(),
     complemento_imovel: z.string().optional(),
     bairro_imovel: z.string().optional(),
@@ -163,9 +163,31 @@ export const contractSchema = z
     vendedor_conta: z.string().optional(),
     vendedor_pix: z.string().optional(),
 
-    compliance_checklist: z.record(z.boolean()).optional(),
+    checklist_compliance: z.record(z.boolean()).optional(),
   })
   .superRefine((data, ctx) => {
+    if (data.tipo_documento === 'checklist_documental') {
+      return // Skip strict validations for checklist to allow generation at any stage
+    }
+
+    if (!data.nome_comprador) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['nome_comprador'],
+        message: 'Obrigatório',
+      })
+    }
+    if (!data.nome_vendedor) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['nome_vendedor'], message: 'Obrigatório' })
+    }
+    if (!data.endereco_imovel) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['endereco_imovel'],
+        message: 'Obrigatório',
+      })
+    }
+
     if (data.tipo_documento === 'autorizacao_intermediacao' && !data.gestao_exclusiva) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

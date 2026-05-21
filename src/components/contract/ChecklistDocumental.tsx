@@ -125,14 +125,14 @@ export function ChecklistDocumental() {
   const activeDocs = getActiveDocs()
 
   useEffect(() => {
-    const currentChecklist = getValues('compliance_checklist') || {}
+    const currentChecklist = getValues('checklist_compliance') || {}
     const newChecklist: Record<string, boolean> = {}
 
     activeDocs.forEach((doc) => {
       newChecklist[doc] = currentChecklist[doc] || false
     })
 
-    setValue('compliance_checklist', newChecklist, { shouldDirty: true })
+    setValue('checklist_compliance', newChecklist, { shouldDirty: true })
   }, [
     values.vendedor_pj,
     values.vendedor_uniao_estavel,
@@ -157,15 +157,32 @@ export function ChecklistDocumental() {
           <FormField
             key={doc}
             control={control}
-            name={`compliance_checklist.${doc}`}
+            name={`checklist_compliance.${doc}`}
             render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-2 rounded hover:bg-white transition-colors border border-transparent hover:border-slate-200">
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-3 rounded-md bg-white shadow-sm border border-slate-200 transition-colors hover:border-slate-300">
                 <FormControl>
-                  <Checkbox checked={field.value || false} onCheckedChange={field.onChange} />
+                  <Checkbox
+                    checked={field.value || false}
+                    onCheckedChange={field.onChange}
+                    className="mt-1"
+                  />
                 </FormControl>
-                <FormLabel className="text-sm font-normal leading-snug cursor-pointer">
-                  {doc}
-                </FormLabel>
+                <div className="flex flex-col space-y-1">
+                  <FormLabel className="text-sm font-medium leading-snug cursor-pointer">
+                    {doc}
+                  </FormLabel>
+                  <div>
+                    {field.value ? (
+                      <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                        ✓ COLETADO
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center rounded-md bg-orange-50 px-2 py-1 text-xs font-medium text-orange-700 ring-1 ring-inset ring-orange-600/20">
+                        ⚠️ PENDENTE
+                      </span>
+                    )}
+                  </div>
+                </div>
               </FormItem>
             )}
           />
