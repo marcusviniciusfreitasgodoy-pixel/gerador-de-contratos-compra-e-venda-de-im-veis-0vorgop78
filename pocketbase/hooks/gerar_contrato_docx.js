@@ -30,6 +30,7 @@ routerAdd(
 
     const {
       tipo,
+      tipo_documento,
       minuta_texto,
       minuta_html,
       header_content,
@@ -292,12 +293,16 @@ routerAdd(
     </html>
   `
 
-    const d = new Date().toISOString().split('T')[0]
-    const filename =
-      `Contrato_${nome_vendedor || 'Vendedor'}_${nome_comprador || 'Comprador'}_${d}.doc`.replace(
-        /\s+/g,
-        '_',
-      )
+    let baseName = 'Finalizado'
+    if (tipo_documento || nome_comprador) {
+      const p1 = tipo_documento || ''
+      const p2 = nome_comprador || ''
+      baseName = p1 && p2 ? `${p1}_${p2}` : `${p1}${p2}`
+    }
+    const filename = `Contrato_${baseName}.docx`
+      .replace(/\s+/g, '_')
+      .replace(/_+/g, '_')
+      .replace(/_\./g, '.')
 
     return e.json(200, { filename, html })
   },
