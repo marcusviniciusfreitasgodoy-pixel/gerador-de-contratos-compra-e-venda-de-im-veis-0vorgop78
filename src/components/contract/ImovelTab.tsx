@@ -1,0 +1,109 @@
+import { useFormContext } from 'react-hook-form'
+import { FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form'
+import { Checkbox } from '@/components/ui/checkbox'
+import { FormInput, FormSelect, FormFileInput } from '@/components/FormInput'
+
+export function ImovelTab() {
+  const { control, watch } = useFormContext()
+  const inventario = watch('imovel_inventario')
+  const locado = watch('imovel_locado')
+
+  return (
+    <div className="space-y-6 animate-in fade-in">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <FormSelect
+          name="tipo_imovel"
+          label="Tipo de Imóvel"
+          options={[
+            { label: 'Apartamento', value: 'Apartamento' },
+            { label: 'Casa', value: 'Casa' },
+            { label: 'Terreno', value: 'Terreno' },
+            { label: 'Comercial', value: 'Comercial' },
+            { label: 'Cobertura', value: 'Cobertura' },
+            { label: 'Sala Comercial', value: 'Sala Comercial' },
+          ]}
+        />
+        <FormInput name="matricula_imovel" label="Nº da Matrícula *" />
+        <FormInput name="cartorio_imovel" label="Cartório (RGI)" />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <FormInput name="endereco_imovel" label="Logradouro" />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <FormInput name="numero_imovel" label="Número" />
+          <FormInput name="complemento_imovel" label="Complemento" />
+          <FormInput name="cep_imovel" label="CEP" />
+        </div>
+        <FormInput name="bairro_imovel" label="Bairro" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <FormInput name="cidade_imovel" label="Cidade" />
+          <FormInput name="estado_imovel" label="UF" />
+        </div>
+      </div>
+
+      <div className="pt-4 border-t space-y-4">
+        <h3 className="font-semibold text-lg text-[#0C2340]">Situação e Características</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+          <FormInput name="area_privativa" label="Área Priv. (m²)" type="number" />
+          <FormInput name="area_total" label="Área Total (m²)" type="number" />
+          <FormInput name="quartos" label="Quartos" type="number" />
+          <FormInput name="vagas_garagem" label="Vagas" type="number" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {[
+            { name: 'imovel_inventario', label: 'Em Inventário' },
+            { name: 'imovel_locado', label: 'Imóvel Locado' },
+            { name: 'imovel_desocupado', label: 'Imóvel desocupado' },
+          ].map((fieldData) => (
+            <FormField
+              key={fieldData.name}
+              control={control}
+              name={fieldData.name}
+              render={({ field }) => (
+                <FormItem className="flex items-center space-x-2 border p-3 rounded-md cursor-pointer">
+                  <FormControl>
+                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                  </FormControl>
+                  <FormLabel className="!mt-0 cursor-pointer">{fieldData.label}</FormLabel>
+                </FormItem>
+              )}
+            />
+          ))}
+        </div>
+        {inventario && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border p-4 rounded bg-amber-50 border-amber-200">
+            <FormInput name="numero_processo_inventario" label="Nº Processo" />
+            <FormInput name="inventariante" label="Inventariante" />
+          </div>
+        )}
+        {locado && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border p-4 rounded bg-blue-50 border-blue-200">
+            <FormInput name="prazo_locacao" label="Prazo da Locação" />
+            <FormField
+              control={control}
+              name="preferencia_locatario"
+              render={({ field }) => (
+                <FormItem className="flex items-center space-x-2 mt-8">
+                  <FormControl>
+                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                  </FormControl>
+                  <FormLabel className="!mt-0 cursor-pointer">
+                    Locatário renunciou preferência?
+                  </FormLabel>
+                </FormItem>
+              )}
+            />
+          </div>
+        )}
+      </div>
+
+      <div className="pt-4 border-t space-y-4">
+        <h3 className="font-semibold text-lg text-[#0C2340]">Documentação (Uploads Opcionais)</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormFileInput name="matricula_file" label="Matrícula Atualizada" accept=".pdf,image/*" />
+          <FormFileInput name="iptu_file" label="Capa do IPTU" accept=".pdf,image/*" />
+        </div>
+      </div>
+    </div>
+  )
+}

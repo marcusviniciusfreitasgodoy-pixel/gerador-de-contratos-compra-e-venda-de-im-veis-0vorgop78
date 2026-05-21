@@ -154,6 +154,15 @@ export const contractSchema = z
 
     gestao_exclusiva: z.enum(['com_exclusiva', 'sem_exclusiva']).optional(),
 
+    tipo_negociacao: z
+      .enum(['a_vista', 'financiamento', 'investidor', 'alto_padrao', 'permuta'])
+      .optional(),
+    clausula_arrependimento: z.boolean().default(false),
+    vendedor_banco: z.string().optional(),
+    vendedor_agencia: z.string().optional(),
+    vendedor_conta: z.string().optional(),
+    vendedor_pix: z.string().optional(),
+
     checklist_compliance: z.record(z.boolean()).optional(),
   })
   .superRefine((data, ctx) => {
@@ -167,7 +176,7 @@ export const contractSchema = z
     const isFinanciado =
       data.financiamento_comprador ||
       data.possui_financiamento ||
-      (data as any).tipo_negociacao === 'financiamento'
+      data.tipo_negociacao === 'financiamento'
     if (isFinanciado && (!data.valor_financiamento || data.valor_financiamento <= 0)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
