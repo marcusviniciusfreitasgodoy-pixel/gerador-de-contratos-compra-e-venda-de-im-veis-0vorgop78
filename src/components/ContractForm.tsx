@@ -199,6 +199,7 @@ export function ContractForm({
       entrega_chaves: nextMonth,
 
       clausula_lgpd: true,
+      tipo_documento: tipoDocumento,
     }
 
     Object.entries(testData).forEach(([key, value]) => {
@@ -335,46 +336,48 @@ export function ContractForm({
         >
           <ArrowLeft className="w-4 h-4 mr-2" /> Voltar
         </Button>
-        {user?.is_admin && (
-          <div className="flex flex-wrap gap-2 items-center">
-            {templates.length > 0 && (
-              <Select
-                onValueChange={(val) => {
-                  const t = templates.find((x) => x.id === val)
-                  if (t) handleLoadTemplate(t.template_data)
-                }}
+        <div className="flex flex-wrap gap-2 items-center">
+          {user?.is_admin && (
+            <>
+              {templates.length > 0 && (
+                <Select
+                  onValueChange={(val) => {
+                    const t = templates.find((x) => x.id === val)
+                    if (t) handleLoadTemplate(t.template_data)
+                  }}
+                >
+                  <SelectTrigger className="w-auto min-w-[180px] h-9 border-[#0C2340]/20">
+                    <SelectValue placeholder="Carregar Template..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {templates.map((t) => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              <Button
+                variant="outline"
+                onClick={() => setIsSaveTemplateOpen(true)}
+                className="text-[#0C2340] border-[#0C2340]/20 h-9"
+                type="button"
               >
-                <SelectTrigger className="w-auto min-w-[180px] h-9 border-[#0C2340]/20">
-                  <SelectValue placeholder="Carregar Template..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {templates.map((t) => (
-                    <SelectItem key={t.id} value={t.id}>
-                      {t.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-            <Button
-              variant="outline"
-              onClick={() => setIsSaveTemplateOpen(true)}
-              className="text-[#0C2340] border-[#0C2340]/20 h-9"
-              type="button"
-            >
-              Salvar Template
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handleFillTestData}
-              className="text-[#D4AF37] border-[#D4AF37] hover:bg-[#D4AF37]/10 h-9"
-              type="button"
-            >
-              <Beaker className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline">Preencher Teste</span>
-            </Button>
-          </div>
-        )}
+                Salvar Template
+              </Button>
+            </>
+          )}
+          <Button
+            variant="outline"
+            onClick={handleFillTestData}
+            className="text-[#D4AF37] border-[#D4AF37] hover:bg-[#D4AF37]/10 h-9"
+            type="button"
+          >
+            <Beaker className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Preencher Teste</span>
+          </Button>
+        </div>
       </div>
 
       <div className="flex justify-between mb-8 px-2 sm:px-12 relative w-full">
