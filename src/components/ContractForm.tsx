@@ -76,7 +76,7 @@ export function ContractForm({
 }) {
   const activeSteps = WIZARD_STEPS_ALL.filter((s) => {
     if (['ficha_cadastral', 'checklist_documental'].includes(tipoDocumento)) {
-      return s.id !== 'financeiro'
+      return s.id === 'envolvidos' || s.id === 'imovel' || s.id === 'revisao'
     }
     return true
   })
@@ -372,7 +372,12 @@ export function ContractForm({
       toast.error('Existem campos obrigatórios inválidos ou vazios antes de gerar.')
       return
     }
-    if (!form.getValues('clausula_lgpd')) return toast.error('Aceite a LGPD.')
+    if (
+      !['ficha_cadastral', 'checklist_documental'].includes(tipoDocumento) &&
+      !form.getValues('clausula_lgpd')
+    ) {
+      return toast.error('Aceite a LGPD.')
+    }
     setIsGenerating(true)
     try {
       const res = await pb.send('/backend/v1/assemble-contract', {

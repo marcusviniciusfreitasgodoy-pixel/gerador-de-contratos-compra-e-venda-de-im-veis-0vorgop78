@@ -21,8 +21,10 @@ export function generateChecklistHTML(data: any): string {
     html += `<h3 style="color: #0C2340; margin-top: 0; border-bottom: 2px solid #D4AF37; padding-bottom: 8px;">${title}</h3>\n`
     html += `<ul style="list-style-type: none; padding-left: 0;">\n`
     items.forEach((item) => {
-      const isChecked = data.checklist_compliance && data.checklist_compliance[item] === true
-      html += `<li style="margin-bottom: 8px; display: flex; align-items: center;" data-checked="${isChecked ? 'true' : 'false'}"><span style="display: inline-flex; justify-content: center; align-items: center; width: 12px; height: 12px; border: 1px solid #94a3b8; border-radius: 2px; margin-right: 12px; font-size: 10px; color: #0C2340;">${isChecked ? '✓' : ''}</span>${item}</li>\n`
+      const isChecked = data.compliance_checklist && data.compliance_checklist[item] === true
+      const prefix = isChecked ? '✓ COLETADO' : '⚠️ PENDENTE'
+      const color = isChecked ? '#16a34a' : '#ea580c'
+      html += `<li style="margin-bottom: 8px; display: flex; align-items: center;" data-checked="${isChecked ? 'true' : 'false'}"><strong style="color: ${color}; margin-right: 8px; font-size: 11px;">${prefix}</strong> <span style="font-size: 13px;">- ${item}</span></li>\n`
     })
     html += `</ul>\n</div>\n`
   }
@@ -180,10 +182,14 @@ export async function generateChecklistPDFTemplate(
     blocks.forEach((block) => {
       const title = block.querySelector('h3')?.textContent || ''
       const itemsNodes = Array.from(block.querySelectorAll('li'))
-      const items = itemsNodes.map((li) => ({
-        text: li.textContent?.replace(/^✓?\s*/, '').trim() || '',
-        checked: li.getAttribute('data-checked') === 'true',
-      }))
+      const items = itemsNodes.map((li) => {
+        const fullText = li.textContent || ''
+        const text = fullText.replace(/^(✓ COLETADO|⚠️ PENDENTE)\s*-\s*/, '').trim()
+        return {
+          text,
+          checked: li.getAttribute('data-checked') === 'true',
+        }
+      })
 
       // Measure block height
       const blockHeight = 16 + items.length * 7 + 6
@@ -216,18 +222,19 @@ export async function generateChecklistPDFTemplate(
       doc.setFontSize(10)
 
       items.forEach((item) => {
-        doc.setDrawColor(148, 163, 184)
-        doc.rect(margin + 5, currentY - 3, 3, 3)
-
         if (item.checked) {
-          doc.setTextColor(12, 35, 64)
-          doc.setFontSize(8)
-          doc.text('X', margin + 5.5, currentY - 0.5)
-          doc.setFontSize(10)
+          doc.setTextColor(22, 163, 74) // green-600
+          doc.setFont('helvetica', 'bold')
+          doc.text('COLETADO', margin + 5, currentY)
+        } else {
+          doc.setTextColor(234, 88, 12) // orange-600
+          doc.setFont('helvetica', 'bold')
+          doc.text('PENDENTE', margin + 5, currentY)
         }
 
         doc.setTextColor(51, 65, 85)
-        doc.text(item.text, margin + 12, currentY)
+        doc.setFont('helvetica', 'normal')
+        doc.text(`- ${item.text}`, margin + 32, currentY)
         currentY += 7
       })
 

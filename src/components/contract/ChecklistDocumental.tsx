@@ -125,14 +125,14 @@ export function ChecklistDocumental() {
   const activeDocs = getActiveDocs()
 
   useEffect(() => {
-    const currentChecklist = getValues('checklist_compliance') || {}
+    const currentChecklist = getValues('compliance_checklist') || {}
     const newChecklist: Record<string, boolean> = {}
 
     activeDocs.forEach((doc) => {
       newChecklist[doc] = currentChecklist[doc] || false
     })
 
-    setValue('checklist_compliance', newChecklist, { shouldDirty: true })
+    setValue('compliance_checklist', newChecklist, { shouldDirty: true })
   }, [
     values.vendedor_pj,
     values.vendedor_uniao_estavel,
@@ -157,7 +157,7 @@ export function ChecklistDocumental() {
           <FormField
             key={doc}
             control={control}
-            name={`checklist_compliance.${doc}`}
+            name={`compliance_checklist.${doc}`}
             render={({ field }) => (
               <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-2 rounded hover:bg-white transition-colors border border-transparent hover:border-slate-200">
                 <FormControl>

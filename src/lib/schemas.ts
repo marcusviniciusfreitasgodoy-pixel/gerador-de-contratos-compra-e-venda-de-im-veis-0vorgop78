@@ -163,7 +163,7 @@ export const contractSchema = z
     vendedor_conta: z.string().optional(),
     vendedor_pix: z.string().optional(),
 
-    checklist_compliance: z.record(z.boolean()).optional(),
+    compliance_checklist: z.record(z.boolean()).optional(),
   })
   .superRefine((data, ctx) => {
     if (data.tipo_documento === 'autorizacao_intermediacao' && !data.gestao_exclusiva) {
