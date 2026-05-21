@@ -270,13 +270,44 @@ routerAdd(
       `
     }
 
+    const getDocumentTitle = (tipo) => {
+      if (!tipo) return 'MINUTA DE CONTRATO'
+      const t = {
+        ficha_cadastral: 'FICHA CADASTRAL',
+        checklist_documental: 'CHECKLIST DOCUMENTAL',
+        recibo_sinal: 'RECIBO DE SINAL',
+        termo_entrega_chaves: 'TERMO DE ENTREGA DE CHAVES',
+        termo_posse: 'TERMO DE POSSE',
+        declaracoes_complementares: 'DECLARAÇÕES COMPLEMENTARES',
+        autorizacao_intermediacao: 'AUTORIZAÇÃO DE INTERMEDIAÇÃO',
+        promessa_compra_venda: 'MINUTA DE CONTRATO',
+        contrato_particular: 'MINUTA DE CONTRATO',
+        distrato: 'MINUTA DE CONTRATO',
+      }
+      return t[tipo] || 'MINUTA DE CONTRATO'
+    }
+    const docTitle = getDocumentTitle(tipo_documento)
+
+    const isContractType = ['promessa_compra_venda', 'contrato_particular', 'distrato'].includes(
+      tipo_documento,
+    )
+
     let finalHtml = bodyContent
+    if (!isContractType) {
+      finalHtml = finalHtml.replace(/<p[^>]*>\s*MINUTA DE CONTRATO(?: - [^<]+)?\s*<\/p>/gi, '')
+      finalHtml = finalHtml.replace(/MINUTA DE CONTRATO(?: - [^\n<]+)?/gi, '')
+      finalHtml =
+        `<div style="text-align: center; margin-bottom: 20px; font-weight: bold; font-size: 16px; color: #0C2340;">${docTitle}</div>` +
+        finalHtml
+    }
+
     if (header_content) {
       const sanitizedHeader = header_content.replace(/Assessoria Jurídica Imobiliária/gi, '')
       finalHtml =
         `<div style="text-align: center; margin-bottom: 30px; font-weight: bold; color: #555;">${sanitizedHeader.replace(/\n/g, '<br>')}</div>` +
         finalHtml
     }
+
     if (footer_content) {
       const sanitizedFooter = footer_content.replace(/Assessoria Jurídica Imobiliária/gi, '')
       finalHtml =
@@ -293,13 +324,25 @@ routerAdd(
     </html>
   `
 
-    let baseName = 'Finalizado'
-    if (tipo_documento || nome_comprador) {
-      const p1 = tipo_documento || ''
-      const p2 = nome_comprador || ''
-      baseName = p1 && p2 ? `${p1}_${p2}` : `${p1}${p2}`
+    const sanitizeFilename = (str) => {
+      return str
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9]/g, '_')
     }
-    const filename = `Contrato_${baseName}.docx`
+
+    let baseName = 'Documento'
+    const namePart = nome_comprador || nome_vendedor || ''
+
+    if (docTitle) {
+      baseName = sanitizeFilename(docTitle)
+    }
+
+    if (namePart) {
+      baseName = `${baseName}_${sanitizeFilename(namePart)}`
+    }
+
+    const filename = `${baseName}.docx`
       .replace(/\s+/g, '_')
       .replace(/_+/g, '_')
       .replace(/_\./g, '.')

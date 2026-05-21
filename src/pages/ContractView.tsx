@@ -167,9 +167,14 @@ export default function ContractView() {
         text = text.replace(/<p[^>]*>\s*Assessoria Jurídica Imobiliária\s*<\/p>/gi, '')
         text = text.replace(/Assessoria Jurídica Imobiliária/gi, '')
 
-        if (e.record.tipo_documento === 'autorizacao_intermediacao') {
-          text = text.replace(/<p[^>]*>\s*MINUTA DE CONTRATO\s*<\/p>/gi, '')
-          text = text.replace(/MINUTA DE CONTRATO/gi, '')
+        const isContractType = [
+          'promessa_compra_venda',
+          'contrato_particular',
+          'distrato',
+        ].includes(e.record.tipo_documento)
+        if (e.record.tipo_documento && !isContractType) {
+          text = text.replace(/<p[^>]*>\s*MINUTA DE CONTRATO(?: - [^<]+)?\s*<\/p>/gi, '')
+          text = text.replace(/MINUTA DE CONTRATO(?: - [^\n]+)?/gi, '')
         }
         setMinuta(text)
         setContract(e.record)
@@ -199,9 +204,14 @@ export default function ContractView() {
         text = text.replace(/<p[^>]*>\s*Assessoria Jurídica Imobiliária\s*<\/p>/gi, '')
         text = text.replace(/Assessoria Jurídica Imobiliária/gi, '')
 
-        if (data.tipo_documento === 'autorizacao_intermediacao') {
-          text = text.replace(/<p[^>]*>\s*MINUTA DE CONTRATO\s*<\/p>/gi, '')
-          text = text.replace(/MINUTA DE CONTRATO/gi, '')
+        const isContractType = [
+          'promessa_compra_venda',
+          'contrato_particular',
+          'distrato',
+        ].includes(data.tipo_documento)
+        if (data.tipo_documento && !isContractType) {
+          text = text.replace(/<p[^>]*>\s*MINUTA DE CONTRATO(?: - [^<]+)?\s*<\/p>/gi, '')
+          text = text.replace(/MINUTA DE CONTRATO(?: - [^\n]+)?/gi, '')
         }
       }
       setMinuta(text)
@@ -310,9 +320,17 @@ export default function ContractView() {
           newMinuta = newMinuta.replace(/<p[^>]*>\s*Assessoria Jurídica Imobiliária\s*<\/p>/gi, '')
           newMinuta = newMinuta.replace(/Assessoria Jurídica Imobiliária/gi, '')
 
-          if (contract.tipo_documento === 'autorizacao_intermediacao') {
-            newMinuta = newMinuta.replace(/<p[^>]*>\s*MINUTA DE CONTRATO\s*<\/p>/gi, '')
-            newMinuta = newMinuta.replace(/MINUTA DE CONTRATO/gi, '')
+          const isContractType = [
+            'promessa_compra_venda',
+            'contrato_particular',
+            'distrato',
+          ].includes(contract.tipo_documento)
+          if (contract.tipo_documento && !isContractType) {
+            newMinuta = newMinuta.replace(
+              /<p[^>]*>\s*MINUTA DE CONTRATO(?: - [^<]+)?\s*<\/p>/gi,
+              '',
+            )
+            newMinuta = newMinuta.replace(/MINUTA DE CONTRATO(?: - [^\n]+)?/gi, '')
           }
           setMinuta(newMinuta)
           setStatus('finalizado')
@@ -342,13 +360,13 @@ export default function ContractView() {
     const infoMap: Record<string, string> = {
       ficha_cadastral: 'Ficha_Cadastral',
       checklist_documental: 'Checklist_Documental',
-      recibo_sinal: 'Recibo_Sinal',
-      promessa_compra_venda: 'Promessa_Compra_Venda',
+      recibo_sinal: 'Recibo_de_Sinal',
+      promessa_compra_venda: 'Promessa_de_Compra_e_Venda',
       contrato_particular: 'Contrato_Particular',
-      termo_entrega_chaves: 'Termo_Entrega_Chaves',
-      termo_posse: 'Termo_Posse',
+      termo_entrega_chaves: 'Termo_de_Entrega_de_Chaves',
+      termo_posse: 'Termo_de_Posse',
       declaracoes_complementares: 'Declaracoes_Complementares',
-      autorizacao_intermediacao: 'Autorizacao_Intermediacao',
+      autorizacao_intermediacao: 'Autorizacao_de_Intermediacao',
       distrato: 'Distrato',
     }
     const tipo =

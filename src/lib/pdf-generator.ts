@@ -18,6 +18,23 @@ export async function buildPdfDoc(minutaText: string, userDetails?: any): Promis
     ? doc.splitTextToSize(userDetails.header_content, contentWidth)
     : []
 
+  const getDocumentTitle = (tipo?: string) => {
+    if (!tipo) return 'MINUTA DE CONTRATO'
+    const titles: Record<string, string> = {
+      ficha_cadastral: 'FICHA CADASTRAL',
+      checklist_documental: 'CHECKLIST DOCUMENTAL',
+      recibo_sinal: 'RECIBO DE SINAL',
+      termo_entrega_chaves: 'TERMO DE ENTREGA DE CHAVES',
+      termo_posse: 'TERMO DE POSSE',
+      declaracoes_complementares: 'DECLARAÇÕES COMPLEMENTARES',
+      autorizacao_intermediacao: 'AUTORIZAÇÃO DE INTERMEDIAÇÃO',
+      promessa_compra_venda: 'MINUTA DE CONTRATO',
+      contrato_particular: 'MINUTA DE CONTRATO',
+      distrato: 'MINUTA DE CONTRATO',
+    }
+    return titles[tipo] || 'MINUTA DE CONTRATO'
+  }
+
   const addHeader = (d: jsPDF) => {
     if (logoBase64) {
       try {
@@ -31,17 +48,14 @@ export async function buildPdfDoc(minutaText: string, userDetails?: any): Promis
       }
     }
 
-    if (
-      userDetails?.tipo_documento !== 'autorizacao_intermediacao' &&
-      userDetails?.tipo_documento !== 'ficha_cadastral'
-    ) {
-      d.setFont('helvetica', 'bold')
-      d.setFontSize(10)
-      d.setTextColor(12, 35, 64)
-      d.text('MINUTA DE CONTRATO', pageWidth / 2, 23, {
-        align: 'center',
-      })
-    }
+    const title = getDocumentTitle(userDetails?.tipo_documento)
+
+    d.setFont('helvetica', 'bold')
+    d.setFontSize(10)
+    d.setTextColor(12, 35, 64)
+    d.text(title, pageWidth / 2, 23, {
+      align: 'center',
+    })
 
     d.setDrawColor(212, 175, 55) // Ouro
     d.setLineWidth(0.5)
@@ -67,12 +81,10 @@ export async function buildPdfDoc(minutaText: string, userDetails?: any): Promis
     .replace(/<p[^>]*>\s*Assessoria Jurídica Imobiliária\s*<\/p>/gi, '')
     .replace(/Assessoria Jurídica Imobiliária/gi, '')
 
-  if (
-    userDetails?.tipo_documento === 'autorizacao_intermediacao' ||
-    userDetails?.tipo_documento === 'ficha_cadastral'
-  ) {
-    preClean = preClean.replace(/<p[^>]*>\s*MINUTA DE CONTRATO\s*<\/p>/gi, '')
-    preClean = preClean.replace(/MINUTA DE CONTRATO/gi, '')
+  const title = getDocumentTitle(userDetails?.tipo_documento)
+  if (title !== 'MINUTA DE CONTRATO') {
+    preClean = preClean.replace(/<p[^>]*>\s*MINUTA DE CONTRATO(?: - [^<]+)?\s*<\/p>/gi, '')
+    preClean = preClean.replace(/MINUTA DE CONTRATO(?: - [^\n]+)?/gi, '')
   }
 
   let cleanText = preClean
