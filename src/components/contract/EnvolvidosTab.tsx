@@ -39,6 +39,8 @@ export function EnvolvidosTab() {
               <FormInput name="representante_comprador" label="Representante Legal" />
               <FormInput name="email_comprador" label="E-mail" type="email" />
               <FormMaskedInput name="telefone_comprador" label="Telefone" maskType="phone" />
+              <FormMaskedInput name="cep_comprador" label="CEP" maskType="cep" />
+              <FormInput name="endereco_comprador" label="Endereço" />
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -46,6 +48,8 @@ export function EnvolvidosTab() {
               <FormInput name="rg_comprador" label="RG" />
               <FormInput name="email_comprador" label="E-mail" type="email" />
               <FormMaskedInput name="telefone_comprador" label="Telefone" maskType="phone" />
+              <FormMaskedInput name="cep_comprador" label="CEP" maskType="cep" />
+              <FormInput name="endereco_comprador" label="Endereço" />
               <FormSelect
                 name="estado_civil_comprador"
                 label="Estado Civil"
@@ -96,6 +100,8 @@ export function EnvolvidosTab() {
               <FormInput name="representante_vendedor" label="Representante Legal" />
               <FormInput name="email_vendedor" label="E-mail" type="email" />
               <FormMaskedInput name="telefone_vendedor" label="Telefone" maskType="phone" />
+              <FormMaskedInput name="cep_vendedor" label="CEP" maskType="cep" />
+              <FormInput name="endereco_vendedor" label="Endereço" />
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -103,6 +109,8 @@ export function EnvolvidosTab() {
               <FormInput name="rg_vendedor" label="RG" />
               <FormInput name="email_vendedor" label="E-mail" type="email" />
               <FormMaskedInput name="telefone_vendedor" label="Telefone" maskType="phone" />
+              <FormMaskedInput name="cep_vendedor" label="CEP" maskType="cep" />
+              <FormInput name="endereco_vendedor" label="Endereço" />
               <FormSelect
                 name="estado_civil_vendedor"
                 label="Estado Civil"

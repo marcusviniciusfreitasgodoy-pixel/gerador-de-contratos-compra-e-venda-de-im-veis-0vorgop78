@@ -10,6 +10,7 @@ import {
 import { useFormContext } from 'react-hook-form'
 import { formatCurrency } from '@/lib/formatters'
 import { ChangeEvent } from 'react'
+import { cn } from '@/lib/utils'
 
 export function FormInput({
   name,
@@ -22,7 +23,11 @@ export function FormInput({
   placeholder?: string
   type?: string
 }) {
-  const { control } = useFormContext()
+  const {
+    control,
+    formState: { errors },
+  } = useFormContext()
+  const error = errors[name]
 
   return (
     <FormField
@@ -30,9 +35,15 @@ export function FormInput({
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{label}</FormLabel>
+          <FormLabel className={cn(error && 'text-red-500')}>{label}</FormLabel>
           <FormControl>
-            <Input type={type} placeholder={placeholder} {...field} value={field.value || ''} />
+            <Input
+              type={type}
+              placeholder={placeholder}
+              {...field}
+              value={field.value || ''}
+              className={cn(error && 'border-red-500 focus-visible:ring-red-500')}
+            />
           </FormControl>
           <FormMessage />
         </FormItem>
@@ -50,7 +61,11 @@ export function FormCurrencyInput({
   label: string
   placeholder?: string
 }) {
-  const { control } = useFormContext()
+  const {
+    control,
+    formState: { errors },
+  } = useFormContext()
+  const error = errors[name]
 
   return (
     <FormField
@@ -64,13 +79,14 @@ export function FormCurrencyInput({
 
         return (
           <FormItem>
-            <FormLabel>{label}</FormLabel>
+            <FormLabel className={cn(error && 'text-red-500')}>{label}</FormLabel>
             <FormControl>
               <Input
                 {...field}
                 value={field.value || ''}
                 onChange={handleChange}
                 placeholder={placeholder}
+                className={cn(error && 'border-red-500 focus-visible:ring-red-500')}
               />
             </FormControl>
             <FormMessage />
@@ -90,9 +106,13 @@ export function FormMaskedInput({
   name: string
   label: string
   placeholder?: string
-  maskType: 'cpf' | 'cnpj' | 'phone'
+  maskType: 'cpf' | 'cnpj' | 'phone' | 'cep'
 }) {
-  const { control } = useFormContext()
+  const {
+    control,
+    formState: { errors },
+  } = useFormContext()
+  const error = errors[name]
 
   return (
     <FormField
@@ -113,19 +133,24 @@ export function FormMaskedInput({
           } else if (maskType === 'phone') {
             val = val.replace(/(\d{2})(\d)/, '($1) $2')
             val = val.replace(/(\d{4,5})(\d{4})$/, '$1-$2')
+          } else if (maskType === 'cep') {
+            val = val.replace(/(\d{5})(\d)/, '$1-$2')
           }
           field.onChange(val)
         }
         return (
           <FormItem>
-            <FormLabel>{label}</FormLabel>
+            <FormLabel className={cn(error && 'text-red-500')}>{label}</FormLabel>
             <FormControl>
               <Input
                 {...field}
                 value={field.value || ''}
                 onChange={handleChange}
                 placeholder={placeholder}
-                maxLength={maskType === 'cpf' ? 14 : maskType === 'cnpj' ? 18 : 15}
+                maxLength={
+                  maskType === 'cpf' ? 14 : maskType === 'cnpj' ? 18 : maskType === 'cep' ? 9 : 15
+                }
+                className={cn(error && 'border-red-500 focus-visible:ring-red-500')}
               />
             </FormControl>
             <FormMessage />
@@ -145,14 +170,19 @@ export function FormFileInput({
   label: string
   accept?: string
 }) {
-  const { control } = useFormContext()
+  const {
+    control,
+    formState: { errors },
+  } = useFormContext()
+  const error = errors[name]
+
   return (
     <FormField
       control={control}
       name={name}
       render={({ field: { value, onChange, ...field } }) => (
         <FormItem>
-          <FormLabel>{label}</FormLabel>
+          <FormLabel className={cn(error && 'text-red-500')}>{label}</FormLabel>
           <FormControl>
             <Input
               type="file"
@@ -163,6 +193,7 @@ export function FormFileInput({
               }}
               {...field}
               value={undefined}
+              className={cn(error && 'border-red-500 focus-visible:ring-red-500')}
             />
           </FormControl>
           <FormMessage />
@@ -183,7 +214,11 @@ export function FormSelect({
   options: { label: string; value: string }[]
   placeholder?: string
 }) {
-  const { control } = useFormContext()
+  const {
+    control,
+    formState: { errors },
+  } = useFormContext()
+  const error = errors[name]
 
   return (
     <FormField
@@ -191,10 +226,10 @@ export function FormSelect({
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{label}</FormLabel>
+          <FormLabel className={cn(error && 'text-red-500')}>{label}</FormLabel>
           <Select onValueChange={field.onChange} value={field.value}>
             <FormControl>
-              <SelectTrigger>
+              <SelectTrigger className={cn(error && 'border-red-500 focus-visible:ring-red-500')}>
                 <SelectValue placeholder={placeholder} />
               </SelectTrigger>
             </FormControl>

@@ -184,6 +184,146 @@ export const contractSchema = z
         message: 'Compliance Alert: Valor do financiamento é obrigatório quando há financiamento',
       })
     }
+
+    const cpfRegex = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/
+    const cnpjRegex = /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/
+    const cepRegex = /^\d{5}-\d{3}$/
+
+    // Comprador
+    if (data.tipo_comprador === 'pf') {
+      if (!data.cpf_comprador) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['cpf_comprador'],
+          message: 'Obrigatório para PF',
+        })
+      } else if (!cpfRegex.test(data.cpf_comprador)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['cpf_comprador'],
+          message: 'CPF inválido',
+        })
+      }
+      if (data.estado_civil_comprador === 'Casado' || data.estado_civil_comprador === 'Casada') {
+        if (!data.nome_conjuge_comprador) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['nome_conjuge_comprador'],
+            message: 'Obrigatório',
+          })
+        }
+        if (!data.cpf_conjuge_comprador) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['cpf_conjuge_comprador'],
+            message: 'Obrigatório',
+          })
+        } else if (!cpfRegex.test(data.cpf_conjuge_comprador)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['cpf_conjuge_comprador'],
+            message: 'CPF inválido',
+          })
+        }
+      }
+    } else if (data.tipo_comprador === 'pj') {
+      if (!data.cnpj_comprador) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['cnpj_comprador'],
+          message: 'Obrigatório para PJ',
+        })
+      } else if (!cnpjRegex.test(data.cnpj_comprador)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['cnpj_comprador'],
+          message: 'CNPJ inválido',
+        })
+      }
+      if (!data.representante_comprador) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['representante_comprador'],
+          message: 'Obrigatório',
+        })
+      }
+    }
+
+    if (data.cep_comprador && !cepRegex.test(data.cep_comprador)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['cep_comprador'],
+        message: 'CEP inválido',
+      })
+    }
+
+    // Vendedor
+    if (!data.vendedor_pj) {
+      if (!data.cpf_vendedor) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['cpf_vendedor'],
+          message: 'Obrigatório para PF',
+        })
+      } else if (!cpfRegex.test(data.cpf_vendedor)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['cpf_vendedor'],
+          message: 'CPF inválido',
+        })
+      }
+      if (data.estado_civil_vendedor === 'Casado' || data.estado_civil_vendedor === 'Casada') {
+        if (!data.conjuge_vendedor) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['conjuge_vendedor'],
+            message: 'Obrigatório',
+          })
+        }
+        if (!data.cpf_conjuge_vendedor) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['cpf_conjuge_vendedor'],
+            message: 'Obrigatório',
+          })
+        } else if (!cpfRegex.test(data.cpf_conjuge_vendedor)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['cpf_conjuge_vendedor'],
+            message: 'CPF inválido',
+          })
+        }
+      }
+    } else {
+      if (!data.cnpj_vendedor) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['cnpj_vendedor'],
+          message: 'Obrigatório para PJ',
+        })
+      } else if (!cnpjRegex.test(data.cnpj_vendedor)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['cnpj_vendedor'],
+          message: 'CNPJ inválido',
+        })
+      }
+      if (!data.representante_vendedor) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['representante_vendedor'],
+          message: 'Obrigatório',
+        })
+      }
+    }
+
+    if (data.cep_vendedor && !cepRegex.test(data.cep_vendedor)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['cep_vendedor'], message: 'CEP inválido' })
+    }
+
+    if (data.cep_imovel && !cepRegex.test(data.cep_imovel)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['cep_imovel'], message: 'CEP inválido' })
+    }
   })
 
 export type ContractFormValues = z.infer<typeof contractSchema>

@@ -42,6 +42,12 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
   getContractTemplates,
   createContractTemplate,
   type ContractTemplate,
@@ -139,36 +145,13 @@ export function ContractForm({
     mode: 'onChange',
   })
 
-  const handleFillTestData = () => {
+  const handleFillTestData = (profile: 'pf' | 'pj') => {
     const d = new Date()
     const today = d.toISOString().split('T')[0]
     d.setDate(d.getDate() + 30)
     const nextMonth = d.toISOString().split('T')[0]
 
-    const testData = {
-      tipo_comprador: 'pf',
-      nome_comprador: 'João da Silva Comprador',
-      cpf_comprador: '123.456.789-00',
-      rg_comprador: '12.345.678-9',
-      nacionalidade_comprador: 'Brasileiro',
-      estado_civil_comprador: 'Casado',
-      regime_bens_comprador: 'Comunhão Parcial',
-      profissao_comprador: 'Engenheiro de Software',
-      endereco_comprador: 'Rua das Flores, 123, Apto 45, Jardim Primavera, São Paulo - SP',
-      email_comprador: 'joao.comprador@teste.com',
-      telefone_comprador: '(11) 98765-4321',
-
-      tipo_vendedor: 'pf',
-      nome_vendedor: 'Maria Oliveira Vendedora',
-      cpf_vendedor: '987.654.321-11',
-      rg_vendedor: '98.765.432-1',
-      nacionalidade_vendedor: 'Brasileira',
-      estado_civil_vendedor: 'Solteira',
-      profissao_vendedor: 'Médica',
-      endereco_vendedor: 'Avenida Paulista, 1000, Apto 120, Bela Vista, São Paulo - SP',
-      email_vendedor: 'maria.vendedora@teste.com',
-      telefone_vendedor: '(11) 91234-5678',
-
+    const baseData = {
       tipo_negociacao: 'financiamento',
       tipo_imovel: 'Apartamento',
       endereco_imovel: 'Rua do Teste, 456',
@@ -202,11 +185,68 @@ export function ContractForm({
       tipo_documento: tipoDocumento,
     }
 
+    let profileData = {}
+    if (profile === 'pf') {
+      profileData = {
+        tipo_comprador: 'pf',
+        nome_comprador: 'João da Silva Comprador',
+        cpf_comprador: '123.456.789-00',
+        rg_comprador: '12.345.678-9',
+        nacionalidade_comprador: 'Brasileiro',
+        estado_civil_comprador: 'Casado',
+        regime_bens_comprador: 'Comunhão Parcial',
+        nome_conjuge_comprador: 'Maria da Silva Compradora',
+        cpf_conjuge_comprador: '111.222.333-44',
+        profissao_comprador: 'Engenheiro de Software',
+        endereco_comprador: 'Rua das Flores, 123',
+        cep_comprador: '03000-000',
+        email_comprador: 'joao.comprador@teste.com',
+        telefone_comprador: '(11) 98765-4321',
+
+        vendedor_pj: false,
+        nome_vendedor: 'Maria Oliveira Vendedora',
+        cpf_vendedor: '987.654.321-11',
+        rg_vendedor: '98.765.432-1',
+        nacionalidade_vendedor: 'Brasileira',
+        estado_civil_vendedor: 'Casada',
+        regime_bens_vendedor: 'Comunhão Parcial',
+        conjuge_vendedor: 'José Oliveira Vendedor',
+        cpf_conjuge_vendedor: '444.555.666-77',
+        profissao_vendedor: 'Médica',
+        endereco_vendedor: 'Avenida Paulista, 1000',
+        cep_vendedor: '04000-000',
+        email_vendedor: 'maria.vendedora@teste.com',
+        telefone_vendedor: '(11) 91234-5678',
+      }
+    } else {
+      profileData = {
+        tipo_comprador: 'pj',
+        nome_comprador: 'Empresa Compradora LTDA',
+        cnpj_comprador: '12.345.678/0001-90',
+        representante_comprador: 'Carlos Diretor',
+        email_comprador: 'contato@empresacompradora.com.br',
+        telefone_comprador: '(11) 99999-9999',
+        endereco_comprador: 'Rua Fictícia, 100',
+        cep_comprador: '01000-000',
+
+        vendedor_pj: true,
+        nome_vendedor: 'Construtora Vendedora S.A.',
+        cnpj_vendedor: '98.765.432/0001-10',
+        representante_vendedor: 'Ana Gerente',
+        email_vendedor: 'vendas@construtora.com.br',
+        telefone_vendedor: '(11) 98888-8888',
+        endereco_vendedor: 'Av. Construtora, 500',
+        cep_vendedor: '02000-000',
+      }
+    }
+
+    const testData = { ...baseData, ...profileData }
+
     Object.entries(testData).forEach(([key, value]) => {
       form.setValue(key as any, value as any, { shouldValidate: true, shouldDirty: true })
     })
 
-    toast.success('Dados de teste preenchidos!')
+    toast.success(`Dados de teste (${profile.toUpperCase()}) preenchidos!`)
   }
 
   const handleNext = async () => {
@@ -214,11 +254,48 @@ export function ContractForm({
     const stepId = currentStepData.id
 
     if (stepId === 'envolvidos') {
-      isValid = await form.trigger(['nome_comprador', 'nome_vendedor'])
+      isValid = await form.trigger([
+        'tipo_comprador',
+        'nome_comprador',
+        'cpf_comprador',
+        'cnpj_comprador',
+        'representante_comprador',
+        'email_comprador',
+        'telefone_comprador',
+        'estado_civil_comprador',
+        'regime_bens_comprador',
+        'nome_conjuge_comprador',
+        'cpf_conjuge_comprador',
+        'rg_conjuge_comprador',
+        'cep_comprador',
+        'endereco_comprador',
+        'vendedor_pj',
+        'nome_vendedor',
+        'cpf_vendedor',
+        'cnpj_vendedor',
+        'representante_vendedor',
+        'email_vendedor',
+        'telefone_vendedor',
+        'estado_civil_vendedor',
+        'regime_bens_vendedor',
+        'conjuge_vendedor',
+        'cpf_conjuge_vendedor',
+        'rg_conjuge_vendedor',
+        'cep_vendedor',
+        'endereco_vendedor',
+      ])
     } else if (stepId === 'imovel') {
-      isValid = await form.trigger(['matricula_imovel'])
+      isValid = await form.trigger([
+        'matricula_imovel',
+        'endereco_imovel',
+        'cep_imovel',
+        'numero_imovel',
+        'bairro_imovel',
+        'cidade_imovel',
+        'estado_imovel',
+      ])
     } else if (stepId === 'financeiro') {
-      isValid = await form.trigger(['valor_sinal', 'valor_financiamento'])
+      isValid = await form.trigger(['valor_total', 'valor_sinal', 'valor_financiamento'])
       const fin = parseCurrencySafe(form.getValues('valor_financiamento'))
       if (form.getValues('financiamento_comprador') && fin <= 0) {
         toast.error('Valor do financiamento é obrigatório.')
@@ -232,7 +309,10 @@ export function ContractForm({
       }
     }
 
-    if (!isValid) return
+    if (!isValid) {
+      toast.error('Existem campos obrigatórios inválidos ou vazios.')
+      return
+    }
 
     try {
       const record = await saveContractDraft(form.getValues(), draftId)
@@ -255,6 +335,11 @@ export function ContractForm({
   }
 
   const handlePreview = async () => {
+    const isValid = await form.trigger()
+    if (!isValid) {
+      toast.error('Existem campos obrigatórios inválidos ou vazios antes de visualizar.')
+      return
+    }
     setIsPreviewing(true)
     setPreviewModalOpen(true)
     try {
@@ -282,6 +367,11 @@ export function ContractForm({
   }
 
   const initiateGeneration = async () => {
+    const isValid = await form.trigger()
+    if (!isValid) {
+      toast.error('Existem campos obrigatórios inválidos ou vazios antes de gerar.')
+      return
+    }
     if (!form.getValues('clausula_lgpd')) return toast.error('Aceite a LGPD.')
     setIsGenerating(true)
     try {
@@ -368,15 +458,26 @@ export function ContractForm({
               </Button>
             </>
           )}
-          <Button
-            variant="outline"
-            onClick={handleFillTestData}
-            className="text-[#D4AF37] border-[#D4AF37] hover:bg-[#D4AF37]/10 h-9"
-            type="button"
-          >
-            <Beaker className="w-4 h-4 sm:mr-2" />
-            <span className="hidden sm:inline">Preencher Teste</span>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="text-[#D4AF37] border-[#D4AF37] hover:bg-[#D4AF37]/10 h-9"
+                type="button"
+              >
+                <Beaker className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Preencher Teste</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => handleFillTestData('pf')} className="cursor-pointer">
+                Pessoa Física (PF)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleFillTestData('pj')} className="cursor-pointer">
+                Pessoa Jurídica (PJ)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
