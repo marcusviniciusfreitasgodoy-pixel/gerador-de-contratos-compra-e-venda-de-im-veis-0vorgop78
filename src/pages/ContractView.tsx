@@ -26,7 +26,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from '@/components/ui/sheet'
 import { AnalysisReportView } from '@/components/AnalysisReportView'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
