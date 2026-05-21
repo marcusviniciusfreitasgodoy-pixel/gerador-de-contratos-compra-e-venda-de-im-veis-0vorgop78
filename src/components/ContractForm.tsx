@@ -70,9 +70,13 @@ const WIZARD_STEPS_ALL = [
 export function ContractForm({
   tipoDocumento,
   onBack,
+  documentName = 'Contrato',
+  documentGender = 'o',
 }: {
   tipoDocumento: string
   onBack: () => void
+  documentName?: string
+  documentGender?: string
 }) {
   const activeSteps = WIZARD_STEPS_ALL.filter((s) => {
     if (['ficha_cadastral', 'checklist_documental'].includes(tipoDocumento)) {
@@ -395,10 +399,14 @@ export function ContractForm({
   }
 
   if (isSuccess) {
+    const gerado =
+      documentGender === 'as' ? 'Geradas' : documentGender === 'a' ? 'Gerada' : 'Gerado'
     return (
       <div className="text-center py-12 bg-white rounded-2xl shadow-sm border p-8 animate-in fade-in">
         <CheckCircle2 size={40} className="mx-auto text-[#D4AF37] mb-4" />
-        <h2 className="text-3xl font-bold text-[#0C2340]">Contrato Gerado!</h2>
+        <h2 className="text-3xl font-bold text-[#0C2340]">
+          {documentName} {gerado}!
+        </h2>
         <div className="flex justify-center gap-3 mt-8">
           <Button variant="outline" onClick={onBack}>
             Novo Documento
@@ -407,7 +415,7 @@ export function ContractForm({
             onClick={() => navigate('/contratos')}
             className="bg-[#0C2340] text-[#D4AF37] hover:bg-[#0C2340]/90"
           >
-            Meus Contratos
+            Meus Documentos
           </Button>
         </div>
       </div>
@@ -591,7 +599,7 @@ export function ContractForm({
               ) : (
                 <ShieldCheck className="w-4 h-4 sm:mr-2" />
               )}
-              <span className="hidden sm:inline">Gerar Contrato</span>
+              <span className="hidden sm:inline">Gerar {documentName}</span>
               <span className="inline sm:hidden">Gerar</span>
             </Button>
           </div>
@@ -606,7 +614,8 @@ export function ContractForm({
         loading={isPreviewing}
         onDownload={async () => {
           if (!currentMinuta) return
-          await generateMinutaPDF(currentMinuta, 'Contrato_Previa', {
+          const safeName = documentName.replace(/\s+/g, '_')
+          await generateMinutaPDF(currentMinuta, `${safeName}_Previa`, {
             ...user,
             tipo_documento: tipoDocumento,
           })

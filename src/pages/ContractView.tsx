@@ -333,7 +333,22 @@ export default function ContractView() {
   }
 
   const getFileName = () => {
-    const tipo = contract.tipo_documento ? contract.tipo_documento.replace(/_/g, ' ') : 'Contrato'
+    const infoMap: Record<string, string> = {
+      ficha_cadastral: 'Ficha_Cadastral',
+      checklist_documental: 'Checklist_Documental',
+      recibo_sinal: 'Recibo_Sinal',
+      promessa_compra_venda: 'Promessa_Compra_Venda',
+      contrato_particular: 'Contrato_Particular',
+      termo_entrega_chaves: 'Termo_Entrega_Chaves',
+      termo_posse: 'Termo_Posse',
+      declaracoes_complementares: 'Declaracoes_Complementares',
+      autorizacao_intermediacao: 'Autorizacao_Intermediacao',
+      distrato: 'Distrato',
+    }
+    const tipo =
+      contract.tipo_documento && infoMap[contract.tipo_documento]
+        ? infoMap[contract.tipo_documento]
+        : 'Documento'
     const pessoa = contract.nome_comprador || contract.nome_vendedor || 'Cliente'
     return `${tipo}_${pessoa}`.replace(/\s+/g, '_')
   }
@@ -438,8 +453,25 @@ export default function ContractView() {
   }
 
   const handleOpenEmailModal = () => {
+    const infoMap: Record<string, string> = {
+      ficha_cadastral: 'Ficha Cadastral',
+      checklist_documental: 'Checklist Documental',
+      recibo_sinal: 'Recibo de Sinal',
+      promessa_compra_venda: 'Promessa de Compra e Venda',
+      contrato_particular: 'Contrato Particular',
+      termo_entrega_chaves: 'Termo de Entrega de Chaves',
+      termo_posse: 'Termo de Posse',
+      declaracoes_complementares: 'Declarações Complementares',
+      autorizacao_intermediacao: 'Autorização de Intermediação',
+      distrato: 'Distrato',
+    }
+    const docName =
+      contract.tipo_documento && infoMap[contract.tipo_documento]
+        ? infoMap[contract.tipo_documento]
+        : 'Documento'
+
     let destinatario = contract.email_comprador || contract.email_vendedor || ''
-    let assunto = `${user?.imobiliaria_nome || 'Imobiliária'} - Documento: ${contract.tipo_documento ? contract.tipo_documento.replace(/_/g, ' ') : 'Contrato'}`
+    let assunto = `${user?.imobiliaria_nome || 'Imobiliária'} - ${docName}`
 
     setEmailData({
       destinatario,
@@ -499,8 +531,21 @@ export default function ContractView() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-slate-800 capitalize">
-              {contract.tipo_documento ? contract.tipo_documento.replace(/_/g, ' ') : 'Contrato'}
+            <h1 className="text-3xl font-bold text-slate-800">
+              {contract.tipo_documento
+                ? {
+                    ficha_cadastral: 'Ficha Cadastral',
+                    checklist_documental: 'Checklist Documental',
+                    recibo_sinal: 'Recibo de Sinal',
+                    promessa_compra_venda: 'Promessa de Compra e Venda',
+                    contrato_particular: 'Contrato Particular',
+                    termo_entrega_chaves: 'Termo de Entrega de Chaves',
+                    termo_posse: 'Termo de Posse',
+                    declaracoes_complementares: 'Declarações Complementares',
+                    autorizacao_intermediacao: 'Autorização de Intermediação',
+                    distrato: 'Distrato',
+                  }[contract.tipo_documento as string] || contract.tipo_documento.replace(/_/g, ' ')
+                : 'Documento'}
             </h1>
             <p className="text-slate-500">
               Comprador: {contract.nome_comprador || 'Não informado'}

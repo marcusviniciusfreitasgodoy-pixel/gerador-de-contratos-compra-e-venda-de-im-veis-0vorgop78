@@ -33,28 +33,32 @@ export default function NewContract() {
     }
   }, [location])
 
-  const titleMap: Record<string, string> = {
-    ficha_cadastral: 'Ficha Cadastral',
-    checklist_documental: 'Checklist Documental',
-    recibo_sinal: 'Recibo de Sinal',
-    promessa_compra_venda: 'Promessa de Compra e Venda',
-    contrato_particular: 'Contrato Particular',
-    termo_entrega_chaves: 'Termo de Entrega de Chaves',
-    termo_posse: 'Termo de Posse',
-    declaracoes_complementares: 'Declarações Complementares',
-    autorizacao_intermediacao: 'Autorização de Intermediação',
-    distrato: 'Distrato',
+  const infoMap: Record<string, { title: string; gender: string }> = {
+    ficha_cadastral: { title: 'Ficha Cadastral', gender: 'a' },
+    checklist_documental: { title: 'Checklist Documental', gender: 'o' },
+    recibo_sinal: { title: 'Recibo de Sinal', gender: 'o' },
+    promessa_compra_venda: { title: 'Promessa de Compra e Venda', gender: 'a' },
+    contrato_particular: { title: 'Contrato Particular', gender: 'o' },
+    termo_entrega_chaves: { title: 'Termo de Entrega de Chaves', gender: 'o' },
+    termo_posse: { title: 'Termo de Posse', gender: 'o' },
+    declaracoes_complementares: { title: 'Declarações Complementares', gender: 'as' },
+    autorizacao_intermediacao: { title: 'Autorização de Intermediação', gender: 'a' },
+    distrato: { title: 'Distrato', gender: 'o' },
   }
 
-  const documentName = titleMap[tipoDocumento] || 'Documento'
+  const docInfo = infoMap[tipoDocumento] || { title: 'Documento', gender: 'o' }
+  const documentName = docInfo.title
+  const documentGender = docInfo.gender
 
   // Ouve a criação do documento via realtime para garantir a notificação de sucesso
   // caso o ContractForm gerencie a submissão internamente sem expor callbacks.
   useRealtime('contracts', (e) => {
     if (e.action === 'create' && user && e.record.user === user.id) {
+      const gerado =
+        documentGender === 'as' ? 'geradas' : documentGender === 'a' ? 'gerada' : 'gerado'
       toast({
         title: 'Sucesso!',
-        description: `${documentName} gerado com sucesso!`,
+        description: `${documentName} ${gerado} com sucesso!`,
         className: 'bg-emerald-50 text-emerald-900 border-emerald-200',
       })
     }
@@ -76,22 +80,7 @@ export default function NewContract() {
         tipoDocumento={tipoDocumento}
         onBack={() => navigate('/')}
         documentName={documentName}
-        loadingText={`Gerando ${documentName}...`}
-        successMessage={`${documentName} gerado com sucesso!`}
-        onSubmitStart={() => {
-          toast({
-            title: 'Processando',
-            description: `Gerando ${documentName}...`,
-          })
-        }}
-        onSuccess={() => {
-          toast({
-            title: 'Sucesso!',
-            description: `${documentName} gerado com sucesso!`,
-            className: 'bg-emerald-50 text-emerald-900 border-emerald-200',
-          })
-          navigate('/contratos')
-        }}
+        documentGender={documentGender}
       />
     </div>
   )
