@@ -1,33 +1,12 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ShieldCheck, ArrowRight, AlertCircle, FileText } from 'lucide-react'
+import { ShieldCheck, ArrowRight, AlertCircle } from 'lucide-react'
 import { documentPhases, scenarios } from '@/components/dashboard/dashboard-data'
-import { ExportDocxButton } from '@/components/contracts/ExportDocxButton'
-import { Button } from '@/components/ui/button'
 import { PhaseCard } from '@/components/dashboard/phase-card'
 import { ScenarioList } from '@/components/dashboard/scenario-list'
 
 export default function Home() {
   return (
     <div className="container mx-auto py-8 px-4 max-w-5xl animate-fade-in-up">
-      {/* Contract Editor Actions Toolbar (Demo for Export DOCX) */}
-      <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between bg-muted/30 p-4 rounded-xl border border-border shadow-sm gap-4">
-        <div className="text-sm font-medium text-muted-foreground">Ações do Contrato (Preview)</div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm">
-            <FileText className="w-4 h-4 mr-2" />
-            Exportar para PDF
-          </Button>
-          <ExportDocxButton
-            size="sm"
-            contractData={{
-              tipo_documento: 'Promessa_Compra_Venda',
-              nome_comprador: 'Cliente Exemplo',
-              minuta_texto: 'Minuta de teste para exportação de DOCX.',
-            }}
-          />
-        </div>
-      </div>
-
       {/* Hero Section */}
       <div className="mb-10 text-center max-w-3xl mx-auto pt-4">
         <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-4 text-foreground">

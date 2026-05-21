@@ -677,53 +677,57 @@ export default function ContractView() {
             </CardDescription>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleOpenEmailModal}
-              disabled={downloading || !minuta}
-              className="bg-white text-slate-700"
-            >
-              <Mail className="w-4 h-4 mr-2" />
-              Enviar E-mail
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handlePreviewPDF}
-              disabled={downloading || !minuta}
-              className="bg-white"
-            >
-              <FileText className="w-4 h-4 mr-2 text-primary" />
-              Visualizar Prévia
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleExportPDF}
-              disabled={downloading || !minuta}
-              className="bg-white"
-            >
-              {downloading ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <FileDown className="w-4 h-4 mr-2 text-red-600" />
-              )}
-              Exportar PDF
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleExportWord}
-              disabled={downloading || !minuta}
-            >
-              {downloading ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <Download className="w-4 h-4 mr-2 text-blue-600" />
-              )}
-              Exportar Word (Editável)
-            </Button>
+            {minuta ? (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleOpenEmailModal}
+                  disabled={downloading}
+                  className="bg-white text-slate-700"
+                >
+                  <Mail className="w-4 h-4 mr-2" />
+                  Enviar E-mail
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePreviewPDF}
+                  disabled={downloading}
+                  className="bg-white"
+                >
+                  <FileText className="w-4 h-4 mr-2 text-primary" />
+                  Visualizar Prévia
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExportPDF}
+                  disabled={downloading}
+                  className="bg-white"
+                >
+                  {downloading ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <FileDown className="w-4 h-4 mr-2 text-red-600" />
+                  )}
+                  Baixar PDF
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleExportWord}
+                  disabled={downloading}
+                >
+                  {downloading ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Download className="w-4 h-4 mr-2 text-blue-600" />
+                  )}
+                  Baixar Word
+                </Button>
+              </>
+            ) : null}
           </div>
         </CardHeader>
         <CardContent className="p-0 bg-slate-100/50">
