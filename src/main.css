@@ -94,6 +94,20 @@
     @apply bg-background text-foreground font-sans;
   }
 
+  /* Enhanced Mobile Usability: touch-friendly inputs */
+  @media (max-width: 768px) {
+    input[type='text'],
+    input[type='email'],
+    input[type='password'],
+    input[type='number'],
+    input[type='date'],
+    select,
+    textarea {
+      min-height: 44px;
+      font-size: 16px !important; /* Prevents iOS auto-zoom on focus */
+    }
+  }
+
   section[aria-label='Notifications alt+T'] {
     padding: 0 !important;
     margin: 0 !important;

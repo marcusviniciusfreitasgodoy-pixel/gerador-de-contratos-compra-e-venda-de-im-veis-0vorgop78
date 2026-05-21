@@ -29,8 +29,8 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-sidebar flex items-center justify-center p-4 animate-in fade-in">
-      <Card className="w-full max-w-md shadow-2xl border-0 bg-white/5 backdrop-blur-md text-white">
-        <CardHeader className="text-center pb-8 pt-8">
+      <Card className="w-full max-w-md shadow-2xl border-0 bg-white/5 backdrop-blur-md text-white mx-auto">
+        <CardHeader className="text-center pb-8 pt-8 px-4 sm:px-8">
           <div className="mx-auto mb-8 flex justify-center">
             <img src={logoUrl} alt="Godoy Prime Realty" className="h-16 object-contain" />
           </div>
@@ -41,7 +41,7 @@ export default function Login() {
             Faça login para acessar o sistema
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 sm:px-8 pb-8">
           <form onSubmit={handleLogin} className="space-y-5">
             <div className="space-y-2">
               <label className="text-sm font-medium text-white/90">E-mail</label>

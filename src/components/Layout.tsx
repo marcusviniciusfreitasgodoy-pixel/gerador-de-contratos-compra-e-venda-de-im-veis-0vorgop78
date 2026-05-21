@@ -5,6 +5,7 @@ import { LogOut } from 'lucide-react'
 import { IntegrationPanel } from '@/components/IntegrationPanel'
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/AppSidebar'
+import iconUrl from '@/assets/gold-f6482.png'
 
 export default function Layout() {
   const { user, signOut, loading } = useAuth()
@@ -22,11 +23,9 @@ export default function Layout() {
               <SidebarTrigger className="text-primary-foreground hover:bg-primary-foreground/20 md:hidden" />
               <Link
                 to="/"
-                className="flex md:hidden items-center gap-2 text-primary-foreground font-bold text-xl transition-transform hover:scale-105 tracking-wide uppercase"
+                className="flex md:hidden items-center gap-2 transition-transform hover:scale-105"
               >
-                <div className="w-8 h-8 bg-secondary flex items-center justify-center rounded-sm text-primary">
-                  <span className="font-bold text-xl leading-none">G</span>
-                </div>
+                <img src={iconUrl} alt="Prime Realty Icon" className="w-8 h-8 object-contain" />
               </Link>
             </div>
             <div className="flex items-center gap-4">

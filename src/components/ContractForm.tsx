@@ -121,7 +121,7 @@ function PreviewTab({ user }: { user: any }) {
   return (
     <div className="space-y-4 animate-in fade-in">
       <h3 className="font-semibold text-lg border-b pb-2">Pré-visualização do Documento</h3>
-      <div className="bg-slate-50 p-6 rounded-lg border border-slate-200 whitespace-pre-wrap font-mono text-sm h-[500px] overflow-y-auto">
+      <div className="bg-slate-50 p-4 sm:p-6 rounded-lg border border-slate-200 whitespace-pre-wrap font-mono text-xs sm:text-sm h-[60vh] min-h-[400px] overflow-y-auto">
         {text}
       </div>
     </div>
@@ -137,7 +137,7 @@ function CompradorTab() {
   return (
     <div className="space-y-6 animate-in fade-in">
       <h3 className="font-semibold text-lg border-b pb-2">Identificação do Comprador</h3>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormSelect
           name="tipo_comprador"
           label="Tipo"
@@ -153,13 +153,13 @@ function CompradorTab() {
       </div>
 
       {tipoComprador === 'pj' ? (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormMaskedInput name="cnpj_comprador" label="CNPJ" maskType="cnpj" />
           <FormInput name="representante_comprador" label="Representante Legal" />
           <FormInput name="email_comprador" label="E-mail do Comprador" type="email" />
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormMaskedInput name="cpf_comprador" label="CPF" maskType="cpf" />
           <FormInput name="rg_comprador" label="RG" />
           <FormInput name="email_comprador" label="E-mail do Comprador" type="email" />
@@ -189,7 +189,7 @@ function CompradorTab() {
       )}
 
       {(estCivilC === 'Casado' || estCivilC === 'Casada') && (
-        <div className="grid grid-cols-3 gap-4 border p-4 rounded bg-slate-50">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border p-4 rounded bg-slate-50">
           <FormInput name="nome_conjuge_comprador" label="Nome do Cônjuge" />
           <FormMaskedInput name="cpf_conjuge_comprador" label="CPF do Cônjuge" maskType="cpf" />
           <FormInput name="rg_conjuge_comprador" label="RG do Cônjuge" />
@@ -198,7 +198,7 @@ function CompradorTab() {
 
       <div className="pt-4 border-t space-y-4">
         <h3 className="font-semibold text-lg border-b pb-2">Estrutura Financeira</h3>
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-4">
           <FormField
             control={control}
             name="financiamento_comprador"
@@ -226,7 +226,7 @@ function CompradorTab() {
         </div>
 
         {temFinanciamento && (
-          <div className="grid grid-cols-3 gap-4 border p-4 rounded bg-slate-50">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border p-4 rounded bg-slate-50">
             <FormSelect
               name="instituicao_financeira"
               label="Banco Pretendido"
@@ -273,13 +273,13 @@ function VendedorTab() {
       <FormInput name="nome_vendedor" label={vendPj ? 'Razão Social' : 'Nome Completo'} />
 
       {vendPj ? (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormMaskedInput name="cnpj_vendedor" label="CNPJ" maskType="cnpj" />
           <FormInput name="representante_vendedor" label="Representante Legal" />
           <FormInput name="email_vendedor" label="E-mail do Vendedor" type="email" />
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormMaskedInput name="cpf_vendedor" label="CPF" maskType="cpf" />
           <FormInput name="rg_vendedor" label="RG" />
           <FormInput name="orgao_emissor_vendedor" label="Órgão Emissor" />
@@ -301,7 +301,7 @@ function VendedorTab() {
       )}
 
       {(estCivilV === 'Casado' || estCivilV === 'Casada') && (
-        <div className="grid grid-cols-3 gap-4 border p-4 rounded bg-slate-50">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border p-4 rounded bg-slate-50">
           <FormInput name="conjuge_vendedor" label="Nome do Cônjuge" />
           <FormMaskedInput name="cpf_conjuge_vendedor" label="CPF do Cônjuge" maskType="cpf" />
           <FormInput name="rg_conjuge_vendedor" label="RG do Cônjuge" />
@@ -310,7 +310,7 @@ function VendedorTab() {
 
       <div className="pt-4 border-t space-y-4">
         <h3 className="font-semibold text-lg border-b pb-2">Situação Jurídica do Imóvel</h3>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             { name: 'imovel_inventario', label: 'Em Inventário' },
             { name: 'imovel_locado', label: 'Imóvel Locado' },
@@ -347,7 +347,7 @@ function VendedorTab() {
         </div>
 
         {inventario && (
-          <div className="grid grid-cols-3 gap-4 border p-4 rounded bg-amber-50 border-amber-200">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border p-4 rounded bg-amber-50 border-amber-200">
             <FormInput name="numero_processo_inventario" label="Número do Processo" />
             <FormInput name="inventariante" label="Inventariante" />
             <FormInput name="alvara_inventario" label="Alvará (Dados)" />
@@ -355,14 +355,14 @@ function VendedorTab() {
         )}
 
         {locado && (
-          <div className="grid grid-cols-3 gap-4 border p-4 rounded bg-blue-50 border-blue-200">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border p-4 rounded bg-blue-50 border-blue-200">
             <FormInput name="detalhes_locacao" label="Contrato de Locação (Detalhes)" />
             <FormInput name="prazo_locacao" label="Prazo da Locação" />
             <FormField
               control={control}
               name="preferencia_locatario"
               render={({ field }) => (
-                <FormItem className="flex items-center space-x-2 mt-8">
+                <FormItem className="flex items-center space-x-2 mt-0 sm:mt-8">
                   <FormControl>
                     <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
@@ -383,7 +383,7 @@ function ImovelTab() {
   return (
     <div className="space-y-6 animate-in fade-in">
       <h3 className="font-semibold text-lg border-b pb-2">Identificação do Imóvel</h3>
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <FormSelect
           name="tipo_imovel"
           label="Tipo de Imóvel"
@@ -401,15 +401,15 @@ function ImovelTab() {
         <FormInput name="inscricao_iptu" label="Inscrição Municipal (IPTU)" />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormInput name="endereco_imovel" label="Logradouro" />
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <FormInput name="numero_imovel" label="Número" />
           <FormInput name="complemento_imovel" label="Complemento" />
           <FormInput name="cep_imovel" label="CEP" />
         </div>
         <FormInput name="bairro_imovel" label="Bairro" />
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <FormInput name="cidade_imovel" label="Cidade" />
           <FormInput name="estado_imovel" label="UF" />
         </div>
@@ -417,7 +417,7 @@ function ImovelTab() {
 
       <div className="pt-4 border-t space-y-4">
         <h3 className="font-semibold text-lg border-b pb-2">Valores</h3>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormCurrencyInput name="valor_condominio" label="Valor do Condomínio (R$)" />
           <FormCurrencyInput name="valor_iptu_anual" label="Valor do IPTU Anual (R$)" />
         </div>
@@ -425,7 +425,7 @@ function ImovelTab() {
 
       <div className="pt-4 border-t space-y-4">
         <h3 className="font-semibold text-lg border-b pb-2">Características Físicas</h3>
-        <div className="grid grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           <FormInput name="area_privativa" label="Área Priv. (m²)" type="number" />
           <FormInput name="area_total" label="Área Total (m²)" type="number" />
           <FormInput name="quartos" label="Quartos" type="number" />
@@ -443,7 +443,7 @@ function ImovelTab() {
           exigidas pela Lei 7.433/85 (distribuidor, interdições e tutelas, fiscais) pode gerar
           alertas de risco na auditoria do contrato. Recomenda-se o upload prévio.
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormFileInput
             name="matricula_file"
             label="Cópia da Matrícula Atualizada (Opcional)"
@@ -506,7 +506,7 @@ function NegociacaoTab({ tipoDocumento }: { tipoDocumento: string }) {
             />
           </div>
           <h3 className="font-semibold text-lg border-b pb-2">Avaliação e Venda</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormCurrencyInput name="valor_avaliacao" label="Valor de Avaliação (R$)" />
             <FormCurrencyInput name="valor_total" label="Valor de Venda (R$)" />
           </div>
@@ -515,7 +515,7 @@ function NegociacaoTab({ tipoDocumento }: { tipoDocumento: string }) {
 
       {showValues && (
         <>
-          <div className="p-4 bg-blue-50 border border-blue-100 rounded-lg flex justify-between items-center mb-6">
+          <div className="p-4 bg-blue-50 border border-blue-100 rounded-lg flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-6">
             <span className="font-semibold">Valor Total Estimado:</span>
             <span className="text-2xl font-bold text-blue-600">
               {total ? formatCurrency(total) : 'R$ 0,00'}
@@ -523,7 +523,7 @@ function NegociacaoTab({ tipoDocumento }: { tipoDocumento: string }) {
           </div>
 
           <h3 className="font-semibold text-lg border-b pb-2">Valores</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormCurrencyInput name="valor_sinal" label="Sinal (Arras)" />
             <FormCurrencyInput name="valor_fgts" label="Valor FGTS" />
             <FormCurrencyInput name="valor_financiamento" label="Valor a Financiar (Revisão)" />
@@ -531,7 +531,7 @@ function NegociacaoTab({ tipoDocumento }: { tipoDocumento: string }) {
           </div>
 
           <h3 className="font-semibold text-lg border-b pb-2 mt-6">Comissão</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormInput name="percentual_comissao" label="Percentual (%)" type="number" />
             <FormCurrencyInput name="valor_comissao" label="Valor Fixo da Comissão" />
             <FormSelect
@@ -547,7 +547,7 @@ function NegociacaoTab({ tipoDocumento }: { tipoDocumento: string }) {
               control={control}
               name="comissao_garantida"
               render={({ field }) => (
-                <FormItem className="flex items-center space-x-2 mt-8">
+                <FormItem className="flex items-center space-x-2 mt-0 sm:mt-8">
                   <FormControl>
                     <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
@@ -579,7 +579,7 @@ function NegociacaoTab({ tipoDocumento }: { tipoDocumento: string }) {
             )}
           />
           {parcelas && (
-            <div className="grid grid-cols-2 gap-4 border p-4 rounded bg-slate-50">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border p-4 rounded bg-slate-50">
               <FormInput name="quantidade_parcelas" label="Quantidade de Parcelas" type="number" />
               <FormCurrencyInput name="valor_parcela" label="Valor da Parcela" />
             </div>
@@ -603,7 +603,7 @@ function NegociacaoTab({ tipoDocumento }: { tipoDocumento: string }) {
             )}
           />
           {!watch('posse_imediata') && (
-            <div className="grid grid-cols-2 gap-4 border p-4 rounded bg-slate-50">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border p-4 rounded bg-slate-50">
               <FormInput name="data_posse" label="Data de Posse Acordada" type="date" />
               <FormInput name="prazo_desocupacao" label="Prazo Desocupação (dias)" type="number" />
             </div>
@@ -614,7 +614,7 @@ function NegociacaoTab({ tipoDocumento }: { tipoDocumento: string }) {
       {showPenalidades && (
         <div className="pt-4 border-t space-y-4">
           <h3 className="font-semibold text-lg border-b pb-2">Penalidades / Multas</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormInput name="multa_inadimplencia" label="Multa Inadimplência (%)" type="number" />
             <FormCurrencyInput name="multa_desocupacao" label="Multa Atraso Desocupação (Diária)" />
           </div>
@@ -653,7 +653,7 @@ function ComplianceTab() {
 
       <div className="pt-4 border-t space-y-4">
         <h3 className="font-semibold text-lg border-b pb-2">Resolução de Conflitos</h3>
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-4">
           <FormField
             control={control}
             name="arbitragem"
@@ -703,7 +703,7 @@ function ComplianceTab() {
                   className="data-[state=checked]:bg-emerald-600 data-[state=checked]:text-white"
                 />
               </FormControl>
-              <FormLabel className="!mt-0 cursor-pointer text-emerald-900 font-medium">
+              <FormLabel className="!mt-0 cursor-pointer text-emerald-900 font-medium leading-tight">
                 Consentimento LGPD (Obrigatório para prosseguir)
               </FormLabel>
             </FormItem>
@@ -1232,12 +1232,12 @@ export function ContractForm({
           Validação de compliance concluída e cláusulas processadas.
         </p>
         <div className="flex justify-center gap-3 mt-8">
-          <Button variant="outline" onClick={onBack}>
+          <Button variant="outline" onClick={onBack} className="min-h-[44px]">
             Novo Documento
           </Button>
           <Button
             onClick={() => navigate('/contratos')}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg min-h-[44px]"
           >
             Acessar Meus Contratos
           </Button>
@@ -1251,39 +1251,40 @@ export function ContractForm({
       {isGenerating && (
         <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center rounded-2xl min-h-[500px]">
           <Loader2 className="w-16 h-16 text-primary animate-spin mb-6" />
-          <h2 className="text-2xl font-bold text-slate-800">
+          <h2 className="text-2xl font-bold text-slate-800 text-center px-4">
             Gerando minuta... Isso pode levar alguns segundos
           </h2>
           <p className="text-slate-600 mt-2 text-lg">Por favor, aguarde.</p>
         </div>
       )}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-        <Button variant="ghost" onClick={onBack} className="-ml-4 w-fit">
+        <Button variant="ghost" onClick={onBack} className="-ml-4 w-fit min-h-[44px]">
           <ArrowLeft className="w-4 h-4 mr-2" /> Voltar
         </Button>
         <Button
           type="button"
           onClick={handleFillMockData}
-          className="bg-[#0C2340] text-[#D4AF37] hover:bg-[#0C2340]/90 border border-[#D4AF37] shadow-sm font-medium w-full sm:w-auto"
+          className="bg-[#0C2340] text-[#D4AF37] hover:bg-[#0C2340]/90 border border-[#D4AF37] shadow-sm font-medium w-full sm:w-auto min-h-[44px]"
           size="sm"
         >
           <Wand2 className="w-4 h-4 mr-2" />
           Preencher Dados de Teste
         </Button>
       </div>
-      <div className="flex justify-between mb-8 px-2 sm:px-12 relative">
-        <div className="absolute top-5 left-8 right-8 sm:left-16 sm:right-16 h-[2px] bg-slate-200 -z-10" />
+
+      <div className="flex justify-between mb-8 px-0 sm:px-12 relative w-full">
+        <div className="absolute top-4 sm:top-5 left-4 right-4 sm:left-16 sm:right-16 h-[2px] bg-slate-200 -z-10" />
         {activeSteps.map((s, idx) => (
           <div
             key={s.id}
             className={cn(
-              'flex flex-col items-center bg-transparent',
+              'flex flex-col items-center bg-transparent z-10',
               idx <= currentStepIndex ? 'text-primary' : 'text-slate-400',
             )}
           >
             <div
               className={cn(
-                'w-10 h-10 rounded-full flex items-center justify-center font-bold mb-2 transition-all duration-300 border-2',
+                'w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold mb-2 transition-all duration-300 border-2 shrink-0 text-xs sm:text-sm',
                 idx === currentStepIndex
                   ? 'bg-primary text-primary-foreground border-secondary shadow-md ring-4 ring-primary/10'
                   : idx < currentStepIndex
@@ -1291,12 +1292,16 @@ export function ContractForm({
                     : 'bg-white text-slate-400 border-slate-200',
               )}
             >
-              {idx < currentStepIndex ? <CheckCircle2 className="w-5 h-5 text-primary" /> : idx + 1}
+              {idx < currentStepIndex ? (
+                <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+              ) : (
+                idx + 1
+              )}
             </div>
             <span
               className={cn(
-                'text-[10px] sm:text-xs font-bold text-center w-16 sm:w-auto',
-                idx === currentStepIndex ? 'text-primary' : '',
+                'text-[10px] sm:text-xs font-bold text-center w-14 sm:w-auto hidden sm:block',
+                idx === currentStepIndex ? 'block text-primary' : '',
               )}
             >
               {s.title}
@@ -1304,8 +1309,9 @@ export function ContractForm({
           </div>
         ))}
       </div>
+
       <Card className="shadow-lg border-slate-200">
-        <CardContent className="p-8">
+        <CardContent className="p-4 sm:p-8">
           <Form {...form}>
             <form className="space-y-6">
               {currentStepData.id === 'perfil_checklist' && <PerfilChecklistTab />}
@@ -1318,13 +1324,17 @@ export function ContractForm({
               {currentStepData.id === 'compliance' && <ComplianceTab />}
               {currentStepData.id === 'preview' && <PreviewTab user={user} />}
 
-              <div className="flex justify-between pt-8 mt-8 border-t border-slate-100">
+              <div className="flex flex-col sm:flex-row justify-between gap-4 pt-8 mt-8 border-t border-slate-100">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setCurrentStepIndex((s) => s - 1)}
                   disabled={currentStepIndex === 0 || isGenerating}
-                  className={currentStepIndex === 0 ? 'invisible' : ''}
+                  className={cn(
+                    currentStepIndex === 0
+                      ? 'hidden sm:invisible'
+                      : 'w-full sm:w-auto min-h-[44px] order-2 sm:order-1',
+                  )}
                 >
                   <ChevronLeft className="mr-2 w-4 h-4" /> Anterior
                 </Button>
@@ -1333,18 +1343,18 @@ export function ContractForm({
                     type="button"
                     onClick={handleNext}
                     disabled={isGenerating}
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold w-full sm:w-auto min-h-[44px] order-1 sm:order-2"
                   >
                     Próximo <ChevronRight className="ml-2 w-4 h-4" />
                   </Button>
                 ) : (
-                  <div className="flex gap-3 flex-wrap">
+                  <div className="flex flex-col sm:flex-row gap-3 flex-wrap w-full sm:w-auto order-1 sm:order-2">
                     <Button
                       type="button"
                       variant="outline"
                       onClick={handlePreviewBeforeGenerate}
                       disabled={isGenerating || isPreviewing}
-                      className="border-primary text-primary hover:bg-primary/5 min-w-[150px] font-semibold shadow-sm"
+                      className="border-primary text-primary hover:bg-primary/5 w-full sm:min-w-[150px] font-semibold shadow-sm min-h-[44px]"
                     >
                       {isPreviewing ? (
                         <>
@@ -1361,7 +1371,7 @@ export function ContractForm({
                     <Button
                       type="button"
                       onClick={initiateGeneration}
-                      className="bg-secondary hover:bg-secondary/90 text-secondary-foreground min-w-[200px] font-bold shadow-lg"
+                      className="bg-secondary hover:bg-secondary/90 text-secondary-foreground w-full sm:min-w-[200px] font-bold shadow-lg min-h-[44px]"
                       disabled={isGenerating || isPreviewing}
                     >
                       {isGenerating ? (

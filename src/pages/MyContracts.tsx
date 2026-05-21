@@ -180,7 +180,10 @@ export default function MyContracts() {
             Gerencie e visualize seus contratos gerados, agrupados por tipo.
           </p>
         </div>
-        <Button onClick={() => navigate('/contratos/novo')} className="gap-2 shadow-sm">
+        <Button
+          onClick={() => navigate('/contratos/novo')}
+          className="gap-2 shadow-sm w-full sm:w-auto min-h-[44px]"
+        >
           <Plus className="w-4 h-4" />
           Novo Contrato
         </Button>
@@ -195,7 +198,11 @@ export default function MyContracts() {
               Você ainda não gerou nenhum contrato. Comece criando o seu primeiro documento
               personalizado com IA.
             </p>
-            <Button onClick={() => navigate('/contratos/novo')} size="lg" className="shadow-sm">
+            <Button
+              onClick={() => navigate('/contratos/novo')}
+              size="lg"
+              className="shadow-sm min-h-[44px] w-full sm:w-auto"
+            >
               Criar Primeiro Contrato
             </Button>
           </CardContent>
@@ -278,7 +285,7 @@ export default function MyContracts() {
                           <Button
                             variant="secondary"
                             onClick={() => navigate(`/contratos/${contract.id}`)}
-                            className="gap-2 flex-1 sm:flex-none"
+                            className="gap-2 flex-1 sm:flex-none min-h-[44px]"
                           >
                             <Edit className="w-4 h-4" />
                             <span className="hidden sm:inline">Editar / Visualizar</span>
