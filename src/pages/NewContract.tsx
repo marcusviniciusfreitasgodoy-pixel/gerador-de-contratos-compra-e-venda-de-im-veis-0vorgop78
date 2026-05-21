@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { ContractForm } from '@/components/ContractForm'
+import { useToast } from '@/hooks/use-toast'
+import { useRealtime } from '@/hooks/use-realtime'
+import { useAuth } from '@/hooks/use-auth'
 
 export default function NewContract() {
   const navigate = useNavigate()
   const location = useLocation()
+  const { toast } = useToast()
+  const { user } = useAuth()
 
   const [tipoDocumento, setTipoDocumento] = useState(() => {
     let tipo = location.state?.tipo_documento || 'promessa_compra_venda'
@@ -38,22 +43,56 @@ export default function NewContract() {
     termo_posse: 'Termo de Posse',
     declaracoes_complementares: 'Declarações Complementares',
     autorizacao_intermediacao: 'Autorização de Intermediação',
-    distrato: 'Distrato de Contrato',
+    distrato: 'Distrato',
   }
+
+  const documentName = titleMap[tipoDocumento] || 'Documento'
+
+  // Ouve a criação do documento via realtime para garantir a notificação de sucesso
+  // caso o ContractForm gerencie a submissão internamente sem expor callbacks.
+  useRealtime('contracts', (e) => {
+    if (e.action === 'create' && user && e.record.user === user.id) {
+      toast({
+        title: 'Sucesso!',
+        description: `${documentName} gerado com sucesso!`,
+        className: 'bg-emerald-50 text-emerald-900 border-emerald-200',
+      })
+    }
+  })
 
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="mb-8 max-w-3xl">
-        <h1 className="text-3xl font-bold text-slate-800 tracking-tight">
-          Gerar {titleMap[tipoDocumento] || 'Documento'}
+        <h1 className="text-3xl font-bold text-slate-800 tracking-tight animate-in fade-in slide-in-from-bottom-2">
+          Gerar {documentName}
         </h1>
-        <p className="text-slate-600 mt-2 text-lg">
+        <p className="text-slate-600 mt-2 text-lg animate-in fade-in slide-in-from-bottom-3">
           Preencha os dados da negociação abaixo. O sistema estruturará as cláusulas específicas
           baseadas na estratégia escolhida e adicionará automaticamente regras de Compliance (LGPD,
           Assinaturas Digitais).
         </p>
       </div>
-      <ContractForm tipoDocumento={tipoDocumento} onBack={() => navigate('/')} />
+      <ContractForm
+        tipoDocumento={tipoDocumento}
+        onBack={() => navigate('/')}
+        documentName={documentName}
+        loadingText={`Gerando ${documentName}...`}
+        successMessage={`${documentName} gerado com sucesso!`}
+        onSubmitStart={() => {
+          toast({
+            title: 'Processando',
+            description: `Gerando ${documentName}...`,
+          })
+        }}
+        onSuccess={() => {
+          toast({
+            title: 'Sucesso!',
+            description: `${documentName} gerado com sucesso!`,
+            className: 'bg-emerald-50 text-emerald-900 border-emerald-200',
+          })
+          navigate('/contratos')
+        }}
+      />
     </div>
   )
 }
