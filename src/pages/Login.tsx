@@ -4,8 +4,9 @@ import { Navigate, Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { FileText, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
+import logoUrl from '@/assets/logotipo-negativo-01-8be70.png'
 
 export default function Login() {
   const { user, signIn, loading } = useAuth()
@@ -27,43 +28,45 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 animate-in fade-in">
-      <Card className="w-full max-w-md shadow-lg border-0">
+    <div className="min-h-screen bg-sidebar flex items-center justify-center p-4 animate-in fade-in">
+      <Card className="w-full max-w-md shadow-2xl border-0 bg-white/5 backdrop-blur-md text-white">
         <CardHeader className="text-center pb-8 pt-8">
-          <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6">
-            <FileText className="text-blue-600 h-8 w-8" />
+          <div className="mx-auto mb-8 flex justify-center">
+            <img src={logoUrl} alt="Godoy Prime Realty" className="h-16 object-contain" />
           </div>
-          <CardTitle className="text-3xl text-slate-800">Gerador de Contratos</CardTitle>
-          <CardDescription className="text-base mt-2">
+          <CardTitle className="text-2xl text-white font-display font-medium tracking-wide">
+            Bem-vindo
+          </CardTitle>
+          <CardDescription className="text-base mt-2 text-white/70">
             Faça login para acessar o sistema
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-5">
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700">E-mail</label>
+              <label className="text-sm font-medium text-white/90">E-mail</label>
               <Input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="bg-white h-12"
+                className="bg-white/10 border-white/20 text-white placeholder:text-white/50 h-12 focus-visible:ring-primary"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700">Senha</label>
+              <label className="text-sm font-medium text-white/90">Senha</label>
               <Input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="bg-white h-12"
+                className="bg-white/10 border-white/20 text-white placeholder:text-white/50 h-12 focus-visible:ring-primary"
               />
             </div>
             <Button
               type="submit"
               size="lg"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-base h-12"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-base h-12 font-medium"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -75,9 +78,9 @@ export default function Login() {
               )}
             </Button>
 
-            <div className="text-center text-sm text-slate-600 mt-6">
+            <div className="text-center text-sm text-white/70 mt-6">
               Não tem uma conta?{' '}
-              <Link to="/signup" className="text-blue-600 hover:underline font-semibold">
+              <Link to="/signup" className="text-primary hover:underline font-semibold">
                 Cadastre-se
               </Link>
             </div>

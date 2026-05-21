@@ -15,8 +15,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 213 68% 15%;
 
-    --primary: 213 68% 15%; /* Marinho #0C2340 */
-    --primary-foreground: 46 65% 53%; /* Ouro #D4AF37 */
+    --primary: 46 65% 53%; /* Ouro #D4AF37 */
+    --primary-foreground: 213 68% 15%; /* Marinho #0C2340 */
 
     --secondary: 46 65% 53%; /* Ouro #D4AF37 */
     --secondary-foreground: 213 68% 15%; /* Marinho #0C2340 */
