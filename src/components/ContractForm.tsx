@@ -14,6 +14,7 @@ import {
   ChevronRight,
   ChevronLeft,
   FileText,
+  Beaker,
 } from 'lucide-react'
 import { saveContractDraft } from '@/services/contracts'
 import { toast } from 'sonner'
@@ -79,6 +80,75 @@ export function ContractForm({
     } as any,
     mode: 'onChange',
   })
+
+  const handleFillTestData = () => {
+    const d = new Date()
+    const today = d.toISOString().split('T')[0]
+    d.setDate(d.getDate() + 30)
+    const nextMonth = d.toISOString().split('T')[0]
+
+    const testData = {
+      tipo_comprador: 'pf',
+      nome_comprador: 'João da Silva Comprador',
+      cpf_comprador: '123.456.789-00',
+      rg_comprador: '12.345.678-9',
+      nacionalidade_comprador: 'Brasileiro',
+      estado_civil_comprador: 'Casado',
+      regime_bens_comprador: 'Comunhão Parcial',
+      profissao_comprador: 'Engenheiro de Software',
+      endereco_comprador: 'Rua das Flores, 123, Apto 45, Jardim Primavera, São Paulo - SP',
+      email_comprador: 'joao.comprador@teste.com',
+      telefone_comprador: '(11) 98765-4321',
+
+      tipo_vendedor: 'pf',
+      nome_vendedor: 'Maria Oliveira Vendedora',
+      cpf_vendedor: '987.654.321-11',
+      rg_vendedor: '98.765.432-1',
+      nacionalidade_vendedor: 'Brasileira',
+      estado_civil_vendedor: 'Solteira',
+      profissao_vendedor: 'Médica',
+      endereco_vendedor: 'Avenida Paulista, 1000, Apto 120, Bela Vista, São Paulo - SP',
+      email_vendedor: 'maria.vendedora@teste.com',
+      telefone_vendedor: '(11) 91234-5678',
+
+      tipo_negociacao: 'financiamento',
+      tipo_imovel: 'Apartamento',
+      endereco_imovel: 'Rua do Teste, 456',
+      numero_imovel: '456',
+      complemento_imovel: 'Apto 12',
+      cidade_imovel: 'São Paulo',
+      bairro_imovel: 'Centro',
+      estado_imovel: 'SP',
+      cep_imovel: '01000-000',
+      matricula_imovel: '123.456',
+      cartorio_imovel: '1º CRI',
+      inscricao_municipal: '123.456.7890-1',
+      area_total: '120',
+      area_privativa: '100',
+      vagas_garagem: '2',
+      quartos: '3',
+      suites: '1',
+
+      valor_total: '550.000,00',
+      valor_sinal: '50.000,00',
+      valor_financiamento: '500.000,00',
+      comissao: '33.000,00',
+      percentual_comissao: '6',
+      financiamento_comprador: true,
+
+      data_assinatura: today,
+      data_posse: nextMonth,
+      entrega_chaves: nextMonth,
+
+      clausula_lgpd: true,
+    }
+
+    Object.entries(testData).forEach(([key, value]) => {
+      form.setValue(key as any, value as any, { shouldValidate: true, shouldDirty: true })
+    })
+
+    toast.success('Dados de teste preenchidos!')
+  }
 
   const handleNext = async () => {
     let isValid = true
@@ -207,6 +277,18 @@ export function ContractForm({
         >
           <ArrowLeft className="w-4 h-4 mr-2" /> Voltar
         </Button>
+        {user?.is_admin && (
+          <Button
+            variant="outline"
+            onClick={handleFillTestData}
+            className="text-[#D4AF37] border-[#D4AF37] hover:bg-[#D4AF37]/10"
+            type="button"
+          >
+            <Beaker className="w-4 h-4 mr-2 hidden sm:block" />
+            <span className="hidden sm:inline">Preencher Teste</span>
+            <span className="inline sm:hidden">Teste</span>
+          </Button>
+        )}
       </div>
 
       <div className="flex justify-between mb-8 px-2 sm:px-12 relative w-full">
