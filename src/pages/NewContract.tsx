@@ -4,6 +4,7 @@ import { ContractForm } from '@/components/ContractForm'
 import { useToast } from '@/hooks/use-toast'
 import { useRealtime } from '@/hooks/use-realtime'
 import { useAuth } from '@/hooks/use-auth'
+import { DocumentContext } from '@/contexts/DocumentContext'
 
 export default function NewContract() {
   const navigate = useNavigate()
@@ -12,7 +13,7 @@ export default function NewContract() {
   const { user } = useAuth()
 
   const [tipoDocumento, setTipoDocumento] = useState(() => {
-    let tipo = location.state?.tipo_documento || 'promessa_compra_venda'
+    let tipo = location.state?.tipo_documento || 'ficha_cadastral'
     if (tipo === 'promessa_cv') tipo = 'promessa_compra_venda'
     if (tipo === 'checklist') tipo = 'checklist_documental'
     if (tipo === 'termo_chaves') tipo = 'termo_entrega_chaves'
@@ -65,23 +66,25 @@ export default function NewContract() {
   })
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="mb-8 max-w-3xl">
-        <h1 className="text-3xl font-bold text-slate-800 tracking-tight animate-in fade-in slide-in-from-bottom-2">
-          Gerar {documentName}
-        </h1>
-        <p className="text-slate-600 mt-2 text-lg animate-in fade-in slide-in-from-bottom-3">
-          Preencha os dados da negociação abaixo. O sistema estruturará as cláusulas específicas
-          baseadas na estratégia escolhida e adicionará automaticamente regras de Compliance (LGPD,
-          Assinaturas Digitais).
-        </p>
+    <DocumentContext.Provider value={documentName}>
+      <div className="container mx-auto py-8 px-4">
+        <div className="mb-8 max-w-3xl">
+          <h1 className="text-3xl font-bold text-slate-800 tracking-tight animate-in fade-in slide-in-from-bottom-2">
+            Gerar {documentName}
+          </h1>
+          <p className="text-slate-600 mt-2 text-lg animate-in fade-in slide-in-from-bottom-3">
+            Preencha os dados da negociação abaixo. O sistema estruturará as cláusulas específicas
+            baseadas na estratégia escolhida e adicionará automaticamente regras de Compliance
+            (LGPD, Assinaturas Digitais).
+          </p>
+        </div>
+        <ContractForm
+          tipoDocumento={tipoDocumento}
+          onBack={() => navigate('/')}
+          documentName={documentName}
+          documentGender={documentGender}
+        />
       </div>
-      <ContractForm
-        tipoDocumento={tipoDocumento}
-        onBack={() => navigate('/')}
-        documentName={documentName}
-        documentGender={documentGender}
-      />
-    </div>
+    </DocumentContext.Provider>
   )
 }

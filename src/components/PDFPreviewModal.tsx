@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Download } from 'lucide-react'
+import { useDocumentName } from '@/contexts/DocumentContext'
 
 interface PDFPreviewModalProps {
   open: boolean
@@ -16,6 +17,7 @@ interface PDFPreviewModalProps {
 }
 
 export function PDFPreviewModal({ open, onOpenChange, pdfUrl, onDownload }: PDFPreviewModalProps) {
+  const contextDocumentName = useDocumentName()
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl w-full h-[90vh] flex flex-col p-0 gap-0">
@@ -59,7 +61,9 @@ export function PDFPreviewModal({ open, onOpenChange, pdfUrl, onDownload }: PDFP
             </object>
           ) : (
             <div className="flex flex-col items-center justify-center h-full text-slate-500">
-              <span className="text-lg font-medium">Carregando prévia...</span>
+              <span className="text-lg font-medium">
+                {contextDocumentName ? `Gerando ${contextDocumentName}...` : 'Carregando prévia...'}
+              </span>
             </div>
           )}
         </div>

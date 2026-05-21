@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Loader2, Download, FileText, AlertCircle } from 'lucide-react'
+import { useDocumentName } from '@/contexts/DocumentContext'
 
 interface PreviewPDFModalProps {
   open: boolean
@@ -30,6 +31,7 @@ export function PreviewPDFModal({
   title = 'Visualização Prévia do Documento',
   error = null,
 }: PreviewPDFModalProps) {
+  const contextDocumentName = useDocumentName()
   const cleanContent = content
     ? content
         .replace(/<br\s*[/]?>/gi, '\n')
@@ -59,7 +61,7 @@ export function PreviewPDFModal({
             <div className="flex flex-col items-center justify-center text-center p-6 animate-in fade-in">
               <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
               <p className="text-slate-800 text-lg font-semibold">
-                Processando inteligência artificial e gerando PDF...
+                Gerando {contextDocumentName || 'Documento'}...
               </p>
               <p className="text-slate-500 mt-2 text-sm max-w-md">
                 Isso pode levar alguns segundos dependendo da complexidade do documento e das regras
