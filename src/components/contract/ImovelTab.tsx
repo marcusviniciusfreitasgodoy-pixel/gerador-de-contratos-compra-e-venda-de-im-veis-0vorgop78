@@ -49,11 +49,12 @@ export function ImovelTab() {
           <FormInput name="quartos" label="Quartos" type="number" />
           <FormInput name="vagas_garagem" label="Vagas" type="number" />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
             { name: 'imovel_inventario', label: 'Em Inventário' },
             { name: 'imovel_locado', label: 'Imóvel Locado' },
-            { name: 'imovel_desocupado', label: 'Imóvel desocupado' },
+            { name: 'imovel_ocupado', label: 'Imóvel Ocupado' },
+            { name: 'imovel_desocupado', label: 'Imóvel Desocupado' },
           ].map((fieldData) => (
             <FormField
               key={fieldData.name}
