@@ -60,7 +60,10 @@ export async function buildPdfDoc(minutaText: string, userDetails?: any): Promis
     d.setTextColor(12, 35, 64) // Marinho
     d.text(headerTitle, titleX, startY)
 
-    if (userDetails?.tipo_documento !== 'autorizacao_intermediacao') {
+    if (
+      userDetails?.tipo_documento !== 'autorizacao_intermediacao' &&
+      userDetails?.tipo_documento !== 'ficha_cadastral'
+    ) {
       d.setFontSize(10)
       d.setTextColor(12, 35, 64)
       d.text('MINUTA DE CONTRATO', pageWidth / 2, 23, {
@@ -92,7 +95,10 @@ export async function buildPdfDoc(minutaText: string, userDetails?: any): Promis
     .replace(/<p[^>]*>\s*Assessoria Jurídica Imobiliária\s*<\/p>/gi, '')
     .replace(/Assessoria Jurídica Imobiliária/gi, '')
 
-  if (userDetails?.tipo_documento === 'autorizacao_intermediacao') {
+  if (
+    userDetails?.tipo_documento === 'autorizacao_intermediacao' ||
+    userDetails?.tipo_documento === 'ficha_cadastral'
+  ) {
     preClean = preClean.replace(/<p[^>]*>\s*MINUTA DE CONTRATO\s*<\/p>/gi, '')
     preClean = preClean.replace(/MINUTA DE CONTRATO/gi, '')
   }
