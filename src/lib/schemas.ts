@@ -64,6 +64,8 @@ export const contractSchema = z
     rg_vendedor: z.string().optional(),
     orgao_emissor_vendedor: z.string().optional(),
     data_nascimento_vendedor: z.string().optional(),
+    nacionalidade_vendedor: z.string().optional(),
+    profissao_vendedor: z.string().optional(),
     estado_civil_vendedor: z.string().optional(),
     regime_bens_vendedor: z.string().optional(),
     conjuge_vendedor: z.string().optional(),
@@ -104,6 +106,8 @@ export const contractSchema = z
     data_matricula: z.string().optional(),
     cartorio_imovel: z.string().optional(),
     inscricao_iptu: z.string().optional(),
+    rgi_imovel: z.string().optional(),
+    inscricao_municipal: z.string().optional(),
     area_privativa: z.coerce.number().optional(),
     area_total: z.coerce.number().optional(),
     vagas_garagem: z.coerce.number().optional(),
@@ -228,6 +232,14 @@ export const contractSchema = z
         code: z.ZodIssueCode.custom,
         path: ['gestao_exclusiva'],
         message: 'O tipo de gestão é obrigatório para Autorização',
+      })
+    }
+
+    if (data.tipo_documento === 'distrato' && !data.contrato_origem) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['contrato_origem'],
+        message: 'Obrigatório selecionar o contrato de origem',
       })
     }
     const isFinanciado = data.financiamento_comprador === true || data.possui_financiamento === true

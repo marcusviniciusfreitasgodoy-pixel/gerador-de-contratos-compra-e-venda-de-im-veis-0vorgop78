@@ -38,6 +38,8 @@ export function DistratoSelector() {
       'rg_vendedor',
       'orgao_emissor_vendedor',
       'data_nascimento_vendedor',
+      'nacionalidade_vendedor',
+      'profissao_vendedor',
       'estado_civil_vendedor',
       'regime_bens_vendedor',
       'conjuge_vendedor',
@@ -80,6 +82,8 @@ export function DistratoSelector() {
       'matricula_imovel',
       'cartorio_imovel',
       'inscricao_iptu',
+      'rgi_imovel',
+      'inscricao_municipal',
       'area_privativa',
       'area_total',
     ]

@@ -14,9 +14,13 @@ export function FinanceiroTab({ tipoDocumento }: { tipoDocumento: string }) {
 
   const isPermutaDacao = tipoNegociacao === 'permuta' || tipoNegociacao === 'dacao'
   const isAutorizacao = tipoDocumento === 'autorizacao_intermediacao'
-  const showValues = !['termo_entrega_chaves', 'termo_posse', 'autorizacao_intermediacao'].includes(
-    tipoDocumento,
-  )
+  const isDistrato = tipoDocumento === 'distrato'
+  const showValues = ![
+    'termo_entrega_chaves',
+    'termo_posse',
+    'autorizacao_intermediacao',
+    'distrato',
+  ].includes(tipoDocumento)
 
   useEffect(() => {
     if (!showValues) return
@@ -199,7 +203,7 @@ export function FinanceiroTab({ tipoDocumento }: { tipoDocumento: string }) {
         </>
       )}
 
-      {!isAutorizacao && (
+      {!isAutorizacao && !isDistrato && (
         <>
           <h3 className="font-semibold text-lg border-b pb-2 mt-6 text-[#0C2340]">
             Dados Bancários do Vendedor

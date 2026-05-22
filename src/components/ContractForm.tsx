@@ -86,6 +86,9 @@ export function ContractForm({
     if (tipoDocumento === 'ficha_cadastral') {
       return ['envolvidos', 'imovel', 'revisao'].includes(s.id)
     }
+    if (tipoDocumento === 'distrato') {
+      return ['envolvidos', 'financeiro', 'juridico', 'revisao'].includes(s.id)
+    }
     return true
   })
 
@@ -429,6 +432,9 @@ export function ContractForm({
           'cep_comprador',
           'endereco_comprador',
         ]
+        if (tipoDocumento === 'distrato') {
+          fieldsToValidate.push('contrato_origem')
+        }
       }
     } else if (stepId === 'imovel') {
       fieldsToValidate = [
@@ -443,6 +449,8 @@ export function ContractForm({
     } else if (stepId === 'financeiro') {
       if (tipoDocumento === 'autorizacao_intermediacao') {
         fieldsToValidate = ['valor_total', 'valor_avaliacao']
+      } else if (tipoDocumento === 'distrato') {
+        fieldsToValidate = ['valor_reembolso', 'multa_distrato']
       } else {
         fieldsToValidate = ['valor_total', 'valor_sinal']
 
