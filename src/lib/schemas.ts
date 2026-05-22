@@ -199,9 +199,7 @@ export const contractSchema = z
 
     const isAutorizacao = data.tipo_documento === 'autorizacao_intermediacao'
     const isReciboSinal = data.tipo_documento === 'recibo_sinal'
-    const isTermos = ['termo_entrega_chaves', 'termo_posse', 'declaracoes_complementares'].includes(
-      data.tipo_documento || '',
-    )
+    const isTermos = ['termo_entrega_chaves', 'termo_posse'].includes(data.tipo_documento || '')
     const isDistrato = data.tipo_documento === 'distrato'
 
     if (isReciboSinal) {

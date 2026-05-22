@@ -365,7 +365,6 @@ export default function ContractView() {
       contrato_particular: 'Contrato_Particular',
       termo_entrega_chaves: 'Termo_de_Entrega_de_Chaves',
       termo_posse: 'Termo_de_Posse',
-      declaracoes_complementares: 'Declaracoes_Complementares',
       autorizacao_intermediacao: 'Autorizacao_de_Intermediacao',
       distrato: 'Distrato',
     }
@@ -485,7 +484,6 @@ export default function ContractView() {
       contrato_particular: 'Contrato Particular',
       termo_entrega_chaves: 'Termo de Entrega de Chaves',
       termo_posse: 'Termo de Posse',
-      declaracoes_complementares: 'Declarações Complementares',
       autorizacao_intermediacao: 'Autorização de Intermediação',
       distrato: 'Distrato',
     }
@@ -565,7 +563,6 @@ export default function ContractView() {
                     contrato_particular: 'Contrato Particular',
                     termo_entrega_chaves: 'Termo de Entrega de Chaves',
                     termo_posse: 'Termo de Posse',
-                    declaracoes_complementares: 'Declarações Complementares',
                     autorizacao_intermediacao: 'Autorização de Intermediação',
                     distrato: 'Distrato',
                   }[contract.tipo_documento as string] || contract.tipo_documento.replace(/_/g, ' ')

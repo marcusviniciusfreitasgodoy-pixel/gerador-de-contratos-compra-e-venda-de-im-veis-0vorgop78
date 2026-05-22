@@ -89,9 +89,7 @@ export function ContractForm({
     if (tipoDocumento === 'recibo_sinal') {
       return ['envolvidos', 'imovel', 'financeiro', 'revisao'].includes(s.id)
     }
-    if (
-      ['termo_entrega_chaves', 'termo_posse', 'declaracoes_complementares'].includes(tipoDocumento)
-    ) {
+    if (['termo_entrega_chaves', 'termo_posse'].includes(tipoDocumento)) {
       return ['envolvidos', 'imovel', 'juridico', 'revisao'].includes(s.id)
     }
     if (tipoDocumento === 'distrato') {
@@ -495,11 +493,7 @@ export function ContractForm({
     } else if (stepId === 'juridico') {
       if (tipoDocumento === 'autorizacao_intermediacao') {
         fieldsToValidate = ['clausula_lgpd', 'gestao_exclusiva']
-      } else if (
-        ['termo_entrega_chaves', 'termo_posse', 'declaracoes_complementares'].includes(
-          tipoDocumento,
-        )
-      ) {
+      } else if (['termo_entrega_chaves', 'termo_posse'].includes(tipoDocumento)) {
         fieldsToValidate = ['clausula_lgpd']
       } else {
         fieldsToValidate = ['clausula_lgpd']

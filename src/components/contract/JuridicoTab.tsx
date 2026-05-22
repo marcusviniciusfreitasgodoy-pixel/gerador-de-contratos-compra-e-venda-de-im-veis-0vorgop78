@@ -11,9 +11,7 @@ export function JuridicoTab({ tipoDocumento }: { tipoDocumento: string }) {
   } = useFormContext()
   const isAutorizacao = tipoDocumento === 'autorizacao_intermediacao'
   const isDistrato = tipoDocumento === 'distrato'
-  const isTermos = ['termo_entrega_chaves', 'termo_posse', 'declaracoes_complementares'].includes(
-    tipoDocumento,
-  )
+  const isTermos = ['termo_entrega_chaves', 'termo_posse'].includes(tipoDocumento)
 
   return (
     <div className="space-y-6 animate-in fade-in">

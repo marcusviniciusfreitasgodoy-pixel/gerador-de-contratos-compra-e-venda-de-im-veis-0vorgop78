@@ -97,12 +97,6 @@ const LOCAL_DOCUMENT_PHASES = [
     description: 'Termos de entrega, posse e encerramento.',
     docs: [
       {
-        id: '9',
-        typeId: 'declaracoes_complementares',
-        title: 'Declarações Complementares',
-        description: 'Declarações de ciência e conformidade.',
-      },
-      {
         id: '10',
         typeId: 'termo_entrega_chaves',
         title: 'Termo de Entrega de Chaves',
@@ -133,7 +127,6 @@ const ICON_MAP: Record<string, any> = {
   promessa_compra_venda: { icon: Handshake, color: 'text-indigo-600', bg: 'bg-indigo-50' },
   contrato_particular: { icon: FileSignature, color: 'text-purple-600', bg: 'bg-purple-50' },
   contrato_definitivo: { icon: ShieldCheck, color: 'text-blue-700', bg: 'bg-blue-100' },
-  declaracoes_complementares: { icon: FileCheck, color: 'text-cyan-600', bg: 'bg-cyan-50' },
   termo_entrega_chaves: { icon: Key, color: 'text-orange-600', bg: 'bg-orange-50' },
   termo_posse: { icon: FileKey, color: 'text-teal-600', bg: 'bg-teal-50' },
   distrato: { icon: Ban, color: 'text-red-600', bg: 'bg-red-50' },
@@ -159,7 +152,6 @@ export default function NewContract() {
       if (tipo === 'promessa_cv') tipo = 'promessa_compra_venda'
       if (tipo === 'checklist') tipo = 'checklist_documental'
       if (tipo === 'termo_chaves') tipo = 'termo_entrega_chaves'
-      if (tipo === 'declaracoes') tipo = 'declaracoes_complementares'
       if (tipo === 'autorizacao') tipo = 'autorizacao_intermediacao'
 
       if (isValidDoc(tipo)) {
@@ -186,7 +178,6 @@ export default function NewContract() {
     contrato_definitivo: { title: 'Contrato Definitivo de Compra e Venda', gender: 'o' },
     termo_entrega_chaves: { title: 'Termo de Entrega de Chaves', gender: 'o' },
     termo_posse: { title: 'Termo de Posse', gender: 'o' },
-    declaracoes_complementares: { title: 'Declarações Complementares', gender: 'as' },
     autorizacao_intermediacao: { title: 'Autorização de Intermediação', gender: 'a' },
     distrato: { title: 'Distrato', gender: 'o' },
   }
