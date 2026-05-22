@@ -258,21 +258,7 @@ export function ContractForm({
     const stepId = currentStepData.id
 
     if (stepId === 'envolvidos') {
-      isValid = await form.trigger([
-        'tipo_comprador',
-        'nome_comprador',
-        'cpf_comprador',
-        'cnpj_comprador',
-        'representante_comprador',
-        'email_comprador',
-        'telefone_comprador',
-        'estado_civil_comprador',
-        'regime_bens_comprador',
-        'nome_conjuge_comprador',
-        'cpf_conjuge_comprador',
-        'rg_conjuge_comprador',
-        'cep_comprador',
-        'endereco_comprador',
+      const baseEnvolvidos = [
         'vendedor_pj',
         'nome_vendedor',
         'cpf_vendedor',
@@ -287,7 +273,29 @@ export function ContractForm({
         'rg_conjuge_vendedor',
         'cep_vendedor',
         'endereco_vendedor',
-      ])
+      ]
+
+      if (tipoDocumento === 'autorizacao_intermediacao') {
+        isValid = await form.trigger(baseEnvolvidos as any)
+      } else {
+        isValid = await form.trigger([
+          ...baseEnvolvidos,
+          'tipo_comprador',
+          'nome_comprador',
+          'cpf_comprador',
+          'cnpj_comprador',
+          'representante_comprador',
+          'email_comprador',
+          'telefone_comprador',
+          'estado_civil_comprador',
+          'regime_bens_comprador',
+          'nome_conjuge_comprador',
+          'cpf_conjuge_comprador',
+          'rg_conjuge_comprador',
+          'cep_comprador',
+          'endereco_comprador',
+        ] as any)
+      }
     } else if (stepId === 'imovel') {
       isValid = await form.trigger([
         'matricula_imovel',
@@ -299,14 +307,22 @@ export function ContractForm({
         'estado_imovel',
       ])
     } else if (stepId === 'financeiro') {
-      isValid = await form.trigger(['valor_total', 'valor_sinal', 'valor_financiamento'])
-      const fin = parseCurrencySafe(form.getValues('valor_financiamento'))
-      if (form.getValues('financiamento_comprador') && fin <= 0) {
-        toast.error('Valor do financiamento é obrigatório.')
-        isValid = false
+      if (tipoDocumento === 'autorizacao_intermediacao') {
+        isValid = await form.trigger(['valor_total', 'valor_avaliacao'] as any)
+      } else {
+        isValid = await form.trigger(['valor_total', 'valor_sinal', 'valor_financiamento'])
+        const fin = parseCurrencySafe(form.getValues('valor_financiamento'))
+        if (form.getValues('financiamento_comprador') && fin <= 0) {
+          toast.error('Valor do financiamento é obrigatório.')
+          isValid = false
+        }
       }
     } else if (stepId === 'juridico') {
-      isValid = await form.trigger(['clausula_lgpd'])
+      if (tipoDocumento === 'autorizacao_intermediacao') {
+        isValid = await form.trigger(['clausula_lgpd', 'gestao_exclusiva'])
+      } else {
+        isValid = await form.trigger(['clausula_lgpd'])
+      }
       if (!form.getValues('clausula_lgpd')) {
         toast.error('O consentimento da LGPD é obrigatório.')
         isValid = false

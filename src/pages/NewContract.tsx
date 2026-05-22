@@ -25,8 +25,103 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { documentPhases } from '@/components/dashboard/dashboard-data'
 import { GodoyLogo } from '@/components/GodoyLogo'
+
+const LOCAL_DOCUMENT_PHASES = [
+  {
+    id: 'fase_inicial',
+    title: 'Fase Inicial e Pré-Contratual',
+    description: 'Documentos para o início da negociação e coleta de informações.',
+    docs: [
+      {
+        id: '1',
+        typeId: 'ficha_cadastral',
+        title: 'Ficha Cadastral',
+        description: 'Coleta de dados das partes envolvidas.',
+      },
+      {
+        id: '2',
+        typeId: 'checklist_documental',
+        title: 'Checklist Documental',
+        description: 'Lista de documentos necessários para a transação.',
+      },
+      {
+        id: '3',
+        typeId: 'autorizacao_intermediacao',
+        title: 'Autorização de Intermediação',
+        description: 'Autorização para corretagem e venda.',
+      },
+      {
+        id: '4',
+        typeId: 'recibo_sinal',
+        title: 'Recibo de Sinal',
+        description: 'Comprovante de pagamento do sinal/arras.',
+      },
+    ],
+  },
+  {
+    id: 'fase_contratual',
+    title: 'Fase Contratual',
+    description: 'Instrumentos principais de compra e venda.',
+    docs: [
+      {
+        id: '5',
+        typeId: 'contrato_preliminar',
+        title: 'Contrato Particular Preliminar',
+        description: 'Instrumento particular preliminar.',
+      },
+      {
+        id: '6',
+        typeId: 'promessa_compra_venda',
+        title: 'Promessa de Compra e Venda',
+        description: 'Compromisso de compra e venda padrão.',
+      },
+      {
+        id: '7',
+        typeId: 'contrato_particular',
+        title: 'Contrato Particular de Compra e Venda',
+        description: 'Contrato particular de compra e venda.',
+      },
+      {
+        id: '8',
+        typeId: 'contrato_definitivo',
+        title: 'Contrato Definitivo de Compra e Venda',
+        description: 'Contrato definitivo pronto para registro.',
+      },
+    ],
+  },
+  {
+    id: 'fase_finalizacao',
+    title: 'Finalização e Termos',
+    description: 'Termos de entrega, posse e encerramento.',
+    docs: [
+      {
+        id: '9',
+        typeId: 'declaracoes_complementares',
+        title: 'Declarações Complementares',
+        description: 'Declarações de ciência e conformidade.',
+      },
+      {
+        id: '10',
+        typeId: 'termo_entrega_chaves',
+        title: 'Termo de Entrega de Chaves',
+        description: 'Recibo de entrega das chaves do imóvel.',
+      },
+      {
+        id: '11',
+        typeId: 'termo_posse',
+        title: 'Termo de Posse',
+        description: 'Termo de imissão na posse do imóvel.',
+      },
+      {
+        id: '12',
+        typeId: 'distrato',
+        title: 'Distrato',
+        description: 'Rescisão amigável do contrato.',
+      },
+    ],
+  },
+]
 
 const ICON_MAP: Record<string, any> = {
   ficha_cadastral: { icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
@@ -53,7 +148,7 @@ export default function NewContract() {
   const [invalidTypeError, setInvalidTypeError] = useState(false)
 
   const isValidDoc = (tipo: string) =>
-    documentPhases.some((p) => p.docs.some((d) => d.typeId === tipo))
+    LOCAL_DOCUMENT_PHASES.some((p) => p.docs.some((d) => d.typeId === tipo))
 
   useEffect(() => {
     const params = new URLSearchParams(location.search)
@@ -155,7 +250,7 @@ export default function NewContract() {
         </div>
 
         <div className="space-y-12">
-          {documentPhases.map((phase) => (
+          {LOCAL_DOCUMENT_PHASES.map((phase) => (
             <section key={phase.id} className="animate-in fade-in slide-in-from-bottom-4">
               <div className="mb-6 border-b border-slate-200 pb-3">
                 <h2 className="text-2xl font-bold text-[#0C2340] tracking-tight">{phase.title}</h2>

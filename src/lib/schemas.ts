@@ -170,7 +170,9 @@ export const contractSchema = z
       return // Skip strict validations for checklist to allow generation at any stage
     }
 
-    if (!data.nome_comprador) {
+    const isAutorizacao = data.tipo_documento === 'autorizacao_intermediacao'
+
+    if (!data.nome_comprador && !isAutorizacao) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['nome_comprador'],
@@ -212,71 +214,73 @@ export const contractSchema = z
     const cepRegex = /^\d{5}-\d{3}$/
 
     // Comprador
-    if (data.tipo_comprador === 'pf') {
-      if (!data.cpf_comprador) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ['cpf_comprador'],
-          message: 'Obrigatório para PF',
-        })
-      } else if (!cpfRegex.test(data.cpf_comprador)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ['cpf_comprador'],
-          message: 'CPF inválido',
-        })
-      }
-      if (data.estado_civil_comprador === 'Casado' || data.estado_civil_comprador === 'Casada') {
-        if (!data.nome_conjuge_comprador) {
+    if (!isAutorizacao) {
+      if (data.tipo_comprador === 'pf') {
+        if (!data.cpf_comprador) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            path: ['nome_conjuge_comprador'],
-            message: 'Obrigatório',
+            path: ['cpf_comprador'],
+            message: 'Obrigatório para PF',
           })
-        }
-        if (!data.cpf_conjuge_comprador) {
+        } else if (!cpfRegex.test(data.cpf_comprador)) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            path: ['cpf_conjuge_comprador'],
-            message: 'Obrigatório',
-          })
-        } else if (!cpfRegex.test(data.cpf_conjuge_comprador)) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: ['cpf_conjuge_comprador'],
+            path: ['cpf_comprador'],
             message: 'CPF inválido',
           })
         }
+        if (data.estado_civil_comprador === 'Casado' || data.estado_civil_comprador === 'Casada') {
+          if (!data.nome_conjuge_comprador) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['nome_conjuge_comprador'],
+              message: 'Obrigatório',
+            })
+          }
+          if (!data.cpf_conjuge_comprador) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['cpf_conjuge_comprador'],
+              message: 'Obrigatório',
+            })
+          } else if (!cpfRegex.test(data.cpf_conjuge_comprador)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['cpf_conjuge_comprador'],
+              message: 'CPF inválido',
+            })
+          }
+        }
+      } else if (data.tipo_comprador === 'pj') {
+        if (!data.cnpj_comprador) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['cnpj_comprador'],
+            message: 'Obrigatório para PJ',
+          })
+        } else if (!cnpjRegex.test(data.cnpj_comprador)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['cnpj_comprador'],
+            message: 'CNPJ inválido',
+          })
+        }
+        if (!data.representante_comprador) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['representante_comprador'],
+            message: 'Obrigatório',
+          })
+        }
       }
-    } else if (data.tipo_comprador === 'pj') {
-      if (!data.cnpj_comprador) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ['cnpj_comprador'],
-          message: 'Obrigatório para PJ',
-        })
-      } else if (!cnpjRegex.test(data.cnpj_comprador)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ['cnpj_comprador'],
-          message: 'CNPJ inválido',
-        })
-      }
-      if (!data.representante_comprador) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ['representante_comprador'],
-          message: 'Obrigatório',
-        })
-      }
-    }
 
-    if (data.cep_comprador && !cepRegex.test(data.cep_comprador)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['cep_comprador'],
-        message: 'CEP inválido',
-      })
+      if (data.cep_comprador && !cepRegex.test(data.cep_comprador)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['cep_comprador'],
+          message: 'CEP inválido',
+        })
+      }
     }
 
     // Vendedor
