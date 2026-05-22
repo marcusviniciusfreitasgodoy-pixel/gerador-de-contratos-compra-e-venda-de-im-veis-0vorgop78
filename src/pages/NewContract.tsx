@@ -26,6 +26,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { GodoyLogo } from '@/components/GodoyLogo'
+import { logSystemError } from '@/services/system_error_logs'
 
 const LOCAL_DOCUMENT_PHASES = [
   {
@@ -326,6 +327,34 @@ export default function NewContract() {
             setTipoDocumento(null)
             setInvalidTypeError(false)
             navigate('/contratos/novo', { replace: true, state: {} })
+          }}
+          onSubmit={async (formValues: any, submitFn: () => Promise<void>) => {
+            try {
+              if (submitFn) await submitFn()
+            } catch (err: any) {
+              await logSystemError({
+                error_message: err.message || 'Erro durante a submissão do contrato',
+                component: 'NewContract',
+                severity: 'error',
+                context_data: { formValues, tipoDocumento },
+                stack_trace: err.stack,
+              })
+              throw err
+            }
+          }}
+          handleNext={async (formValues: any, nextFn: () => Promise<void>) => {
+            try {
+              if (nextFn) await nextFn()
+            } catch (err: any) {
+              await logSystemError({
+                error_message: err.message || 'Erro de validação ao avançar etapa',
+                component: 'NewContract',
+                severity: 'warning',
+                context_data: { formValues, tipoDocumento },
+                stack_trace: err.stack,
+              })
+              throw err
+            }
           }}
           documentName={documentName}
           documentGender={documentGender}

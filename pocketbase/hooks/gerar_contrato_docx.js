@@ -2,110 +2,113 @@ routerAdd(
   'POST',
   '/backend/v1/gerar-contrato-docx',
   (e) => {
-    const body = e.requestInfo().body
-    if (!body) return e.badRequestError('Dados do contrato não fornecidos.')
+    try {
+      const body = e.requestInfo().body
+      if (!body) return e.badRequestError('Dados do contrato não fornecidos.')
 
-    const formatCurrency = (val) => {
-      if (val == null || val === '') return 'R$ 0,00'
-      const num = Number(val)
-      if (isNaN(num)) return 'R$ 0,00'
-      const parts = num.toFixed(2).split('.')
-      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-      return 'R$ ' + parts.join(',')
-    }
-
-    const formatDate = (dateStr) => {
-      if (!dateStr) return '[data]'
-      try {
-        const d = new Date(dateStr)
-        if (isNaN(d.getTime())) return '[data]'
-        const day = String(d.getUTCDate()).padStart(2, '0')
-        const month = String(d.getUTCMonth() + 1).padStart(2, '0')
-        const year = d.getUTCFullYear()
-        return `${day}/${month}/${year}`
-      } catch {
-        return '[data]'
+      const formatCurrency = (val) => {
+        if (val == null || val === '') return 'R$ 0,00'
+        const num = Number(val)
+        if (isNaN(num)) return 'R$ 0,00'
+        const parts = num.toFixed(2).split('.')
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+        return 'R$ ' + parts.join(',')
       }
-    }
 
-    const {
-      tipo,
-      tipo_documento,
-      minuta_texto,
-      minuta_html,
-      header_content,
-      footer_content,
-      nome_vendedor,
-      nome_comprador,
-      cpf_vendedor,
-      cpf_comprador,
-      rg_vendedor,
-      rg_comprador,
-      orgao_emissor_vendedor,
-      orgao_emissor_comprador,
-      nacionalidade_vendedor,
-      nacionalidade_comprador,
-      estado_civil_vendedor,
-      estado_civil_comprador,
-      profissao_vendedor,
-      profissao_comprador,
-      endereco_vendedor,
-      endereco_comprador,
-      email_vendedor,
-      email_comprador,
-      telefone_vendedor,
-      telefone_comprador,
-      endereco_imovel,
-      matricula_imovel,
-      rgi_imovel,
-      inscricao_municipal,
-      area_total,
-      vagas_garagem,
-      valor_total,
-      valor_sinal,
-      valor_saldo,
-      comissao,
-      valor_reforco,
-      valor_complemento,
-      valor_financiado,
-      instituicao_financeira,
-      data_pagamento_saldo,
-      permuta_imovel_endereco,
-      permuta_imovel_matricula,
-      permuta_imovel_valor,
-      permuta_imovel_detalhes,
-      vendedor_banco,
-      vendedor_agencia,
-      vendedor_conta,
-      vendedor_pix,
-      user_details,
-      imovel_locado,
-      imovel_inventario,
-      uso_fgts,
-      vendedor_casado,
-      nome_conjuge,
-      regime_bens,
-    } = body
+      const formatDate = (dateStr) => {
+        if (!dateStr) return '[data]'
+        try {
+          const d = new Date(dateStr)
+          if (isNaN(d.getTime())) return '[data]'
+          const day = String(d.getUTCDate()).padStart(2, '0')
+          const month = String(d.getUTCMonth() + 1).padStart(2, '0')
+          const year = d.getUTCFullYear()
+          return `${day}/${month}/${year}`
+        } catch {
+          return '[data]'
+        }
+      }
 
-    const hojeDate = new Date()
-    const hojeDay = String(hojeDate.getUTCDate()).padStart(2, '0')
-    const hojeMonth = String(hojeDate.getUTCMonth() + 1).padStart(2, '0')
-    const hojeYear = hojeDate.getUTCFullYear()
-    const hoje = `${hojeDay}/${hojeMonth}/${hojeYear}`
+      const {
+        tipo,
+        tipo_documento,
+        minuta_texto,
+        minuta_html,
+        header_content,
+        footer_content,
+        nome_vendedor,
+        nome_comprador,
+        cpf_vendedor,
+        cpf_comprador,
+        rg_vendedor,
+        rg_comprador,
+        orgao_emissor_vendedor,
+        orgao_emissor_comprador,
+        nacionalidade_vendedor,
+        nacionalidade_comprador,
+        estado_civil_vendedor,
+        estado_civil_comprador,
+        profissao_vendedor,
+        profissao_comprador,
+        endereco_vendedor,
+        endereco_comprador,
+        email_vendedor,
+        email_comprador,
+        telefone_vendedor,
+        telefone_comprador,
+        endereco_imovel,
+        matricula_imovel,
+        rgi_imovel,
+        inscricao_municipal,
+        area_total,
+        vagas_garagem,
+        valor_total,
+        valor_sinal,
+        valor_saldo,
+        comissao,
+        valor_reforco,
+        valor_complemento,
+        valor_financiado,
+        instituicao_financeira,
+        data_pagamento_saldo,
+        permuta_imovel_endereco,
+        permuta_imovel_matricula,
+        permuta_imovel_valor,
+        permuta_imovel_detalhes,
+        vendedor_banco,
+        vendedor_agencia,
+        vendedor_conta,
+        vendedor_pix,
+        user_details,
+        imovel_locado,
+        imovel_inventario,
+        uso_fgts,
+        vendedor_casado,
+        nome_conjuge,
+        regime_bens,
+      } = body
 
-    let bodyContent = ''
+      const hojeDate = new Date()
+      const hojeDay = String(hojeDate.getUTCDate()).padStart(2, '0')
+      const hojeMonth = String(hojeDate.getUTCMonth() + 1).padStart(2, '0')
+      const hojeYear = hojeDate.getUTCFullYear()
+      const hoje = `${hojeDay}/${hojeMonth}/${hojeYear}`
 
-    if (minuta_html) {
-      bodyContent = minuta_html
-    } else if (minuta_texto) {
-      bodyContent = minuta_texto
-        .split('\n')
-        .map((line) => (line.trim() === '' ? '<br>' : `<p style="margin: 0 0 10px 0;">${line}</p>`))
-        .join('')
-    } else {
-      const pgtoHTML =
-        tipo === 'a_vista'
-          ? `
+      let bodyContent = ''
+
+      if (minuta_html) {
+        bodyContent = minuta_html
+      } else if (minuta_texto) {
+        bodyContent = minuta_texto
+          .split('\n')
+          .map((line) =>
+            line.trim() === '' ? '<br>' : `<p style="margin: 0 0 10px 0;">${line}</p>`,
+          )
+          .join('')
+      } else {
+        const pgtoHTML =
+          tipo === 'a_vista'
+            ? `
           <ul>
             <li>Sinal: ${formatCurrency(valor_sinal)} (por extenso).</li>
             ${valor_reforco && Number(valor_reforco) > 0 ? `<li>Reforço de Sinal: ${formatCurrency(valor_reforco)} (por extenso).</li>` : ''}
@@ -115,7 +118,7 @@ routerAdd(
             <li>Comissão: ${formatCurrency(comissao)} (por extenso).</li>
           </ul>
         `
-          : `        <ul>
+            : `        <ul>
           <li>Sinal: ${formatCurrency(valor_sinal)} (por extenso).</li>
           <li>Reforço de Sinal: ${formatCurrency(valor_reforco)} (por extenso).</li>
           <li>Complemento: ${formatCurrency(valor_complemento)} (por extenso).</li>
@@ -125,25 +128,25 @@ routerAdd(
         </ul>
       `
 
-      const sellerBankInfo = vendedor_banco
-        ? `
+        const sellerBankInfo = vendedor_banco
+          ? `
         <p>Os pagamentos devidos ao VENDEDOR deverão ser efetuados na seguinte conta bancária:</p>
         <p>Banco: ${vendedor_banco}, Agência: ${vendedor_agencia}, Conta: ${vendedor_conta}, Chave Pix: ${vendedor_pix}.</p>
       `
-        : ''
+          : ''
 
-      const user = user_details || {}
-      const brokerBankInfo = user.banco_nome
-        ? `
+        const user = user_details || {}
+        const brokerBankInfo = user.banco_nome
+          ? `
         <p>O pagamento da comissão de corretagem deverá ser depositado na conta bancária de titularidade de ${user.imobiliaria_nome || user.name || 'Imobiliária'}, CPF/CNPJ: ${user.imobiliaria_documento || ''}, CRECI: ${user.creci || ''}.</p>
         <p>Banco: ${user.banco_nome}, Agência: ${user.agencia}, Conta: ${user.conta}, Chave Pix: ${user.chave_pix}.</p>
       `
-        : ''
+          : ''
 
-      let clauseNum = 4
-      const financiamentoClause =
-        valor_financiado && Number(valor_financiado) > 0
-          ? `
+        let clauseNum = 4
+        const financiamentoClause =
+          valor_financiado && Number(valor_financiado) > 0
+            ? `
         <h3>Cláusula ${clauseNum++}ª - Do Financiamento Bancário</h3>
         <p>Sendo parte do pagamento realizada através de financiamento bancário, estabelece-se que:</p>
         <p>a) O COMPRADOR é o único e exclusivo responsável pela obtenção, aprovação e liberação do crédito junto à instituição financeira;</p>
@@ -152,9 +155,9 @@ routerAdd(
         <p>d) O VENDEDOR obriga-se a fornecer toda a documentação pessoal e do imóvel exigida pelo agente financeiro no prazo assinalado pelo banco.</p>
         <br>
       `
-          : ''
+            : ''
 
-      const documentacaoClause = `
+        const documentacaoClause = `
         <h3>Cláusula ${clauseNum++}ª - Da Documentação</h3>
         <p>As partes obrigam-se a apresentar as seguintes certidões e documentos no prazo de 10 (dez) dias corridos:</p>
         <p><strong>I - VENDEDOR:</strong></p>
@@ -174,61 +177,61 @@ routerAdd(
         <br>
       `
 
-      const pldftClause = `
+        const pldftClause = `
         <h3>Cláusula ${clauseNum++}ª - Da Prevenção à Lavagem de Dinheiro (PLD-FT)</h3>
         <p>Em estrito atendimento ao Provimento CNJ nº 88/2019, o COMPRADOR declara expressamente, sob as penas da lei civil e penal, que os recursos utilizados para o pagamento do preço ajustado neste instrumento têm origem lícita e não são provenientes de qualquer infração penal. As partes declaram-se cientes de que a presente operação poderá ser comunicada ao Conselho de Controle de Atividades Financeiras (COAF) pelos notários e registradores caso se enquadre nas hipóteses de obrigatoriedade legal.</p>
         <br>
       `
 
-      const obrigacoesClause = `
+        const obrigacoesClause = `
         <h3>Cláusula ${clauseNum++}ª - Das Obrigações</h3>
         <p>O VENDEDOR obriga-se a transferir o domínio, garantir a habitabilidade e quitar impostos e taxas que recaiam sobre o imóvel até a data da imissão na posse. O COMPRADOR obriga-se ao pagamento integral do preço ajustado, suportar os custos com a lavratura da escritura pública, registro imobiliário, imposto de transmissão (ITBI) e demais encargos exigíveis para a transferência da propriedade.</p>
         <br>
       `
 
-      const posseClause = `
+        const posseClause = `
         <h3>Cláusula ${clauseNum++}ª - Da Posse</h3>
         <p>A posse direta do imóvel será transferida ao COMPRADOR com a efetiva entrega das chaves, o que ocorrerá no ato da assinatura da escritura pública definitiva e quitação integral do preço. Em caso de atraso na desocupação ou na entrega das chaves por culpa do VENDEDOR, este ficará sujeito ao pagamento de multa diária de R$ 300,00 (trezentos reais).</p>
         <br>
       `
 
-      const penalidadesClause = `
+        const penalidadesClause = `
         <h3>Cláusula ${clauseNum++}ª - Das Penalidades</h3>
         <p>Em caso de arrependimento ou rescisão por culpa exclusiva do COMPRADOR, este perderá em favor do VENDEDOR o valor dado a título de sinal (arras). Caso a culpa seja do VENDEDOR, este deverá devolver o sinal recebido em dobro, acrescido de atualização monetária. Em caso de mora ou atraso no pagamento de qualquer parcela, incidirá multa moratória de 2% (dois por cento) e juros de mora de 1% (um por cento) ao mês, pro rata die.</p>
         <br>
       `
 
-      const rescisaoClause = `
+        const rescisaoClause = `
         <h3>Cláusula ${clauseNum++}ª - Da Rescisão</h3>
         <p>Caso qualquer das partes descumpra o estipulado neste instrumento, a parte inocente poderá notificar a infratora, concedendo prazo de 15 (quinze) dias para sanar a falha, sob pena de rescisão de pleno direito, arcando a parte culpada com as perdas e danos e multas contratuais.</p>
         <br>
       `
 
-      const legislacaoClause = `
+        const legislacaoClause = `
         <h3>Cláusula ${clauseNum++}ª - Da Legislação</h3>
         <p>Este contrato é regido pelo Código Civil Brasileiro e demais legislações aplicáveis à espécie, declarando as partes que compreendem e aceitam seus termos, os quais refletem a real expressão de suas vontades.</p>
         <br>
       `
 
-      const foroClause = `
+        const foroClause = `
         <h3>Cláusula ${clauseNum++}ª - Do Foro</h3>
         <p>Fica eleito o Foro da Comarca do Rio de Janeiro para dirimir quaisquer dúvidas oriundas deste contrato, renunciando a qualquer outro por mais privilegiado que seja.</p>
         <br>
       `
 
-      let headerLogoHtml = `<h1 style="text-align: center; font-size: 28px; color: #0C2340;">${user?.imobiliaria_nome || 'GODOY PRIME REALTY'}</h1>`
+        let headerLogoHtml = `<h1 style="text-align: center; font-size: 28px; color: #0C2340;">${user?.imobiliaria_nome || 'GODOY PRIME REALTY'}</h1>`
 
-      const nome = user?.imobiliaria_nome || 'GODOY PRIME REALTY'
-      if (nome.toUpperCase().includes('GODOY PRIME REALTY') && !nome.includes('■')) {
-        headerLogoHtml = `
+        const nome = user?.imobiliaria_nome || 'GODOY PRIME REALTY'
+        if (nome.toUpperCase().includes('GODOY PRIME REALTY') && !nome.includes('■')) {
+          headerLogoHtml = `
           <div style="text-align: center; margin-bottom: 15px;">
             <div style="font-size: 32px; letter-spacing: 10px; color: #0C2340; margin-bottom: 5px;">GODOY</div>
             <div style="font-size: 14px; letter-spacing: 6px; color: #0C2340;">PRIME REALTY</div>
           </div>
         `
-      }
+        }
 
-      bodyContent = `
+        bodyContent = `
         ${headerLogoHtml}
         <p style="text-align: center; color: #0C2340;">═══════════════════════════════════════════════════════════════════════════</p>
         <br>
@@ -286,54 +289,54 @@ routerAdd(
         <p>_________________________________________________</p>
         <p>TESTEMUNHA 2 (Nome e CPF):</p>
       `
-    }
-
-    const getDocumentTitle = (tipo) => {
-      if (!tipo) return 'MINUTA DE CONTRATO'
-      const t = {
-        ficha_cadastral: 'FICHA CADASTRAL',
-        checklist_documental: 'CHECKLIST DOCUMENTAL',
-        recibo_sinal: 'RECIBO DE SINAL',
-        termo_entrega_chaves: 'TERMO DE ENTREGA DE CHAVES',
-        termo_posse: 'TERMO DE POSSE',
-        declaracoes_complementares: 'DECLARAÇÕES COMPLEMENTARES',
-        autorizacao_intermediacao: 'AUTORIZAÇÃO DE INTERMEDIAÇÃO',
-        promessa_compra_venda: 'MINUTA DE CONTRATO',
-        contrato_particular: 'MINUTA DE CONTRATO',
-        distrato: 'MINUTA DE CONTRATO',
       }
-      return t[tipo] || 'MINUTA DE CONTRATO'
-    }
-    const docTitle = getDocumentTitle(tipo_documento)
 
-    const isContractType = ['promessa_compra_venda', 'contrato_particular', 'distrato'].includes(
-      tipo_documento,
-    )
+      const getDocumentTitle = (tipo) => {
+        if (!tipo) return 'MINUTA DE CONTRATO'
+        const t = {
+          ficha_cadastral: 'FICHA CADASTRAL',
+          checklist_documental: 'CHECKLIST DOCUMENTAL',
+          recibo_sinal: 'RECIBO DE SINAL',
+          termo_entrega_chaves: 'TERMO DE ENTREGA DE CHAVES',
+          termo_posse: 'TERMO DE POSSE',
+          declaracoes_complementares: 'DECLARAÇÕES COMPLEMENTARES',
+          autorizacao_intermediacao: 'AUTORIZAÇÃO DE INTERMEDIAÇÃO',
+          promessa_compra_venda: 'MINUTA DE CONTRATO',
+          contrato_particular: 'MINUTA DE CONTRATO',
+          distrato: 'MINUTA DE CONTRATO',
+        }
+        return t[tipo] || 'MINUTA DE CONTRATO'
+      }
+      const docTitle = getDocumentTitle(tipo_documento)
 
-    let finalHtml = bodyContent
-    if (!isContractType) {
-      finalHtml = finalHtml.replace(/<p[^>]*>\s*MINUTA DE CONTRATO(?: - [^<]+)?\s*<\/p>/gi, '')
-      finalHtml = finalHtml.replace(/MINUTA DE CONTRATO(?: - [^\n<]+)?/gi, '')
-      finalHtml =
-        `<div style="text-align: center; margin-bottom: 20px; font-weight: bold; font-size: 16px; color: #0C2340;">${docTitle}</div>` +
-        finalHtml
-    }
+      const isContractType = ['promessa_compra_venda', 'contrato_particular', 'distrato'].includes(
+        tipo_documento,
+      )
 
-    if (header_content) {
-      const sanitizedHeader = header_content.replace(/Assessoria Jurídica Imobiliária/gi, '')
-      finalHtml =
-        `<div style="text-align: center; margin-bottom: 30px; font-weight: bold; color: #555;">${sanitizedHeader.replace(/\n/g, '<br>')}</div>` +
-        finalHtml
-    }
+      let finalHtml = bodyContent
+      if (!isContractType) {
+        finalHtml = finalHtml.replace(/<p[^>]*>\s*MINUTA DE CONTRATO(?: - [^<]+)?\s*<\/p>/gi, '')
+        finalHtml = finalHtml.replace(/MINUTA DE CONTRATO(?: - [^\n<]+)?/gi, '')
+        finalHtml =
+          `<div style="text-align: center; margin-bottom: 20px; font-weight: bold; font-size: 16px; color: #0C2340;">${docTitle}</div>` +
+          finalHtml
+      }
 
-    if (footer_content) {
-      const sanitizedFooter = footer_content.replace(/Assessoria Jurídica Imobiliária/gi, '')
-      finalHtml =
-        finalHtml +
-        `<div style="text-align: center; margin-top: 50px; border-top: 1px solid #ccc; padding-top: 10px; font-size: 12px; color: #777;">${sanitizedFooter.replace(/\n/g, '<br>')}</div>`
-    }
+      if (header_content) {
+        const sanitizedHeader = header_content.replace(/Assessoria Jurídica Imobiliária/gi, '')
+        finalHtml =
+          `<div style="text-align: center; margin-bottom: 30px; font-weight: bold; color: #555;">${sanitizedHeader.replace(/\n/g, '<br>')}</div>` +
+          finalHtml
+      }
 
-    const html = `
+      if (footer_content) {
+        const sanitizedFooter = footer_content.replace(/Assessoria Jurídica Imobiliária/gi, '')
+        finalHtml =
+          finalHtml +
+          `<div style="text-align: center; margin-top: 50px; border-top: 1px solid #ccc; padding-top: 10px; font-size: 12px; color: #777;">${sanitizedFooter.replace(/\n/g, '<br>')}</div>`
+      }
+
+      const html = `
     <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
     <head><meta charset='utf-8'><title>Contrato</title></head>
     <body style="font-family: Arial, sans-serif; line-height: 1.5; max-width: 800px; margin: 0 auto; padding: 20px;">
@@ -342,30 +345,49 @@ routerAdd(
     </html>
   `
 
-    const sanitizeFilename = (str) => {
-      return str
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-zA-Z0-9]/g, '_')
+      const sanitizeFilename = (str) => {
+        return str
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^a-zA-Z0-9]/g, '_')
+      }
+
+      let baseName = 'Documento'
+      const namePart = nome_comprador || nome_vendedor || ''
+
+      if (docTitle) {
+        baseName = sanitizeFilename(docTitle)
+      }
+
+      if (namePart) {
+        baseName = `${baseName}_${sanitizeFilename(namePart)}`
+      }
+
+      const filename = `${baseName}.docx`
+        .replace(/\s+/g, '_')
+        .replace(/_+/g, '_')
+        .replace(/_\./g, '.')
+
+      return e.json(200, { filename, html })
+    } catch (err) {
+      if (err.name === 'Error' && err.message.includes('ApiError')) throw err
+      try {
+        const errorLog = new Record($app.findCollectionByNameOrId('system_error_logs'))
+        errorLog.set('error_message', err.message || 'Unknown error')
+        errorLog.set('stack_trace', err.stack || '')
+        errorLog.set('component', 'gerar_contrato_docx')
+        errorLog.set('route', '/backend/v1/gerar-contrato-docx')
+        errorLog.set('severity', 'critical')
+        errorLog.set('context_data', e.requestInfo().body || {})
+        if (e.auth && e.auth.id) {
+          errorLog.set('user', e.auth.id)
+        }
+        $app.save(errorLog)
+      } catch (logErr) {
+        $app.logger().error('Failed to log system error', 'error', logErr.message)
+      }
+      return e.internalServerError('Erro interno: ' + err.message)
     }
-
-    let baseName = 'Documento'
-    const namePart = nome_comprador || nome_vendedor || ''
-
-    if (docTitle) {
-      baseName = sanitizeFilename(docTitle)
-    }
-
-    if (namePart) {
-      baseName = `${baseName}_${sanitizeFilename(namePart)}`
-    }
-
-    const filename = `${baseName}.docx`
-      .replace(/\s+/g, '_')
-      .replace(/_+/g, '_')
-      .replace(/_\./g, '.')
-
-    return e.json(200, { filename, html })
   },
   $apis.requireAuth(),
 )

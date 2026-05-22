@@ -19,6 +19,7 @@ import AdminDashboard from '@/pages/admin/AdminDashboard'
 import LegalKnowledgeList from '@/pages/admin/LegalKnowledgeList'
 import LegalKnowledgeForm from '@/pages/admin/LegalKnowledgeForm'
 import AuditLogsList from '@/pages/admin/AuditLogsList'
+import SystemErrorLogsList from '@/pages/admin/SystemErrorLogsList'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 
 export default function App() {
@@ -51,6 +52,7 @@ export default function App() {
               <Route path="/admin/knowledge/new" element={<LegalKnowledgeForm />} />
               <Route path="/admin/knowledge/:id" element={<LegalKnowledgeForm />} />
               <Route path="/admin/audit-logs" element={<AuditLogsList />} />
+              <Route path="/admin/logs" element={<SystemErrorLogsList />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

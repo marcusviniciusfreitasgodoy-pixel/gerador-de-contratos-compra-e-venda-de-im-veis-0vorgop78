@@ -21,6 +21,7 @@ import {
   Files,
   Scale,
   ShieldAlert,
+  Bug,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { GodoyLogo } from '@/components/GodoyLogo'
@@ -100,6 +101,14 @@ export function AppSidebar() {
                   <Link to="/admin/audit-logs">
                     <ShieldAlert />
                     <span>Histórico de Auditoria</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === '/admin/logs'}>
+                  <Link to="/admin/logs">
+                    <Bug />
+                    <span>Logs de Erro</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
