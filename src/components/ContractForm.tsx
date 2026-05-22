@@ -261,13 +261,128 @@ export function ContractForm({
     toast.success(`Dados de teste (${profile.toUpperCase()}) preenchidos!`)
   }
 
+  const getStepForField = (fieldName: string) => {
+    const envolvidos = [
+      'tipo_comprador',
+      'nome_comprador',
+      'cpf_comprador',
+      'cnpj_comprador',
+      'representante_comprador',
+      'email_comprador',
+      'telefone_comprador',
+      'cep_comprador',
+      'endereco_comprador',
+      'estado_civil_comprador',
+      'regime_bens_comprador',
+      'nome_conjuge_comprador',
+      'cpf_conjuge_comprador',
+      'rg_conjuge_comprador',
+      'vendedor_pj',
+      'nome_vendedor',
+      'cpf_vendedor',
+      'cnpj_vendedor',
+      'representante_vendedor',
+      'email_vendedor',
+      'telefone_vendedor',
+      'cep_vendedor',
+      'endereco_vendedor',
+      'estado_civil_vendedor',
+      'regime_bens_vendedor',
+      'conjuge_vendedor',
+      'cpf_conjuge_vendedor',
+      'rg_conjuge_vendedor',
+    ]
+    const imovel = [
+      'tipo_imovel',
+      'matricula_imovel',
+      'cartorio_imovel',
+      'endereco_imovel',
+      'numero_imovel',
+      'complemento_imovel',
+      'cep_imovel',
+      'bairro_imovel',
+      'cidade_imovel',
+      'estado_imovel',
+      'area_privativa',
+      'area_total',
+      'quartos',
+      'vagas_garagem',
+      'imovel_inventario',
+      'imovel_locado',
+      'imovel_ocupado',
+      'imovel_desocupado',
+      'numero_processo_inventario',
+      'inventariante',
+      'prazo_locacao',
+      'preferencia_locatario',
+    ]
+    const financeiro = [
+      'valor_avaliacao',
+      'valor_total',
+      'valor_sinal',
+      'valor_fgts',
+      'valor_financiamento',
+      'valor_recursos_proprios',
+      'financiamento_comprador',
+      'havera_parcelas',
+      'instituicao_financeira',
+      'prazo_financiamento',
+      'quantidade_parcelas',
+      'valor_parcela',
+      'percentual_comissao',
+      'valor_comissao',
+      'vendedor_banco',
+      'vendedor_agencia',
+      'vendedor_conta',
+      'vendedor_pix',
+    ]
+    const juridico = [
+      'tipo_negociacao',
+      'gestao_exclusiva',
+      'clausula_arrependimento',
+      'posse_imediata',
+      'assinatura_eletronica',
+      'plataforma_assinatura',
+      'arbitragem',
+      'mediacao',
+      'clausula_lgpd',
+    ]
+
+    if (envolvidos.includes(fieldName)) return 'envolvidos'
+    if (imovel.includes(fieldName)) return 'imovel'
+    if (financeiro.includes(fieldName)) return 'financeiro'
+    if (juridico.includes(fieldName)) return 'juridico'
+    return null
+  }
+
+  const handleValidationFailure = (errors: Record<string, any>) => {
+    toast.error('Existem campos obrigatórios inválidos ou vazios antes de gerar.')
+
+    const firstErrorField = Object.keys(errors)[0]
+    if (firstErrorField) {
+      const stepId = getStepForField(firstErrorField)
+      if (stepId) {
+        const stepIndex = activeSteps.findIndex((s) => s.id === stepId)
+        if (stepIndex !== -1 && stepIndex !== currentStepIndex) {
+          setCurrentStepIndex(stepIndex)
+        }
+      }
+      setTimeout(() => {
+        const errorElement = document.querySelector('.text-red-500, .border-red-500')
+        if (errorElement) {
+          errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+      }, 100)
+    }
+  }
+
   const handleNext = async () => {
     let isValid = true
     const stepId = currentStepData.id
 
-    if (tipoDocumento === 'checklist_documental' || tipoDocumento === 'recibo_sinal') {
-      isValid = true
-    } else if (stepId === 'envolvidos') {
+    let fieldsToValidate: any[] = []
+
+    if (stepId === 'envolvidos') {
       const baseEnvolvidos = [
         'vendedor_pj',
         'nome_vendedor',
@@ -284,11 +399,10 @@ export function ContractForm({
         'cep_vendedor',
         'endereco_vendedor',
       ]
-
       if (tipoDocumento === 'autorizacao_intermediacao') {
-        isValid = await form.trigger(baseEnvolvidos as any)
+        fieldsToValidate = baseEnvolvidos
       } else {
-        isValid = await form.trigger([
+        fieldsToValidate = [
           ...baseEnvolvidos,
           'tipo_comprador',
           'nome_comprador',
@@ -304,10 +418,10 @@ export function ContractForm({
           'rg_conjuge_comprador',
           'cep_comprador',
           'endereco_comprador',
-        ] as any)
+        ]
       }
     } else if (stepId === 'imovel') {
-      isValid = await form.trigger([
+      fieldsToValidate = [
         'matricula_imovel',
         'endereco_imovel',
         'cep_imovel',
@@ -315,34 +429,27 @@ export function ContractForm({
         'bairro_imovel',
         'cidade_imovel',
         'estado_imovel',
-      ])
+      ]
     } else if (stepId === 'financeiro') {
       if (tipoDocumento === 'autorizacao_intermediacao') {
-        isValid = await form.trigger(['valor_total', 'valor_avaliacao'] as any)
+        fieldsToValidate = ['valor_total', 'valor_avaliacao']
       } else {
-        isValid = await form.trigger(['valor_total', 'valor_sinal', 'valor_financiamento'])
-        const fin = parseCurrencySafe(form.getValues('valor_financiamento'))
-        if (form.getValues('financiamento_comprador') && fin <= 0) {
-          toast.error('Valor do financiamento é obrigatório.')
-          isValid = false
-        }
+        fieldsToValidate = ['valor_total', 'valor_sinal', 'valor_financiamento']
       }
-    } else if (stepId === 'checklist') {
-      isValid = true
     } else if (stepId === 'juridico') {
       if (tipoDocumento === 'autorizacao_intermediacao') {
-        isValid = await form.trigger(['clausula_lgpd', 'gestao_exclusiva'])
+        fieldsToValidate = ['clausula_lgpd', 'gestao_exclusiva']
       } else {
-        isValid = await form.trigger(['clausula_lgpd'])
-      }
-      if (!form.getValues('clausula_lgpd')) {
-        toast.error('O consentimento da LGPD é obrigatório.')
-        isValid = false
+        fieldsToValidate = ['clausula_lgpd']
       }
     }
 
+    if (fieldsToValidate.length > 0) {
+      isValid = await form.trigger(fieldsToValidate as any)
+    }
+
     if (!isValid) {
-      toast.error('Existem campos obrigatórios inválidos ou vazios.')
+      handleValidationFailure(form.formState.errors)
       return
     }
 
@@ -438,13 +545,12 @@ export function ContractForm({
   }
 
   const handlePreview = async () => {
-    if (tipoDocumento !== 'checklist_documental' && tipoDocumento !== 'recibo_sinal') {
-      const isValid = await form.trigger()
-      if (!isValid) {
-        toast.error('Existem campos obrigatórios inválidos ou vazios antes de visualizar.')
-        return
-      }
+    const isValid = await form.trigger()
+    if (!isValid) {
+      handleValidationFailure(form.formState.errors)
+      return
     }
+
     setIsPreviewing(true)
     setPreviewModalOpen(true)
     try {
@@ -484,19 +590,12 @@ export function ContractForm({
   }
 
   const initiateGeneration = async () => {
-    if (tipoDocumento !== 'checklist_documental' && tipoDocumento !== 'recibo_sinal') {
-      const isValid = await form.trigger()
-      if (!isValid) {
-        toast.error('Existem campos obrigatórios inválidos ou vazios antes de gerar.')
-        return
-      }
+    const isValid = await form.trigger()
+    if (!isValid) {
+      handleValidationFailure(form.formState.errors)
+      return
     }
-    if (
-      !['ficha_cadastral', 'checklist_documental', 'recibo_sinal'].includes(tipoDocumento) &&
-      !form.getValues('clausula_lgpd')
-    ) {
-      return toast.error('Aceite a LGPD.')
-    }
+
     setIsGenerating(true)
     try {
       let text = ''

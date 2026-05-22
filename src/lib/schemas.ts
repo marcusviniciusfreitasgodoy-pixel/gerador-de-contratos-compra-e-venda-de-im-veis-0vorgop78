@@ -191,6 +191,19 @@ export const contractSchema = z
       })
     }
 
+    if (
+      !data.clausula_lgpd &&
+      !['ficha_cadastral', 'checklist_documental', 'recibo_sinal'].includes(
+        data.tipo_documento || '',
+      )
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['clausula_lgpd'],
+        message: 'O consentimento da LGPD é obrigatório.',
+      })
+    }
+
     if (data.tipo_documento === 'autorizacao_intermediacao' && !data.gestao_exclusiva) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

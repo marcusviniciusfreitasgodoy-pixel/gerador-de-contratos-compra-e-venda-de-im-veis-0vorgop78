@@ -5,7 +5,10 @@ import { FormSelect } from '@/components/FormInput'
 import { PLATAFORMA_OPTIONS } from '@/lib/constants'
 
 export function JuridicoTab({ tipoDocumento }: { tipoDocumento: string }) {
-  const { control } = useFormContext()
+  const {
+    control,
+    formState: { errors },
+  } = useFormContext()
   const isAutorizacao = tipoDocumento === 'autorizacao_intermediacao'
 
   return (
@@ -129,17 +132,28 @@ export function JuridicoTab({ tipoDocumento }: { tipoDocumento: string }) {
           control={control}
           name="clausula_lgpd"
           render={({ field }) => (
-            <FormItem className="flex items-center space-x-2 bg-emerald-50 p-4 rounded-lg border border-emerald-200">
+            <FormItem
+              className={`flex items-center space-x-2 p-4 rounded-lg border ${errors.clausula_lgpd ? 'bg-red-50 border-red-500' : 'bg-emerald-50 border-emerald-200'}`}
+            >
               <FormControl>
                 <Checkbox
                   checked={field.value}
                   onCheckedChange={field.onChange}
-                  className="data-[state=checked]:bg-emerald-600 data-[state=checked]:text-white"
+                  className={`data-[state=checked]:bg-emerald-600 data-[state=checked]:text-white ${errors.clausula_lgpd ? 'border-red-500' : ''}`}
                 />
               </FormControl>
-              <FormLabel className="!mt-0 cursor-pointer text-emerald-900 font-medium leading-tight">
-                Consentimento LGPD (Obrigatório)
-              </FormLabel>
+              <div className="flex flex-col space-y-1 !mt-0">
+                <FormLabel
+                  className={`cursor-pointer font-medium leading-tight ${errors.clausula_lgpd ? 'text-red-700' : 'text-emerald-900'}`}
+                >
+                  Consentimento LGPD (Obrigatório)
+                </FormLabel>
+                {errors.clausula_lgpd && (
+                  <p className="text-[0.8rem] font-medium text-red-500">
+                    {errors.clausula_lgpd.message as string}
+                  </p>
+                )}
+              </div>
             </FormItem>
           )}
         />
