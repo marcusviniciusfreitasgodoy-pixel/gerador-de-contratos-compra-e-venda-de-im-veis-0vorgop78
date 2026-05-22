@@ -126,7 +126,6 @@ export default function NewContract() {
 
         <div className="bg-[#0C2340] rounded-2xl p-8 md:p-10 mb-12 text-white shadow-xl relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6 border-b-4 border-[#D4AF37]">
           <div className="z-10 relative max-w-2xl">
-            <GodoyLogo className="h-10 md:h-12 object-contain mb-6" />
             <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-4 text-white">
               Novo Documento
             </h1>
