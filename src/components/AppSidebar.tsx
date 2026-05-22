@@ -23,35 +23,21 @@ import {
   ShieldAlert,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
-import pb from '@/lib/pocketbase/client'
-import { GRSymbol } from '@/components/GodoyLogo'
+import logoUrl from '@/assets/logotipo-negativo-01-eb1e3.png'
 
 export function AppSidebar() {
   const { pathname } = useLocation()
   const { user } = useAuth()
 
-  const customLogoUrl = user?.imobiliaria_logo ? pb.files.getURL(user, user.imobiliaria_logo) : null
-  const brandName = user?.imobiliaria_nome || 'Godoy Prime Realty'
-
   return (
     <Sidebar>
-      <SidebarHeader className="h-16 flex items-center justify-center px-4 border-b border-sidebar-border bg-sidebar text-white">
-        <Link
-          to="/"
-          className="flex items-center justify-center gap-3 overflow-hidden w-full transition-opacity hover:opacity-80"
-        >
-          {customLogoUrl ? (
-            <img
-              src={customLogoUrl}
-              alt={brandName}
-              className="h-8 w-auto object-contain max-w-full"
-            />
-          ) : (
-            <>
-              <GRSymbol className="h-7 w-7 shrink-0 object-contain" />
-              <span className="font-extrabold truncate tracking-wide text-sm">{brandName}</span>
-            </>
-          )}
+      <SidebarHeader className="h-16 flex justify-center items-center px-4 border-b border-sidebar-border bg-sidebar text-white">
+        <Link to="/" className="flex items-center justify-center w-full py-2">
+          <img
+            src={logoUrl}
+            alt="Godoy Prime Realty Logo"
+            className="h-8 max-w-[180px] object-contain"
+          />
         </Link>
       </SidebarHeader>
       <SidebarContent>

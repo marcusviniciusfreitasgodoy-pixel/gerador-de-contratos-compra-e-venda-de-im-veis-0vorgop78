@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
-import logoUrl from '@/assets/logotipo-negativo-01-8be70.png'
+import logoUrl from '@/assets/logotipo-negativo-01-eb1e3.png'
 
 export default function Login() {
   const { user, signIn, loading } = useAuth()
