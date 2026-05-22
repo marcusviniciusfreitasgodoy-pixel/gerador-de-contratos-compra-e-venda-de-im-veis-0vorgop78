@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { ContractForm } from '@/components/ContractForm'
-import { useToast } from '@/hooks/use-toast'
-import { useRealtime } from '@/hooks/use-realtime'
 import { useAuth } from '@/hooks/use-auth'
 import { DocumentContext } from '@/contexts/DocumentContext'
 import { Card, CardContent } from '@/components/ui/card'
@@ -46,7 +44,6 @@ const ICON_MAP: Record<string, any> = {
 export default function NewContract() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { toast } = useToast()
   const { user, loading } = useAuth()
 
   const [tipoDocumento, setTipoDocumento] = useState<string | null>(null)
@@ -96,18 +93,6 @@ export default function NewContract() {
   const docInfo = tipoDocumento ? infoMap[tipoDocumento] : { title: 'Documento', gender: 'o' }
   const documentName = docInfo?.title || 'Documento'
   const documentGender = docInfo?.gender || 'o'
-
-  useRealtime('contracts', (e) => {
-    if (e.action === 'create' && user && e.record.user === user.id) {
-      const gerado =
-        documentGender === 'as' ? 'geradas' : documentGender === 'a' ? 'gerada' : 'gerado'
-      toast({
-        title: 'Sucesso!',
-        description: `${documentName} ${gerado} com sucesso!`,
-        className: 'bg-emerald-50 text-emerald-900 border-emerald-200',
-      })
-    }
-  })
 
   if (loading) {
     return (

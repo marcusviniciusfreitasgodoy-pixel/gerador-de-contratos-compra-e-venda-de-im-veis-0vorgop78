@@ -71,11 +71,15 @@ const WIZARD_STEPS_ALL = [
 export function ContractForm({
   tipoDocumento,
   onBack,
+  onSubmit,
+  handleNext: onHandleNext,
   documentName = 'Contrato',
   documentGender = 'o',
 }: {
   tipoDocumento: string
   onBack: () => void
+  onSubmit?: (values: any, submitFn: () => Promise<void>) => Promise<void>
+  handleNext?: (values: any, nextFn: () => Promise<void>) => Promise<void>
   documentName?: string
   documentGender?: string
 }) {
@@ -509,13 +513,22 @@ export function ContractForm({
       return
     }
 
-    try {
-      const record = await saveContractDraft(form.getValues(), draftId)
-      setDraftId(record.id)
-    } catch (err) {
-      console.error('Failed to autosave draft:', err)
+    const nextFn = async () => {
+      try {
+        const record = await saveContractDraft(form.getValues(), draftId)
+        setDraftId(record.id)
+      } catch (err) {
+        console.error('Failed to autosave draft:', err)
+        throw err
+      }
+      setCurrentStepIndex((s) => s + 1)
     }
-    setCurrentStepIndex((s) => s + 1)
+
+    if (onHandleNext) {
+      await onHandleNext(form.getValues(), nextFn)
+    } else {
+      await nextFn()
+    }
   }
 
   const getPayload = () => {
@@ -592,8 +605,19 @@ export function ContractForm({
         text = (res?.minuta_texto || '').replace(/Assessoria Jurídica Imobiliária/gi, '')
       }
 
-      await saveContractDraft({ ...form.getValues(), status: 'finalizado' }, draftId, text)
-      setIsSuccess(true)
+      const submitFn = async () => {
+        await saveContractDraft({ ...form.getValues(), status: 'finalizado' }, draftId, text)
+        setIsSuccess(true)
+        const gerado =
+          documentGender === 'as' ? 'geradas' : documentGender === 'a' ? 'gerada' : 'gerado'
+        toast.success(`${documentName} ${gerado} com sucesso!`)
+      }
+
+      if (onSubmit) {
+        await onSubmit(form.getValues(), submitFn)
+      } else {
+        await submitFn()
+      }
     } catch (err) {
       toast.error('Erro', { description: getErrorMessage(err) })
     } finally {
