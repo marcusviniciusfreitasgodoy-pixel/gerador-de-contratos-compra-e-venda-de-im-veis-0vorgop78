@@ -330,6 +330,10 @@ export function ContractForm({
       'vendedor_agencia',
       'vendedor_conta',
       'vendedor_pix',
+      'permuta_imovel_endereco',
+      'permuta_imovel_matricula',
+      'permuta_imovel_valor',
+      'permuta_imovel_detalhes',
     ]
     const juridico = [
       'tipo_negociacao',
@@ -430,6 +434,15 @@ export function ContractForm({
         fieldsToValidate = ['valor_total', 'valor_avaliacao']
       } else {
         fieldsToValidate = ['valor_total', 'valor_sinal', 'valor_financiamento', 'valor_financiado']
+
+        const tipoNeg = form.getValues('tipo_negociacao')
+        if (tipoNeg === 'permuta' || tipoNeg === 'dacao') {
+          fieldsToValidate.push(
+            'permuta_imovel_endereco',
+            'permuta_imovel_matricula',
+            'permuta_imovel_valor',
+          )
+        }
       }
     } else if (stepId === 'juridico') {
       if (tipoDocumento === 'autorizacao_intermediacao') {

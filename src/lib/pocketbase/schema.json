@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-22T16:54:47.493Z",
+  "generatedAt": "2026-05-22T17:00:37.616Z",
   "collections": [
     {
       "name": "users",
@@ -29,19 +29,14 @@
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": [
-            "onCreate"
-          ]
+          "autodateTriggers": ["onCreate"]
         },
         {
           "name": "updated",
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": [
-            "onCreate",
-            "onUpdate"
-          ]
+          "autodateTriggers": ["onCreate", "onUpdate"]
         },
         {
           "name": "imobiliaria_nome",
@@ -162,19 +157,14 @@
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": [
-            "onCreate"
-          ]
+          "autodateTriggers": ["onCreate"]
         },
         {
           "name": "updated",
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": [
-            "onCreate",
-            "onUpdate"
-          ]
+          "autodateTriggers": ["onCreate", "onUpdate"]
         },
         {
           "name": "tipo",
@@ -504,7 +494,8 @@
             "financiamento",
             "investidor",
             "alto_padrao",
-            "permuta"
+            "permuta",
+            "dacao"
           ]
         },
         {
@@ -532,20 +523,14 @@
           "type": "select",
           "required": false,
           "system": false,
-          "selectValues": [
-            "pf",
-            "pj"
-          ]
+          "selectValues": ["pf", "pj"]
         },
         {
           "name": "tipo_comprador",
           "type": "select",
           "required": false,
           "system": false,
-          "selectValues": [
-            "pf",
-            "pj"
-          ]
+          "selectValues": ["pf", "pj"]
         },
         {
           "name": "cnpj_vendedor",
@@ -910,12 +895,7 @@
           "type": "select",
           "required": false,
           "system": false,
-          "selectValues": [
-            "Clicksign",
-            "ZapSign",
-            "Docusign",
-            "Autentique"
-          ]
+          "selectValues": ["Clicksign", "ZapSign", "Docusign", "Autentique"]
         },
         {
           "name": "clausula_lgpd",
@@ -1174,10 +1154,7 @@
           "type": "select",
           "required": false,
           "system": false,
-          "selectValues": [
-            "com_exclusiva",
-            "sem_exclusiva"
-          ]
+          "selectValues": ["com_exclusiva", "sem_exclusiva"]
         },
         {
           "name": "vendedor_uniao_estavel",
@@ -1188,6 +1165,30 @@
         {
           "name": "comprador_uniao_estavel",
           "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "permuta_imovel_endereco",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "permuta_imovel_matricula",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "permuta_imovel_valor",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "permuta_imovel_detalhes",
+          "type": "text",
           "required": false,
           "system": false
         }
@@ -1247,19 +1248,14 @@
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": [
-            "onCreate"
-          ]
+          "autodateTriggers": ["onCreate"]
         },
         {
           "name": "updated",
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": [
-            "onCreate",
-            "onUpdate"
-          ]
+          "autodateTriggers": ["onCreate", "onUpdate"]
         },
         {
           "name": "version",
@@ -1342,31 +1338,21 @@
           "type": "select",
           "required": false,
           "system": false,
-          "selectValues": [
-            "baixo",
-            "medio",
-            "alto",
-            "critico"
-          ]
+          "selectValues": ["baixo", "medio", "alto", "critico"]
         },
         {
           "name": "created",
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": [
-            "onCreate"
-          ]
+          "autodateTriggers": ["onCreate"]
         },
         {
           "name": "updated",
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": [
-            "onCreate",
-            "onUpdate"
-          ]
+          "autodateTriggers": ["onCreate", "onUpdate"]
         }
       ],
       "indexes": []
@@ -1413,19 +1399,14 @@
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": [
-            "onCreate"
-          ]
+          "autodateTriggers": ["onCreate"]
         },
         {
           "name": "updated",
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": [
-            "onCreate",
-            "onUpdate"
-          ]
+          "autodateTriggers": ["onCreate", "onUpdate"]
         }
       ],
       "indexes": []
@@ -1465,19 +1446,14 @@
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": [
-            "onCreate"
-          ]
+          "autodateTriggers": ["onCreate"]
         },
         {
           "name": "updated",
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": [
-            "onCreate",
-            "onUpdate"
-          ]
+          "autodateTriggers": ["onCreate", "onUpdate"]
         }
       ],
       "indexes": []
@@ -1530,19 +1506,14 @@
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": [
-            "onCreate"
-          ]
+          "autodateTriggers": ["onCreate"]
         },
         {
           "name": "updated",
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": [
-            "onCreate",
-            "onUpdate"
-          ]
+          "autodateTriggers": ["onCreate", "onUpdate"]
         }
       ],
       "indexes": []

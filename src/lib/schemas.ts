@@ -165,8 +165,14 @@ export const contractSchema = z
     gestao_exclusiva: z.enum(['com_exclusiva', 'sem_exclusiva']).optional(),
 
     tipo_negociacao: z
-      .enum(['a_vista', 'financiamento', 'investidor', 'alto_padrao', 'permuta'])
+      .enum(['a_vista', 'financiamento', 'investidor', 'alto_padrao', 'permuta', 'dacao'])
       .optional(),
+
+    permuta_imovel_endereco: z.string().optional(),
+    permuta_imovel_matricula: z.string().optional(),
+    permuta_imovel_valor: currencyToNumber.optional(),
+    permuta_imovel_detalhes: z.string().optional(),
+
     clausula_arrependimento: z.boolean().default(false),
     vendedor_banco: z.string().optional(),
     vendedor_agencia: z.string().optional(),
@@ -373,6 +379,30 @@ export const contractSchema = z
 
     if (data.cep_imovel && !cepRegex.test(data.cep_imovel)) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['cep_imovel'], message: 'CEP inválido' })
+    }
+
+    if (data.tipo_negociacao === 'permuta' || data.tipo_negociacao === 'dacao') {
+      if (!data.permuta_imovel_endereco) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['permuta_imovel_endereco'],
+          message: 'Obrigatório',
+        })
+      }
+      if (!data.permuta_imovel_matricula) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['permuta_imovel_matricula'],
+          message: 'Obrigatório',
+        })
+      }
+      if (!data.permuta_imovel_valor || data.permuta_imovel_valor <= 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['permuta_imovel_valor'],
+          message: 'Obrigatório',
+        })
+      }
     }
   })
 

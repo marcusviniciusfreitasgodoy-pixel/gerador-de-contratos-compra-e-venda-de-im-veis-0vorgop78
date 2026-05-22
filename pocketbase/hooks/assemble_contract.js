@@ -7,6 +7,27 @@ routerAdd(
 
     const normalizeDigits = (str) => (str ? String(str).replace(/\D/g, '') : '')
 
+    let imobiliaria_nome = 'Godoy Prime Realty'
+    let imobiliaria_documento = ''
+    let creci = ''
+    let banco_nome = ''
+    let agencia = ''
+    let conta = ''
+    let chave_pix = ''
+
+    if (e.auth?.id) {
+      try {
+        const userRecord = $app.findRecordById('users', e.auth.id)
+        imobiliaria_nome = userRecord.getString('imobiliaria_nome') || imobiliaria_nome
+        imobiliaria_documento = userRecord.getString('imobiliaria_documento') || ''
+        creci = userRecord.getString('creci') || ''
+        banco_nome = userRecord.getString('banco_nome') || ''
+        agencia = userRecord.getString('agencia') || ''
+        conta = userRecord.getString('conta') || ''
+        chave_pix = userRecord.getString('chave_pix') || ''
+      } catch (_) {}
+    }
+
     // Master JSON Schema mapping
     const master_data = {
       metadata: {
@@ -122,6 +143,13 @@ routerAdd(
           inadimplencia_percentual: Number(body.multa_inadimplencia) || 10,
           multa_desocupacao: Number(body.multa_desocupacao) || 0,
         },
+        permuta_dacao: {
+          is_permuta_dacao: ['permuta', 'dacao'].includes(body.tipo_negociacao),
+          endereco: body.permuta_imovel_endereco || '',
+          matricula: body.permuta_imovel_matricula || '',
+          valor: Number(body.permuta_imovel_valor) || 0,
+          detalhes: body.permuta_imovel_detalhes || '',
+        },
       },
       posse: {
         imediata: !!body.posse_imediata,
@@ -134,7 +162,15 @@ routerAdd(
         valor: Number(body.valor_comissao) || 0,
         responsavel_pagamento: body.responsavel_comissao || 'vendedor',
         garantida: !!body.comissao_garantida,
-        imobiliaria: 'Godoy Prime Realty',
+        imobiliaria: imobiliaria_nome,
+        creci: creci,
+        documento: imobiliaria_documento,
+        dados_bancarios: {
+          banco: banco_nome,
+          agencia: agencia,
+          conta: conta,
+          chave_pix: chave_pix,
+        },
       },
       compliance: {
         lgpd: !!body.clausula_lgpd,
@@ -200,7 +236,7 @@ IDENTIDADE: ${body.rg_vendedor || ''} ORGÃO EMISSOR: ${body.orgao_emissor_vende
 
 TELEFONES: ${body.telefone_vendedor || ''} E-MAIL: ${body.email_vendedor || ''}
 
-CONTRATADO: MARCUS V F GODOY ASSESSORIA IMOBILIARIA CNPJ: 58.409.058/0001-73
+CONTRATADO: ${imobiliaria_nome.toUpperCase()} CPF/CNPJ: ${imobiliaria_documento}
 
 DESCRIÇÃO DO IMÓVEL
 
@@ -238,7 +274,7 @@ CPF: ${body.cpf_vendedor || '_________________________'}
 
 CORRETOR:____________________________________________________________________.
 CONTRATADO
-CRECI: ________________`
+CRECI: ${creci}`
 
       return e.json(200, { minuta_texto: text, used_clauses: [] })
     }
@@ -401,7 +437,7 @@ CRECI: ________________`
 Sua função é gerar uma FICHA CADASTRAL estruturada contendo os dados do comprador, vendedor e do imóvel.
 Geração em TEXTO PURO (Plain Text). É ESTRITAMENTE PROIBIDO o uso de Markdown.
 Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 2 linhas:
-GODOY PRIME REALTY
+${imobiliaria_nome.toUpperCase()}
 FICHA CADASTRAL
 
 Use os dados do Master JSON para preencher a ficha, organizando de forma clara (dados pessoais, contatos, dados do imóvel). Não inclua cláusulas contratuais.
@@ -411,7 +447,7 @@ Use os dados do Master JSON para preencher a ficha, organizando de forma clara (
 Sua função é gerar um CHECKLIST DOCUMENTAL relacionando todos os documentos necessários para a transação imobiliária com base no perfil das partes e do imóvel.
 Geração em TEXTO PURO (Plain Text). É ESTRITAMENTE PROIBIDO o uso de Markdown.
 Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 2 linhas:
-GODOY PRIME REALTY
+${imobiliaria_nome.toUpperCase()}
 CHECKLIST DOCUMENTAL
 
 Regras Específicas:
@@ -424,7 +460,7 @@ Regras Específicas:
 Sua função é gerar um ${documentTitle.toUpperCase()} formalizando a entrega das chaves e a imissão na posse do imóvel.
 Geração em TEXTO PURO (Plain Text). É ESTRITAMENTE PROIBIDO o uso de Markdown.
 Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 2 linhas:
-GODOY PRIME REALTY
+${imobiliaria_nome.toUpperCase()}
 ${documentTitle.toUpperCase()}
 
 Inclua a qualificação das partes, a descrição do imóvel, a data da posse e a declaração de que o comprador vistoriou o imóvel. Inclua espaço para assinaturas ao final.
@@ -434,7 +470,7 @@ Inclua a qualificação das partes, a descrição do imóvel, a data da posse e 
 Sua função é gerar um RECIBO DE SINAL formalizando o pagamento do princípio de pagamento (arras).
 Geração em TEXTO PURO (Plain Text). É ESTRITAMENTE PROIBIDO o uso de Markdown.
 Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 2 linhas:
-GODOY PRIME REALTY
+${imobiliaria_nome.toUpperCase()}
 RECIBO DE SINAL E PRINCÍPIO DE PAGAMENTO
 
 Inclua a qualificação das partes, o valor do sinal explicitado, a referência ao imóvel e as condições básicas das arras. Inclua espaço para assinatura de quem recebe.
@@ -444,11 +480,11 @@ Inclua a qualificação das partes, o valor do sinal explicitado, a referência 
 Sua função é gerar uma AUTORIZAÇÃO DE INTERMEDIAÇÃO IMOBILIÁRIA.
 Geração em TEXTO PURO (Plain Text). É ESTRITAMENTE PROIBIDO o uso de Markdown.
 Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 2 linhas:
-GODOY PRIME REALTY
+${imobiliaria_nome.toUpperCase()}
 AUTORIZAÇÃO DE INTERMEDIAÇÃO IMOBILIÁRIA
 
 Regras Específicas:
-1. Foque exclusivamente nos termos da corretagem, regras de comissionamento (valor/percentual e responsabilidade), exclusividade (se for o caso) e as obrigações da imobiliária (Godoy Prime Realty) e do Vendedor (proprietário).
+1. Foque exclusivamente nos termos da corretagem, regras de comissionamento (valor/percentual e responsabilidade), exclusividade (se for o caso) e as obrigações da imobiliária e do Vendedor (proprietário).
 2. Omita totalmente cláusulas relativas à transferência da propriedade (compra e venda), posse, multas de desocupação e financiamento.
 3. Utilize numeração formal de cláusulas (CLÁUSULA PRIMEIRA - DO OBJETO, etc).
 4. O Objeto é a autorização para a intermediação da venda do imóvel descrito.
@@ -458,7 +494,7 @@ Regras Específicas:
 Sua função é gerar um DISTRATO DE COMPRA E VENDA.
 Geração em TEXTO PURO (Plain Text). É ESTRITAMENTE PROIBIDO o uso de Markdown.
 Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 2 linhas:
-GODOY PRIME REALTY
+${imobiliaria_nome.toUpperCase()}
 DISTRATO DE COMPRA E VENDA
 
 Regras Específicas:
@@ -473,7 +509,7 @@ Regras Específicas:
 Sua função é gerar DECLARAÇÕES COMPLEMENTARES para a transação imobiliária.
 Geração em TEXTO PURO (Plain Text). É ESTRITAMENTE PROIBIDO o uso de Markdown.
 Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 2 linhas:
-GODOY PRIME REALTY
+${imobiliaria_nome.toUpperCase()}
 DECLARAÇÕES COMPLEMENTARES
 
 Regras Específicas:
@@ -488,10 +524,10 @@ Sua função é montar contratos juridicamente consistentes utilizando EXCLUSIVA
 Regras Obrigatórias (Hard Rules):
 1. NEVER invent clauses. Only use the ones provided in the library. As variáveis interpoladas já foram preenchidas nos textos das cláusulas.
 2. NEVER alter the legal meaning of the provided clauses. You may adjust grammar to connect them smoothly.
-3. Replace any remaining placeholders like {{variable_name}} with the corresponding values from the Master JSON data.
+3. Replace any remaining placeholders like {{variable_name}} with the corresponding values from the Master JSON data. Inclua de forma explícita os dados da permuta ou dação caso aplicável no contrato.
 4. Geração em TEXTO PURO (Plain Text). É ESTRITAMENTE PROIBIDO o uso de Markdown (como #, ##, **, _, etc). Não use formatação em markdown em NENHUMA parte do texto.
 5. Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 2 linhas:
-GODOY PRIME REALTY
+${imobiliaria_nome.toUpperCase()}
 ${documentTitle.toUpperCase()}
 
 6. Numeração Formal de Cláusulas: Estruture as cláusulas sequencialmente utilizando numeração ordinal em caixa alta (ex: CLÁUSULA PRIMEIRA - [TÍTULO], CLÁUSULA SEGUNDA - [TÍTULO]). As seções "Objeto do Contrato" e "Descrição do Imóvel" devem seguir esta mesma sequência numérica formal.

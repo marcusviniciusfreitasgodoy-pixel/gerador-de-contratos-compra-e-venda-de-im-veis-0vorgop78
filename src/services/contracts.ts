@@ -92,6 +92,11 @@ export const saveContractDraft = async (
     data_quitacao: safeDate(data.data_quitacao),
     vendedor_uniao_estavel: data.vendedor_uniao_estavel ?? false,
     comprador_uniao_estavel: data.comprador_uniao_estavel ?? false,
+
+    permuta_imovel_endereco: data.permuta_imovel_endereco,
+    permuta_imovel_matricula: data.permuta_imovel_matricula,
+    permuta_imovel_valor: parseCurrencySafe(data.permuta_imovel_valor),
+    permuta_imovel_detalhes: data.permuta_imovel_detalhes,
   }
 
   if (data.imovel_desocupado) {

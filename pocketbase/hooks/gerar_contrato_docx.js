@@ -70,6 +70,10 @@ routerAdd(
       valor_financiado,
       instituicao_financeira,
       data_pagamento_saldo,
+      permuta_imovel_endereco,
+      permuta_imovel_matricula,
+      permuta_imovel_valor,
+      permuta_imovel_detalhes,
       vendedor_banco,
       vendedor_agencia,
       vendedor_conta,
@@ -107,6 +111,7 @@ routerAdd(
             ${valor_reforco && Number(valor_reforco) > 0 ? `<li>Reforço de Sinal: ${formatCurrency(valor_reforco)} (por extenso).</li>` : ''}
             ${valor_complemento && Number(valor_complemento) > 0 ? `<li>Complemento: ${formatCurrency(valor_complemento)} (por extenso).</li>` : ''}
             ${valor_saldo && Number(valor_saldo) > 0 ? `<li>Saldo: ${formatCurrency(valor_saldo)} (por extenso), com vencimento em ${formatDate(data_pagamento_saldo)}.</li>` : ''}
+            ${permuta_imovel_valor && Number(permuta_imovel_valor) > 0 ? `<li>Da Permuta/Dação: ${formatCurrency(permuta_imovel_valor)} (por extenso), correspondente ao imóvel da matrícula ${permuta_imovel_matricula}, localizado em ${permuta_imovel_endereco}.</li>` : ''}
             <li>Comissão: ${formatCurrency(comissao)} (por extenso).</li>
           </ul>
         `
@@ -115,6 +120,7 @@ routerAdd(
           <li>Reforço de Sinal: ${formatCurrency(valor_reforco)} (por extenso).</li>
           <li>Complemento: ${formatCurrency(valor_complemento)} (por extenso).</li>
           <li>Valor Financiado: ${formatCurrency(valor_financiado)} (por extenso)${instituicao_financeira ? `, através da instituição financeira ${instituicao_financeira}` : ''}.</li>
+          ${permuta_imovel_valor && Number(permuta_imovel_valor) > 0 ? `<li>Da Permuta/Dação: ${formatCurrency(permuta_imovel_valor)} (por extenso), correspondente ao imóvel da matrícula ${permuta_imovel_matricula}, localizado em ${permuta_imovel_endereco}.</li>` : ''}
           <li>Comissão: ${formatCurrency(comissao)} (por extenso).</li>
         </ul>
       `
@@ -126,10 +132,10 @@ routerAdd(
       `
         : ''
 
-      const user = user_details
-      const brokerBankInfo = user?.banco_nome
+      const user = user_details || {}
+      const brokerBankInfo = user.banco_nome
         ? `
-        <p>O pagamento da comissão de corretagem deverá ser depositado na conta bancária de titularidade de ${user.imobiliaria_nome || user.name}, CPF/CNPJ: ${user.imobiliaria_documento || ''}, CRECI: ${user.creci || ''}.</p>
+        <p>O pagamento da comissão de corretagem deverá ser depositado na conta bancária de titularidade de ${user.imobiliaria_nome || user.name || 'Imobiliária'}, CPF/CNPJ: ${user.imobiliaria_documento || ''}, CRECI: ${user.creci || ''}.</p>
         <p>Banco: ${user.banco_nome}, Agência: ${user.agencia}, Conta: ${user.conta}, Chave Pix: ${user.chave_pix}.</p>
       `
         : ''

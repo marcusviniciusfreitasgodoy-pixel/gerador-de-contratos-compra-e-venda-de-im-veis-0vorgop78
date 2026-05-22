@@ -27,6 +27,7 @@ export function JuridicoTab({ tipoDocumento }: { tipoDocumento: string }) {
             { label: 'Investidor', value: 'investidor' },
             { label: 'Alto Padrão', value: 'alto_padrao' },
             { label: 'Permuta', value: 'permuta' },
+            { label: 'Dação em Pagamento', value: 'dacao' },
           ]}
         />
 
