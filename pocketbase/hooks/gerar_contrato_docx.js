@@ -210,9 +210,21 @@ routerAdd(
         <br>
       `
 
-      bodyContent = `
-        <h1 style="text-align: center; font-size: 28px;">${user?.imobiliaria_nome || 'GODOY PRIME REALTY'}</h1>
-        <p style="text-align: center;">═══════════════════════════════════════════════════════════════════════════</p>
+      let headerLogoHtml = \`<h1 style="text-align: center; font-size: 28px; color: #0C2340;">\${user?.imobiliaria_nome || 'GODOY PRIME REALTY'}</h1>\`;
+      
+      const nome = user?.imobiliaria_nome || 'GODOY PRIME REALTY';
+      if (nome.toUpperCase().includes('GODOY PRIME REALTY') && !nome.includes('■')) {
+        headerLogoHtml = \`
+          <div style="text-align: center; margin-bottom: 15px;">
+            <div style="font-size: 32px; letter-spacing: 10px; color: #0C2340; margin-bottom: 5px;">GODOY</div>
+            <div style="font-size: 14px; letter-spacing: 6px; color: #0C2340;">PRIME REALTY</div>
+          </div>
+        \`;
+      }
+
+      bodyContent = \`
+        \${headerLogoHtml}
+        <p style="text-align: center; color: #0C2340;">═══════════════════════════════════════════════════════════════════════════</p>
         <br>
         <h2 style="text-align: center; font-size: 24px;">INSTRUMENTO PARTICULAR DE PROMESSA DE COMPRA E VENDA</h2>
         <p>Por este instrumento particular, as partes abaixo qualificadas celebram o presente Contrato de Promessa de Compra e Venda, mediante as cláusulas e condições a seguir estabelecidas:</p>

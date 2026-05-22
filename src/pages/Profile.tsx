@@ -41,9 +41,18 @@ export default function Profile() {
     if (!user?.id) return
     setIsSavingBranding(true)
     try {
+      const cleanHeader = brandingData.header_content.replace(
+        /[\u25A0\u25FB\u25FC\u25FD\u25FE\u25AA\u25AB\u25A1]/g,
+        '',
+      )
+      const cleanFooter = brandingData.footer_content.replace(
+        /[\u25A0\u25FB\u25FC\u25FD\u25FE\u25AA\u25AB\u25A1]/g,
+        '',
+      )
+
       const formData = new FormData()
-      formData.append('header_content', brandingData.header_content)
-      formData.append('footer_content', brandingData.footer_content)
+      formData.append('header_content', cleanHeader)
+      formData.append('footer_content', cleanFooter)
       if (logoFile) {
         formData.append('imobiliaria_logo', logoFile)
       }
@@ -102,8 +111,13 @@ export default function Profile() {
 
     setIsSaving(true)
     try {
+      const cleanNome =
+        data.imobiliaria_nome
+          ?.replace(/[\u25A0\u25FB\u25FC\u25FD\u25FE\u25AA\u25AB\u25A1]/g, '')
+          .trim() || ''
       const payload = {
         ...data,
+        imobiliaria_nome: cleanNome,
         comissao_padrao_percentual: Number(data.comissao_padrao_percentual) || 0,
       }
 

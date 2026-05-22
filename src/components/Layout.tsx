@@ -5,7 +5,7 @@ import { LogOut } from 'lucide-react'
 import { IntegrationPanel } from '@/components/IntegrationPanel'
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/AppSidebar'
-import iconUrl from '@/assets/gold-f6482.png'
+import { GodoyLogo } from '@/components/GodoyLogo'
 
 export default function Layout() {
   const { user, signOut, loading } = useAuth()
@@ -21,11 +21,9 @@ export default function Layout() {
           <div className="container mx-auto px-4 h-16 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <SidebarTrigger className="text-primary-foreground hover:bg-primary-foreground/20 md:hidden" />
-              <Link
-                to="/"
-                className="flex md:hidden items-center gap-2 transition-transform hover:scale-105"
-              >
-                <img src={iconUrl} alt="Prime Realty Icon" className="w-8 h-8 object-contain" />
+              <Link to="/" className="flex items-center gap-2 transition-transform hover:scale-105">
+                <GodoyLogo className="h-10 w-auto text-primary-foreground hidden md:block" />
+                <GodoyLogo className="h-8 w-auto text-primary-foreground md:hidden" />
               </Link>
             </div>
             <div className="flex items-center gap-4">

@@ -46,6 +46,21 @@ export async function buildPdfDoc(minutaText: string, userDetails?: any): Promis
           /* intentionally ignored */
         }
       }
+    } else {
+      const nome = userDetails?.imobiliaria_nome || 'GODOY PRIME REALTY'
+      if (nome.toUpperCase().includes('GODOY PRIME REALTY') && !nome.includes('■')) {
+        d.setFont('helvetica', 'normal')
+        d.setFontSize(16)
+        d.setTextColor(12, 35, 64)
+        d.text('G O D O Y', margin, 15)
+        d.setFontSize(8)
+        d.text('P R I M E  R E A L T Y', margin, 20)
+      } else {
+        d.setFont('helvetica', 'bold')
+        d.setFontSize(12)
+        d.setTextColor(12, 35, 64)
+        d.text(nome, margin, 18)
+      }
     }
 
     const title = getDocumentTitle(userDetails?.tipo_documento)

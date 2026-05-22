@@ -10,6 +10,13 @@ export function generateContractPDF(text: string, fileName: string) {
     const pageHeight = 297
 
     const addHeader = (d: jsPDF) => {
+      d.setFont('helvetica', 'normal')
+      d.setFontSize(16)
+      d.setTextColor(12, 35, 64)
+      d.text('G O D O Y', margin, 15)
+      d.setFontSize(8)
+      d.text('P R I M E  R E A L T Y', margin, 20)
+
       d.setFont('helvetica', 'bold')
       d.setFontSize(10)
       d.setTextColor(12, 35, 64)
