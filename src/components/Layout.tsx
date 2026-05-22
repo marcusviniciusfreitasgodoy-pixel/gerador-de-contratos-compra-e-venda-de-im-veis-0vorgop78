@@ -1,18 +1,31 @@
+import { useState, useEffect } from 'react'
 import { Outlet, Navigate, Link } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import { LogOut, Loader2 } from 'lucide-react'
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/AppSidebar'
-import logoUrl from '@/assets/logotipo-negativo-01-eb1e3.png'
+import { GRSymbol } from '@/components/GRSymbol'
 
 export default function Layout() {
   const { user, signOut, loading } = useAuth()
+  const [isLongLoading, setIsLongLoading] = useState(false)
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout
+    if (loading) {
+      timer = setTimeout(() => setIsLongLoading(true), 800)
+    } else {
+      setIsLongLoading(false)
+    }
+    return () => clearTimeout(timer)
+  }, [loading])
 
   if (loading) {
+    if (!isLongLoading) return null
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#0C2340]" />
       </div>
     )
   }
@@ -23,15 +36,15 @@ export default function Layout() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset className="flex flex-col min-h-screen bg-slate-50 font-sans w-full">
-        <header className="bg-primary border-b-4 border-secondary sticky top-0 z-10 shadow-md">
+        <header className="bg-[#0C2340] border-b-4 border-[#D4AF37] sticky top-0 z-10 shadow-md">
           <div className="container mx-auto px-4 h-16 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <SidebarTrigger className="text-primary-foreground hover:bg-primary-foreground/20 md:hidden" />
+              <SidebarTrigger className="text-white hover:bg-white/20 md:hidden" />
               <Link
                 to="/"
                 className="flex md:hidden items-center transition-transform hover:scale-105"
               >
-                <img src={logoUrl} alt="Prime Realty Logo" className="h-6 object-contain" />
+                <GRSymbol className="h-8 w-8 object-contain" />
               </Link>
             </div>
             <div className="flex items-center gap-4">
@@ -39,7 +52,7 @@ export default function Layout() {
                 variant="ghost"
                 size="sm"
                 onClick={signOut}
-                className="text-primary-foreground hover:text-red-400 hover:bg-white/10 font-semibold"
+                className="text-white hover:text-red-400 hover:bg-white/10 font-semibold"
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 <span className="hidden sm:inline-block">Sair</span>

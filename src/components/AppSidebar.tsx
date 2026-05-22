@@ -23,7 +23,7 @@ import {
   ShieldAlert,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
-import logoUrl from '@/assets/logotipo-negativo-01-eb1e3.png'
+import { GodoyLogo } from '@/components/GodoyLogo'
 
 export function AppSidebar() {
   const { pathname } = useLocation()
@@ -33,11 +33,7 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader className="h-16 flex justify-center items-center px-4 border-b border-sidebar-border bg-sidebar text-white">
         <Link to="/" className="flex items-center justify-center w-full py-2">
-          <img
-            src={logoUrl}
-            alt="Godoy Prime Realty Logo"
-            className="h-8 max-w-[180px] object-contain"
-          />
+          <GodoyLogo className="h-8 max-w-[180px] object-contain" />
         </Link>
       </SidebarHeader>
       <SidebarContent>
