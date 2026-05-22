@@ -25,7 +25,7 @@ export default function Layout() {
           <div className="container mx-auto px-4 h-16 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <SidebarTrigger className="text-primary-foreground hover:bg-primary-foreground/20 md:hidden" />
-              <Link to="/" className="flex items-center gap-2 transition-transform hover:scale-105">
+              <Link to="/" className="flex items-center gap-3 transition-opacity hover:opacity-80">
                 {customLogoUrl ? (
                   <img
                     src={customLogoUrl}
@@ -33,10 +33,7 @@ export default function Layout() {
                     className="h-8 md:h-10 w-auto object-contain max-w-[150px] md:max-w-[200px]"
                   />
                 ) : (
-                  <>
-                    <GodoyLogo className="h-10 w-auto text-primary-foreground hidden md:block" />
-                    <GodoyLogo className="h-8 w-auto text-primary-foreground md:hidden" />
-                  </>
+                  <GodoyLogo className="h-8 md:h-10 w-auto text-primary-foreground" />
                 )}
               </Link>
             </div>

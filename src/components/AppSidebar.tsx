@@ -21,10 +21,10 @@ import {
   Files,
   Scale,
   ShieldAlert,
-  Building2,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import pb from '@/lib/pocketbase/client'
+import { GRSymbol } from '@/components/GodoyLogo'
 
 export function AppSidebar() {
   const { pathname } = useLocation()
@@ -48,7 +48,7 @@ export function AppSidebar() {
             />
           ) : (
             <>
-              <Building2 className="h-6 w-6 shrink-0 text-white/90" />
+              <GRSymbol className="h-8 w-8 shrink-0 text-white/90" />
               <span className="font-bold truncate text-sm">{brandName}</span>
             </>
           )}

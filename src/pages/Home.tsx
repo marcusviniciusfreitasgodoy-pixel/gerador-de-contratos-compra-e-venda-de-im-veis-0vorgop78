@@ -1,21 +1,63 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ShieldCheck, ArrowRight, AlertCircle } from 'lucide-react'
-import { documentPhases, scenarios } from '@/components/dashboard/dashboard-data'
-import { PhaseCard } from '@/components/dashboard/phase-card'
-import { ScenarioList } from '@/components/dashboard/scenario-list'
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
+import { ShieldCheck, FileText, Clock, ArrowRight, AlertCircle } from 'lucide-react'
+import { useAuth } from '@/hooks/use-auth'
+import pb from '@/lib/pocketbase/client'
 
 export default function Home() {
+  const { user } = useAuth()
+  const [recentContracts, setRecentContracts] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function fetchDashboardData() {
+      if (!user?.id) return
+
+      try {
+        setLoading(true)
+        const contracts = await pb.collection('contracts').getList(1, 5, {
+          sort: '-created',
+          filter: `user = "${user.id}"`,
+        })
+
+        if (isMounted) {
+          setRecentContracts(contracts.items)
+          setError(null)
+        }
+      } catch (err: any) {
+        if (isMounted) {
+          console.error('Error fetching dashboard data:', err)
+          setError('Não foi possível carregar os dados recentes.')
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false)
+        }
+      }
+    }
+
+    fetchDashboardData()
+    return () => {
+      isMounted = false
+    }
+  }, [user?.id])
+
   return (
     <div className="container mx-auto py-8 px-4 max-w-5xl animate-fade-in-up">
       {/* Hero Section */}
       <div className="mb-10 text-center max-w-3xl mx-auto pt-4">
         <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-4 text-foreground">
-          Bem-vindo. Do primeiro contato ao fechamento, com tudo no lugar.
+          Bem-vindo à Godoy Prime Realty
         </h1>
         <p className="text-lg text-muted-foreground leading-relaxed">
-          Acompanhe e gere os instrumentos legais certos em cada uma das 4 fases da transação
-          imobiliária para garantir segurança jurídica e uma experiência profissional para os seus
-          clientes.
+          Gere e acompanhe os instrumentos legais de suas transações imobiliárias para garantir
+          segurança jurídica e uma experiência profissional.
         </p>
       </div>
 
@@ -26,68 +68,97 @@ export default function Home() {
             <ShieldCheck className="h-8 w-8 text-amber-600 dark:text-amber-400" />
           </div>
           <div>
-            <h3 className="font-bold text-xl text-amber-800 dark:text-amber-400">Regra de Ouro</h3>
+            <h3 className="font-bold text-xl text-amber-800 dark:text-amber-400">
+              Dica de Segurança
+            </h3>
             <p className="text-amber-700 dark:text-amber-300 mt-2 text-base md:text-lg leading-relaxed">
-              A <strong>Promessa de Compra e Venda</strong> é o único instrumento que nunca deve ser
-              pulado. É a sua principal garantia jurídica e o documento do qual todos os outros
-              derivam.
+              Mantenha seus modelos de contrato sempre atualizados com a base jurídica mais recente
+              e revise as minutas geradas pela IA antes de enviar aos clientes.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Tabs das Fases */}
-      <div className="mb-16">
-        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">Jornada de Contratos</h2>
-        <Tabs defaultValue="captacao" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 h-auto gap-2 bg-transparent p-0">
-            {documentPhases.map((phase) => (
-              <TabsTrigger
-                key={phase.id}
-                value={phase.id}
-                className="text-xs md:text-sm py-3 px-2 md:px-4 text-center whitespace-normal h-full bg-muted/50 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md"
-              >
-                {phase.title}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-
-          {documentPhases.map((phase) => (
-            <TabsContent key={phase.id} value={phase.id} className="space-y-6 mt-8 animate-fade-in">
-              <div className="mb-6">
-                <h3 className="text-2xl font-semibold text-foreground">{phase.title}</h3>
-                <p className="text-muted-foreground mt-1 text-lg">{phase.description}</p>
-              </div>
-              <div className="grid grid-cols-1 gap-6">
-                {phase.docs.map((doc) => (
-                  <PhaseCard key={doc.id} doc={doc} />
+      <div className="grid md:grid-cols-2 gap-8 mb-10">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-primary" />
+              Contratos Recentes
+            </CardTitle>
+            <CardDescription>Seus últimos documentos gerados</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-16 w-full" />
                 ))}
               </div>
-            </TabsContent>
-          ))}
-        </Tabs>
-      </div>
+            ) : error ? (
+              <div className="flex items-center gap-2 text-destructive p-4 bg-destructive/10 rounded-md">
+                <AlertCircle className="h-5 w-5" />
+                <p>{error}</p>
+              </div>
+            ) : recentContracts.length === 0 ? (
+              <div className="text-center p-6 text-muted-foreground bg-muted/20 rounded-md border border-dashed">
+                <p>Nenhum contrato gerado ainda.</p>
+                <Button variant="outline" className="mt-4" asChild>
+                  <Link to="/contratos/novo">Criar Novo Contrato</Link>
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {recentContracts.map((contract) => (
+                  <Link
+                    key={contract.id}
+                    to={`/contratos/${contract.id}`}
+                    className="flex items-center justify-between p-3 rounded-md border hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <FileText className="h-5 w-5 text-muted-foreground shrink-0" />
+                      <div className="overflow-hidden">
+                        <p className="font-medium text-sm truncate">
+                          {contract.tipo || 'Documento'}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {contract.nome_comprador
+                            ? `Comprador: ${contract.nome_comprador}`
+                            : 'Sem comprador definido'}
+                        </p>
+                      </div>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0 ml-2" />
+                  </Link>
+                ))}
+                <Button variant="ghost" className="w-full mt-2" asChild>
+                  <Link to="/contratos">Ver Todos</Link>
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-      {/* Caminhos por Cenário */}
-      <div className="mb-16">
-        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-          <ArrowRight className="w-6 h-6 text-primary" /> Caminhos por Cenário
-        </h2>
-        <ScenarioList scenarios={scenarios} />
-      </div>
-
-      {/* Legal Disclaimer */}
-      <div className="mb-8 bg-muted/40 p-6 rounded-xl border border-border/60">
-        <div className="flex items-center gap-3 mb-3">
-          <AlertCircle className="w-6 h-6 text-muted-foreground" />
-          <h4 className="font-semibold text-lg text-muted-foreground">Como usar com segurança</h4>
-        </div>
-        <p className="text-base text-muted-foreground leading-relaxed">
-          Este painel fornece um guia padronizado para as transações imobiliárias mais comuns. No
-          entanto, negócios que envolvam permutas complexas, inventários não finalizados, disputas
-          judiciais ou estruturação societária (holding patrimonial) exigem a análise de um advogado
-          especialista em Direito Imobiliário. Em caso de dúvida, não assuma o risco.
-        </p>
+        <Card className="bg-primary/5 border-primary/20">
+          <CardHeader>
+            <CardTitle>Ações Rápidas</CardTitle>
+            <CardDescription>O que você deseja fazer hoje?</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button className="w-full justify-start h-12 text-md" asChild>
+              <Link to="/contratos/novo">
+                <FileText className="mr-2 h-5 w-5" />
+                Novo Documento
+              </Link>
+            </Button>
+            <Button variant="outline" className="w-full justify-start h-12 text-md" asChild>
+              <Link to="/analysis">
+                <ShieldCheck className="mr-2 h-5 w-5" />
+                Analisar Contrato com IA
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )
