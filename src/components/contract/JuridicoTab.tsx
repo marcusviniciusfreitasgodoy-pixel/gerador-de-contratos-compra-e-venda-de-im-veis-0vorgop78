@@ -3,7 +3,6 @@ import { FormField, FormItem, FormLabel, FormControl } from '@/components/ui/for
 import { Checkbox } from '@/components/ui/checkbox'
 import { FormSelect } from '@/components/FormInput'
 import { PLATAFORMA_OPTIONS } from '@/lib/constants'
-import { ChecklistDocumental } from './ChecklistDocumental'
 
 export function JuridicoTab({ tipoDocumento }: { tipoDocumento: string }) {
   const { control } = useFormContext()
@@ -123,11 +122,6 @@ export function JuridicoTab({ tipoDocumento }: { tipoDocumento: string }) {
           </div>
         </div>
       )}
-
-      <div className="pt-4 border-t space-y-4">
-        <h3 className="font-semibold text-lg border-b pb-2 text-[#0C2340]">Checklist Documental</h3>
-        <ChecklistDocumental />
-      </div>
 
       <div className="pt-4 border-t space-y-4">
         <h3 className="font-semibold text-lg border-b pb-2 text-[#0C2340]">Compliance</h3>
