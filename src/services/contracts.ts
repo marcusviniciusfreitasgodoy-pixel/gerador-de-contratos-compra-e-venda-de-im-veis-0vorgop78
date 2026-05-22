@@ -28,6 +28,12 @@ export const getContract = async (id: string) => {
   return await pb.collection('contracts').getOne(id)
 }
 
+export const getAllMyContracts = async () => {
+  return await pb.collection('contracts').getFullList({
+    sort: '-created',
+  })
+}
+
 export const regenerateContract = async (id: string, data: any) => {
   return await pb.send('/backend/v1/assemble-contract', {
     method: 'POST',
@@ -92,6 +98,12 @@ export const saveContractDraft = async (
     data_quitacao: safeDate(data.data_quitacao),
     vendedor_uniao_estavel: data.vendedor_uniao_estavel ?? false,
     comprador_uniao_estavel: data.comprador_uniao_estavel ?? false,
+
+    contrato_origem: data.contrato_origem,
+    motivo_distrato: data.motivo_distrato,
+    data_distrato: safeDate(data.data_distrato),
+    valor_reembolso: parseCurrencySafe(data.valor_reembolso),
+    multa_distrato: parseCurrencySafe(data.multa_distrato),
 
     permuta_imovel_endereco: data.permuta_imovel_endereco,
     permuta_imovel_matricula: data.permuta_imovel_matricula,

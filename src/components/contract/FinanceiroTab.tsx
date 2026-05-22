@@ -187,6 +187,18 @@ export function FinanceiroTab({ tipoDocumento }: { tipoDocumento: string }) {
         </>
       )}
 
+      {tipoDocumento === 'distrato' && (
+        <>
+          <h3 className="font-semibold text-lg border-b pb-2 mt-6 text-[#0C2340]">
+            Valores do Distrato
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormCurrencyInput name="valor_reembolso" label="Valor a ser Reembolsado (R$)" />
+            <FormCurrencyInput name="multa_distrato" label="Multa de Distrato (R$)" />
+          </div>
+        </>
+      )}
+
       {!isAutorizacao && (
         <>
           <h3 className="font-semibold text-lg border-b pb-2 mt-6 text-[#0C2340]">

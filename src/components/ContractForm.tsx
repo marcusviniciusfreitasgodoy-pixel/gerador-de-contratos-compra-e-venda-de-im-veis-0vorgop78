@@ -55,6 +55,7 @@ import {
 
 import { EnvolvidosTab } from './contract/EnvolvidosTab'
 import { ImovelTab } from './contract/ImovelTab'
+import { DistratoSelector } from './contract/DistratoSelector'
 import { FinanceiroTab } from './contract/FinanceiroTab'
 import { JuridicoTab } from './contract/JuridicoTab'
 import { RevisaoTab } from './contract/RevisaoTab'
@@ -350,7 +351,12 @@ export function ContractForm({
       'arbitragem',
       'mediacao',
       'clausula_lgpd',
+      'motivo_distrato',
+      'data_distrato',
     ]
+
+    if (fieldName === 'contrato_origem') return 'envolvidos'
+    if (['valor_reembolso', 'multa_distrato'].includes(fieldName)) return 'financeiro'
 
     if (envolvidos.includes(fieldName)) return 'envolvidos'
     if (imovel.includes(fieldName)) return 'imovel'
@@ -715,7 +721,12 @@ export function ContractForm({
         <CardContent className="p-4 sm:p-8">
           <Form {...form}>
             <form className="space-y-6">
-              {currentStepData.id === 'envolvidos' && <EnvolvidosTab />}
+              {currentStepData.id === 'envolvidos' && (
+                <>
+                  {tipoDocumento === 'distrato' && <DistratoSelector />}
+                  <EnvolvidosTab />
+                </>
+              )}
               {currentStepData.id === 'imovel' && <ImovelTab />}
               {currentStepData.id === 'financeiro' && (
                 <FinanceiroTab tipoDocumento={tipoDocumento} />

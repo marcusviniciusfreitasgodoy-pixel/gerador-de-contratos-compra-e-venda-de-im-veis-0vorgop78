@@ -178,6 +178,12 @@ export const contractSchema = z
     vendedor_agencia: z.string().optional(),
     vendedor_conta: z.string().optional(),
     vendedor_pix: z.string().optional(),
+
+    contrato_origem: z.string().optional(),
+    motivo_distrato: z.string().optional(),
+    data_distrato: z.string().optional(),
+    valor_reembolso: currencyToNumber.optional(),
+    multa_distrato: currencyToNumber.optional(),
   })
   .superRefine((data, ctx) => {
     if (data.tipo_documento === 'checklist_documental' || data.tipo_documento === 'recibo_sinal') {

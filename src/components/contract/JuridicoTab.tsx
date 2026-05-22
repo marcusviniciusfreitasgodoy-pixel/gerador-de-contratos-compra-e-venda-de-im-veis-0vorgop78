@@ -127,6 +127,50 @@ export function JuridicoTab({ tipoDocumento }: { tipoDocumento: string }) {
         </div>
       )}
 
+      {tipoDocumento === 'distrato' && (
+        <div className="pt-4 border-t space-y-4">
+          <h3 className="font-semibold text-lg border-b pb-2 text-[#0C2340]">
+            Detalhes do Distrato
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <FormField
+              control={control}
+              name="data_distrato"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Data Efetiva do Distrato</FormLabel>
+                  <FormControl>
+                    <input
+                      type="date"
+                      {...field}
+                      className="flex h-9 w-full rounded-md border border-slate-200 bg-white px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50"
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <div className="sm:col-span-2">
+              <FormField
+                control={control}
+                name="motivo_distrato"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Motivo da Rescisão</FormLabel>
+                    <FormControl>
+                      <textarea
+                        {...field}
+                        className="flex min-h-[80px] w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        placeholder="Descreva o motivo pelo qual o contrato está sendo rescindido"
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="pt-4 border-t space-y-4">
         <h3 className="font-semibold text-lg border-b pb-2 text-[#0C2340]">Compliance</h3>
         <FormField
