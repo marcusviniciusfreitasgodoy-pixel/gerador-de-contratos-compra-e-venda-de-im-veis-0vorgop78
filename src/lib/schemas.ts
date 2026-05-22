@@ -164,6 +164,7 @@ export const contractSchema = z
     vendedor_pix: z.string().optional(),
 
     checklist_compliance: z.record(z.boolean()).optional(),
+    compliance_checklist: z.record(z.boolean()).optional(),
   })
   .superRefine((data, ctx) => {
     if (data.tipo_documento === 'checklist_documental') {

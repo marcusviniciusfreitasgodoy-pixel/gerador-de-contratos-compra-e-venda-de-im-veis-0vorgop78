@@ -53,6 +53,7 @@ import {
   type ContractTemplate,
 } from '@/services/contract_templates'
 
+import { ChecklistDocumental } from './contract/ChecklistDocumental'
 import { EnvolvidosTab } from './contract/EnvolvidosTab'
 import { ImovelTab } from './contract/ImovelTab'
 import { FinanceiroTab } from './contract/FinanceiroTab'
@@ -64,6 +65,7 @@ const WIZARD_STEPS_ALL = [
   { id: 'imovel', title: 'Imóvel' },
   { id: 'financeiro', title: 'Financeiro' },
   { id: 'juridico', title: 'Jurídico' },
+  { id: 'checklist', title: 'Checklist' },
   { id: 'revisao', title: 'Revisão' },
 ]
 
@@ -79,10 +81,13 @@ export function ContractForm({
   documentGender?: string
 }) {
   const activeSteps = WIZARD_STEPS_ALL.filter((s) => {
-    if (['ficha_cadastral', 'checklist_documental'].includes(tipoDocumento)) {
-      return s.id === 'envolvidos' || s.id === 'imovel' || s.id === 'revisao'
+    if (tipoDocumento === 'checklist_documental') {
+      return ['envolvidos', 'imovel', 'checklist', 'revisao'].includes(s.id)
     }
-    return true
+    if (tipoDocumento === 'ficha_cadastral') {
+      return ['envolvidos', 'imovel', 'revisao'].includes(s.id)
+    }
+    return s.id !== 'checklist'
   })
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
@@ -317,6 +322,8 @@ export function ContractForm({
           isValid = false
         }
       }
+    } else if (stepId === 'checklist') {
+      isValid = true
     } else if (stepId === 'juridico') {
       if (tipoDocumento === 'autorizacao_intermediacao') {
         isValid = await form.trigger(['clausula_lgpd', 'gestao_exclusiva'])
@@ -558,6 +565,7 @@ export function ContractForm({
                 <FinanceiroTab tipoDocumento={tipoDocumento} />
               )}
               {currentStepData.id === 'juridico' && <JuridicoTab tipoDocumento={tipoDocumento} />}
+              {currentStepData.id === 'checklist' && <ChecklistDocumental />}
               {currentStepData.id === 'revisao' && <RevisaoTab />}
             </form>
           </Form>

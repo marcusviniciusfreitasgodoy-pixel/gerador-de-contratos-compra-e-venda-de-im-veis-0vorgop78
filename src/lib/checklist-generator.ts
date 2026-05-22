@@ -2,270 +2,92 @@ import { jsPDF } from 'jspdf'
 import { format } from 'date-fns'
 import { getLogoBase64 } from './pdf-utils'
 
-export function getActiveDocs(data: any): string[] {
-  const isVendedorPJ = data.vendedor_pj
-  const isVendedorUniao =
-    data.vendedor_uniao_estavel ||
-    data.estado_civil_vendedor === 'Casado' ||
-    data.estado_civil_vendedor === 'Casada'
-  const isCompradorUniao =
-    data.comprador_uniao_estavel ||
-    data.estado_civil_comprador === 'Casado' ||
-    data.estado_civil_comprador === 'Casada'
-
-  let docs: string[] = []
-
-  // Vendedor
-  if (isVendedorPJ) {
-    docs.push(
-      'Cartão CNPJ',
-      'Contrato Social / Estatuto Social',
-      'Últimas Alterações Contratuais',
-      'Documento de Identidade dos Sócios/Representantes',
-      'CPF dos Sócios/Representantes',
-      'Certidão Negativa de Débitos (CND) Federal, Estadual e Municipal',
-      'Certidão Simplificada da Junta Comercial (atualizada)',
-      'Certidão de Regularidade do FGTS (CRF)',
-    )
-  } else {
-    docs.push(
-      'Documento de Identidade (RG/CNH) - Vendedor',
-      'CPF - Vendedor',
-      'Comprovante de Residência Atualizado - Vendedor',
+const CATEGORIES = [
+  {
+    title: 'Vendedor',
+    items: [
+      'Documento de Identidade (RG/CNH)',
+      'CPF',
+      'Comprovante de Residência Atualizado',
       'Certidão de Estado Civil (Nascimento atualizada ou Casamento)',
-    )
-  }
-  if (isVendedorUniao) {
-    docs.push(
-      'Documento de Identidade do Cônjuge/Companheiro(a) - Vendedor',
-      'CPF do Cônjuge/Companheiro(a) - Vendedor',
+      'Documento de Identidade do Cônjuge/Companheiro(a)',
+      'CPF do Cônjuge/Companheiro(a)',
       'Pacto Antenupcial (se houver)',
-    )
-  }
-  if (!isVendedorPJ) {
-    docs.push(
       'Certidões de Protesto de Títulos (domicílio e local do imóvel)',
       'Certidão de Distribuição Cível e Criminal Estadual',
       'Certidão Conjunta de Débitos Relativos a Tributos Federais e à Dívida Ativa da União (RFB)',
-    )
-  }
-  docs.push(
-    'Certidão do 2º Ofício de Distribuidor',
-    'Certidão de Interdições e Tutelas',
-    'Certidão da Justiça Federal',
-    'Certidão da Justiça do Trabalho',
-  )
-
-  // Comprador
-  docs.push(
-    'Documento de Identidade (RG/CNH) - Comprador',
-    'CPF - Comprador',
-    'Comprovante de Residência Atualizado - Comprador',
-  )
-  if (data.estado_civil_comprador) {
-    docs.push(`Comprovante de Estado Civil (${data.estado_civil_comprador})`)
-  } else {
-    docs.push('Comprovante de Estado Civil')
-  }
-
-  if (isCompradorUniao) {
-    docs.push(
-      'Documento de Identidade do Cônjuge/Companheiro(a) - Comprador',
-      'CPF do Cônjuge/Companheiro(a) - Comprador',
+      'Certidão do 2º Ofício de Distribuidor',
+      'Certidão de Interdições e Tutelas',
+      'Certidão da Justiça Federal',
+      'Certidão da Justiça do Trabalho',
+    ],
+  },
+  {
+    title: 'Comprador',
+    items: [
+      'Documento de Identidade (RG/CNH)',
+      'CPF',
+      'Comprovante de Residência Atualizado',
+      'Comprovante de Estado Civil (Casado)',
+      'Documento de Identidade do Cônjuge/Companheiro(a)',
+      'CPF do Cônjuge/Companheiro(a)',
       'Certidão de Casamento/União Estável',
-    )
-  }
-
-  // Imóvel
-  docs.push(
-    'Matrícula Atualizada (com ônus e ações)',
-    'Capa do carnê de IPTU',
-    'Certidão de Quitação Fiscal e Enfitêutica',
-    'Declaração de Quitação Condominial (assinada pelo síndico)',
-    'Cópia da Ata de Eleição do Síndico',
-    'Certidão do Funesbom (Corpo de Bombeiros)',
-  )
-
-  if (data.imovel_inventario) {
-    docs.push(
-      'Certidão de Óbito',
-      'Certidão de Inventariante',
-      'Formal de Partilha ou Escritura Pública de Inventário',
-      'Alvará Judicial (se o processo estiver em curso)',
-    )
-  }
-
-  if (data.imovel_locado) {
-    docs.push(
-      'Cópia do Contrato de Locação vigente',
-      'Notificação do Direito de Preferência ao locatário',
-      'Termo de Renúncia ao Direito de Preferência',
-    )
-  }
-
-  if (data.imovel_ocupado) {
-    docs.push(
+    ],
+  },
+  {
+    title: 'Imóvel',
+    items: [
+      'Matrícula Atualizada (com ônus e ações)',
+      'Capa do carnê de IPTU',
+      'Certidão de Quitação Fiscal e Enfitêutica',
+      'Declaração de Quitação Condominial (assinada pelo síndico)',
+      'Cópia da Ata de Eleição do Síndico',
+      'Certidão do Funesbom (Corpo de Bombeiros)',
       'Laudo de Vistoria com fotos',
       'Comprovantes de quitação de contas de consumo (Luz, Água, Gás)',
       'Termo de declaração de desocupação pelo vendedor',
-    )
-  }
+    ],
+  },
+  {
+    title: 'Dados Bancários',
+    items: [
+      'Dados do Banco (Nome/Código)',
+      'Agência e Conta (com dígito)',
+      'Titularidade e CPF/CNPJ vinculado',
+      'Chave PIX vinculada (se aplicável)',
+    ],
+  },
+]
 
-  if (data.imovel_desocupado || data.ocupacao_imovel === 'desocupado') {
-    docs.push('Termo de Entrega de Chaves', 'Certidões negativas de débitos de consumo')
-  }
-
-  // Financeiro
-  docs.push(
-    'Dados do Banco (Nome/Código)',
-    'Agência e Conta (com dígito)',
-    'Titularidade e CPF/CNPJ vinculado',
-    'Chave PIX vinculada (se aplicável)',
-  )
-
+export function getActiveDocs(data: any): string[] {
+  let docs: string[] = []
+  CATEGORIES.forEach((cat) => {
+    cat.items.forEach((item) => {
+      docs.push(`${cat.title} - ${item}`)
+    })
+  })
   return docs
 }
 
 export function generateChecklistHTML(data: any): string {
-  const isVendedorPJ = data.vendedor_pj
-  const isVendedorUniao =
-    data.vendedor_uniao_estavel ||
-    data.estado_civil_vendedor === 'Casado' ||
-    data.estado_civil_vendedor === 'Casada'
-  const isCompradorUniao =
-    data.comprador_uniao_estavel ||
-    data.estado_civil_comprador === 'Casado' ||
-    data.estado_civil_comprador === 'Casada'
-
   let html = `<!-- CHECKLIST_FORMAT -->\n`
   html += `<div style="font-family: sans-serif; color: #0C2340;">\n`
   html += `<h2 style="color: #D4AF37; text-align: center; margin-bottom: 20px; font-weight: bold;">CHECKLIST DE DUE DILIGENCE</h2>\n`
 
-  const addSection = (title: string, items: string[]) => {
+  CATEGORIES.forEach((category) => {
     html += `<div class="checklist-block" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 20px;">\n`
-    html += `<h3 style="color: #0C2340; margin-top: 0; border-bottom: 2px solid #D4AF37; padding-bottom: 8px;">${title}</h3>\n`
+    html += `<h3 style="color: #0C2340; margin-top: 0; border-bottom: 2px solid #D4AF37; padding-bottom: 8px;">${category.title.toUpperCase()}</h3>\n`
     html += `<ul style="list-style-type: none; padding-left: 0;">\n`
-    items.forEach((item) => {
-      const isChecked = data.checklist_compliance && data.checklist_compliance[item] === true
+
+    category.items.forEach((item) => {
+      const key = `${category.title} - ${item}`
+      const isChecked = data.compliance_checklist && data.compliance_checklist[key] === true
       const prefix = isChecked ? '✓ COLETADO' : '⚠️ PENDENTE'
       const color = isChecked ? '#16a34a' : '#ea580c'
       html += `<li style="margin-bottom: 8px; display: flex; align-items: center;" data-checked="${isChecked ? 'true' : 'false'}"><strong style="color: ${color}; margin-right: 8px; font-size: 11px;">${prefix}</strong> <span style="font-size: 13px;">- ${item}</span></li>\n`
     })
     html += `</ul>\n</div>\n`
-  }
-
-  // Vendedor
-  const vendedorItems = []
-  if (isVendedorPJ) {
-    vendedorItems.push(
-      'Cartão CNPJ',
-      'Contrato Social / Estatuto Social',
-      'Últimas Alterações Contratuais',
-      'Documento de Identidade dos Sócios/Representantes',
-      'CPF dos Sócios/Representantes',
-      'Certidão Negativa de Débitos (CND) Federal, Estadual e Municipal',
-      'Certidão Simplificada da Junta Comercial (atualizada)',
-      'Certidão de Regularidade do FGTS (CRF)',
-    )
-  } else {
-    vendedorItems.push(
-      'Documento de Identidade (RG/CNH) - Vendedor',
-      'CPF - Vendedor',
-      'Comprovante de Residência Atualizado - Vendedor',
-      'Certidão de Estado Civil (Nascimento atualizada ou Casamento)',
-    )
-  }
-  if (isVendedorUniao) {
-    vendedorItems.push(
-      'Documento de Identidade do Cônjuge/Companheiro(a) - Vendedor',
-      'CPF do Cônjuge/Companheiro(a) - Vendedor',
-      'Pacto Antenupcial (se houver)',
-    )
-  }
-  if (!isVendedorPJ) {
-    vendedorItems.push(
-      'Certidões de Protesto de Títulos (domicílio e local do imóvel)',
-      'Certidão de Distribuição Cível e Criminal Estadual',
-      'Certidão Conjunta de Débitos Relativos a Tributos Federais e à Dívida Ativa da União (RFB)',
-    )
-  }
-  vendedorItems.push(
-    'Certidão do 2º Ofício de Distribuidor',
-    'Certidão de Interdições e Tutelas',
-    'Certidão da Justiça Federal',
-    'Certidão da Justiça do Trabalho',
-  )
-  addSection('1. DOCUMENTAÇÃO DO VENDEDOR', vendedorItems)
-
-  // Comprador
-  const compradorItems = [
-    'Documento de Identidade (RG/CNH) - Comprador',
-    'CPF - Comprador',
-    'Comprovante de Residência Atualizado - Comprador',
-  ]
-  if (data.estado_civil_comprador) {
-    compradorItems.push(`Comprovante de Estado Civil (${data.estado_civil_comprador})`)
-  } else {
-    compradorItems.push('Comprovante de Estado Civil')
-  }
-
-  if (isCompradorUniao) {
-    compradorItems.push(
-      'Documento de Identidade do Cônjuge/Companheiro(a) - Comprador',
-      'CPF do Cônjuge/Companheiro(a) - Comprador',
-      'Certidão de Casamento/União Estável',
-    )
-  }
-  addSection('2. DOCUMENTAÇÃO DO COMPRADOR', compradorItems)
-
-  // Imóvel
-  const imovelItems = [
-    'Matrícula Atualizada (com ônus e ações)',
-    'Capa do carnê de IPTU',
-    'Certidão de Quitação Fiscal e Enfitêutica',
-    'Declaração de Quitação Condominial (assinada pelo síndico)',
-    'Cópia da Ata de Eleição do Síndico',
-    'Certidão do Funesbom (Corpo de Bombeiros)',
-  ]
-
-  if (data.imovel_inventario) {
-    imovelItems.push(
-      'Certidão de Óbito',
-      'Certidão de Inventariante',
-      'Formal de Partilha ou Escritura Pública de Inventário',
-      'Alvará Judicial (se o processo estiver em curso)',
-    )
-  }
-
-  if (data.imovel_locado) {
-    imovelItems.push(
-      'Cópia do Contrato de Locação vigente',
-      'Notificação do Direito de Preferência ao locatário',
-      'Termo de Renúncia ao Direito de Preferência',
-    )
-  }
-
-  if (data.imovel_ocupado) {
-    imovelItems.push(
-      'Laudo de Vistoria com fotos',
-      'Comprovantes de quitação de contas de consumo (Luz, Água, Gás)',
-      'Termo de declaração de desocupação pelo vendedor',
-    )
-  }
-
-  if (data.imovel_desocupado || data.ocupacao_imovel === 'desocupado') {
-    imovelItems.push('Termo de Entrega de Chaves', 'Certidões negativas de débitos de consumo')
-  }
-
-  addSection('3. DOCUMENTAÇÃO DO IMÓVEL', imovelItems)
-
-  // Financeiro
-  addSection('4. INFORMAÇÕES FINANCEIRAS BANCÁRIAS', [
-    'Dados do Banco (Nome/Código)',
-    'Agência e Conta (com dígito)',
-    'Titularidade e CPF/CNPJ vinculado',
-    'Chave PIX vinculada (se aplicável)',
-  ])
+  })
 
   html += `</div>`
   return html
@@ -287,7 +109,6 @@ export async function generateChecklistPDFTemplate(
     const pageHeight = 297
 
     const addHeader = (d: jsPDF) => {
-      // Gold bar
       d.setFillColor(212, 175, 55)
       d.rect(0, 0, pageWidth, 8, 'F')
 
@@ -298,7 +119,7 @@ export async function generateChecklistPDFTemplate(
           try {
             d.addImage(logoBase64, 'JPEG', margin, 12, 25, 15, undefined, 'FAST')
           } catch {
-            /* intentionally ignored */
+            // ignore
           }
         }
       }
@@ -308,12 +129,11 @@ export async function generateChecklistPDFTemplate(
       d.setTextColor(12, 35, 64)
       d.text('CHECKLIST DE DUE DILIGENCE', pageWidth / 2, 30, { align: 'center' })
 
-      // Progress Bar (Visual Indicator)
       d.setDrawColor(226, 232, 240)
       d.setLineWidth(4)
       d.line(margin, 38, pageWidth - margin, 38)
       d.setDrawColor(212, 175, 55)
-      d.line(margin, 38, margin + contentWidth * 0.33, 38) // Progress visual
+      d.line(margin, 38, margin + contentWidth * 0.33, 38)
 
       return 48
     }
@@ -336,7 +156,6 @@ export async function generateChecklistPDFTemplate(
         }
       })
 
-      // Measure block height
       const blockHeight = 16 + items.length * 7 + 6
 
       if (y + blockHeight > pageHeight - 30) {
@@ -344,19 +163,17 @@ export async function generateChecklistPDFTemplate(
         y = addHeader(doc)
       }
 
-      // Draw grey block (Light grey layout block)
-      doc.setFillColor(248, 250, 252) // slate-50
-      doc.setDrawColor(226, 232, 240) // slate-200
+      doc.setFillColor(248, 250, 252)
+      doc.setDrawColor(226, 232, 240)
       doc.setLineWidth(0.5)
       doc.roundedRect(margin, y, contentWidth, blockHeight, 3, 3, 'FD')
 
       let currentY = y + 8
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(11)
-      doc.setTextColor(12, 35, 64) // Navy Blue
+      doc.setTextColor(12, 35, 64)
       doc.text(title, margin + 5, currentY)
 
-      // Underline title with Gold
       doc.setDrawColor(212, 175, 55)
       doc.setLineWidth(0.5)
       doc.line(margin + 5, currentY + 2, margin + 5 + doc.getTextWidth(title), currentY + 2)
@@ -368,11 +185,11 @@ export async function generateChecklistPDFTemplate(
 
       items.forEach((item) => {
         if (item.checked) {
-          doc.setTextColor(22, 163, 74) // green-600
+          doc.setTextColor(22, 163, 74)
           doc.setFont('helvetica', 'bold')
           doc.text('COLETADO', margin + 5, currentY)
         } else {
-          doc.setTextColor(234, 88, 12) // orange-600
+          doc.setTextColor(234, 88, 12)
           doc.setFont('helvetica', 'bold')
           doc.text('PENDENTE', margin + 5, currentY)
         }
