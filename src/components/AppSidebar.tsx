@@ -38,7 +38,7 @@ export function AppSidebar() {
       <SidebarHeader className="h-16 flex items-center justify-center px-4 border-b border-sidebar-border bg-sidebar text-white">
         <Link
           to="/"
-          className="flex items-center justify-center gap-2 overflow-hidden w-full transition-opacity hover:opacity-80"
+          className="flex items-center justify-center gap-3 overflow-hidden w-full transition-opacity hover:opacity-80"
         >
           {customLogoUrl ? (
             <img
@@ -48,8 +48,8 @@ export function AppSidebar() {
             />
           ) : (
             <>
-              <GRSymbol className="h-8 w-8 shrink-0 text-white/90" />
-              <span className="font-bold truncate text-sm">{brandName}</span>
+              <GRSymbol className="h-7 w-7 shrink-0 text-white" />
+              <span className="font-extrabold truncate tracking-wide text-sm">{brandName}</span>
             </>
           )}
         </Link>
