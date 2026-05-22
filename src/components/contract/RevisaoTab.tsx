@@ -1,5 +1,6 @@
 import { useFormContext } from 'react-hook-form'
 import { Card, CardContent } from '@/components/ui/card'
+import { formatCurrency } from '@/lib/formatters'
 
 export function RevisaoTab({ tipoDocumento }: { tipoDocumento: string }) {
   const { getValues } = useFormContext()
@@ -79,18 +80,20 @@ export function RevisaoTab({ tipoDocumento }: { tipoDocumento: string }) {
                 {!isTermos && !isFichaCadastral && (
                   <div className="space-y-2">
                     <p>
-                      <strong>Valor Estimado:</strong> {values.valor_total || 'R$ 0,00'}
+                      <strong>Valor Estimado:</strong>{' '}
+                      {formatCurrency(values.valor_total) || 'R$ 0,00'}
                     </p>
                     {!isAutorizacao && (
                       <p>
-                        <strong>Sinal:</strong> {values.valor_sinal || 'R$ 0,00'}
+                        <strong>Sinal:</strong> {formatCurrency(values.valor_sinal) || 'R$ 0,00'}
                       </p>
                     )}
                     {!isAutorizacao && (
                       <p>
-                        <strong>Financiamento:</strong> {values.valor_financiamento || 'R$ 0,00'}
+                        <strong>Financiamento:</strong>{' '}
+                        {formatCurrency(values.valor_financiamento) || 'R$ 0,00'}
                       </p>
-                    )}
+                    )}{' '}
                   </div>
                 )}
               </div>

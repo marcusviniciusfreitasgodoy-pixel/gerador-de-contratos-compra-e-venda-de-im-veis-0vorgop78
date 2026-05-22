@@ -1,25 +1,24 @@
 import { z } from 'zod'
 import { parseCurrency } from './formatters'
 
-export const parseCurrencySafe = (val: any) => {
-  if (val === null || val === undefined || val === '') return 0
+export const parseCurrencySafe = (val: any): number | undefined => {
+  if (val === null || val === undefined || val === '') return undefined
   if (typeof val === 'number') return val
-  if (typeof val === 'string') return parseCurrency(val) || 0
-  if (typeof val === 'object' && val?.target?.value !== undefined) {
-    return parseCurrency(String(val.target.value)) || 0
+  if (typeof val === 'string') {
+    if (!val.trim()) return undefined
+    return parseCurrency(val)
   }
-  return parseCurrency(String(val)) || 0
+  if (typeof val === 'object' && val?.target?.value !== undefined) {
+    if (val.target.value === '') return undefined
+    return parseCurrency(String(val.target.value))
+  }
+  return parseCurrency(String(val))
 }
 
 const currencyToNumber = z.preprocess((val: any) => {
-  if (val === '' || val === null || val === undefined) return 0
-  if (typeof val === 'number') return val
-  if (typeof val === 'string') return parseCurrencySafe(val)
-  if (typeof val === 'object' && val?.target?.value !== undefined) {
-    return parseCurrencySafe(val.target.value)
-  }
-  return 0
-}, z.number())
+  const parsed = parseCurrencySafe(val)
+  return parsed === undefined ? undefined : parsed
+}, z.number().optional())
 
 export const contractSchema = z
   .object({
@@ -263,17 +262,27 @@ export const contractSchema = z
         message: 'Obrigatório selecionar o contrato de origem',
       })
     }
-    const isFinanciado = data.financiamento_comprador === true || data.possui_financiamento === true
+    const isFinanciado =
+      (data.financiamento_comprador === true || data.possui_financiamento === true) &&
+      !isReciboSinal
 
     if (isFinanciado) {
-      const valorFin = data.valor_financiamento || data.valor_financiado || 0
-      if (valorFin <= 0) {
+      const valorFin = data.valor_financiamento ?? data.valor_financiado
+
+      if (valorFin === undefined || valorFin === null) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['valor_financiamento'],
-          message: 'Valor do financiamento é obrigatório',
+          message: 'deve ser preenchido o valor de financiamento',
+        })
+      } else if (valorFin <= 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['valor_financiamento'],
+          message: 'O valor do financiamento deve ser maior que zero',
         })
       }
+
       if (!data.instituicao_financeira) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
