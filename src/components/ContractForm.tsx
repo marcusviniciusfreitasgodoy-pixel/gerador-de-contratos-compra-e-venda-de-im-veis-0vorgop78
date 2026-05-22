@@ -87,7 +87,10 @@ export function ContractForm({
     if (tipoDocumento === 'ficha_cadastral') {
       return ['envolvidos', 'imovel', 'revisao'].includes(s.id)
     }
-    return s.id !== 'checklist'
+    if (tipoDocumento === 'autorizacao_intermediacao') {
+      return s.id !== 'checklist'
+    }
+    return true
   })
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
@@ -361,6 +364,77 @@ export function ContractForm({
     }
   }
 
+  const generateChecklistPlainText = (data: any) => {
+    const CATEGORIES = [
+      {
+        title: 'Vendedor',
+        items: [
+          'Documento de Identidade (RG/CNH)',
+          'CPF',
+          'Comprovante de Residência Atualizado',
+          'Certidão de Estado Civil (Nascimento atualizada ou Casamento)',
+          'Documento de Identidade do Cônjuge/Companheiro(a)',
+          'CPF do Cônjuge/Companheiro(a)',
+          'Pacto Antenupcial (se houver)',
+          'Certidões de Protesto de Títulos (domicílio e local do imóvel)',
+          'Certidão de Distribuição Cível e Criminal Estadual',
+          'Certidão Conjunta de Débitos Relativos a Tributos Federais e à Dívida Ativa da União (RFB)',
+          'Certidão do 2º Ofício de Distribuidor',
+          'Certidão de Interdições e Tutelas',
+          'Certidão da Justiça Federal',
+          'Certidão da Justiça do Trabalho',
+        ],
+      },
+      {
+        title: 'Comprador',
+        items: [
+          'Documento de Identidade (RG/CNH)',
+          'CPF',
+          'Comprovante de Residência Atualizado',
+          'Comprovante de Estado Civil (Casado)',
+          'Documento de Identidade do Cônjuge/Companheiro(a)',
+          'CPF do Cônjuge/Companheiro(a)',
+          'Certidão de Casamento/União Estável',
+        ],
+      },
+      {
+        title: 'Imóvel',
+        items: [
+          'Matrícula Atualizada (com ônus e ações)',
+          'Capa do carnê de IPTU',
+          'Certidão de Quitação Fiscal e Enfitêutica',
+          'Declaração de Quitação Condominial (assinada pelo síndico)',
+          'Cópia da Ata de Eleição do Síndico',
+          'Certidão do Funesbom (Corpo de Bombeiros)',
+          'Laudo de Vistoria com fotos',
+          'Comprovantes de quitação de contas de consumo (Luz, Água, Gás)',
+          'Termo de declaração de desocupação pelo vendedor',
+        ],
+      },
+      {
+        title: 'Dados Bancários',
+        items: [
+          'Dados do Banco (Nome/Código)',
+          'Agência e Conta (com dígito)',
+          'Titularidade e CPF/CNPJ vinculado',
+          'Chave PIX vinculada (se aplicável)',
+        ],
+      },
+    ]
+    let text = '\n\nCHECKLIST DE DUE DILIGENCE\n\n'
+    CATEGORIES.forEach((cat) => {
+      text += `${cat.title.toUpperCase()}\n`
+      cat.items.forEach((item) => {
+        const key = `${cat.title} - ${item}`
+        const isChecked = data.compliance_checklist && data.compliance_checklist[key] === true
+        const prefix = isChecked ? '✓ COLETADO' : '⚠️ PENDENTE'
+        text += `${prefix} - ${item}\n`
+      })
+      text += '\n'
+    })
+    return text
+  }
+
   const handlePreview = async () => {
     const isValid = await form.trigger()
     if (!isValid) {
@@ -370,11 +444,23 @@ export function ContractForm({
     setIsPreviewing(true)
     setPreviewModalOpen(true)
     try {
-      const res = await pb.send('/backend/v1/assemble-contract', {
-        method: 'POST',
-        body: JSON.stringify(getPayload()),
-      })
-      const text = (res?.minuta_texto || '').replace(/Assessoria Jurídica Imobiliária/gi, '')
+      let text = ''
+
+      if (tipoDocumento === 'checklist_documental') {
+        const { generateChecklistHTML } = await import('@/lib/checklist-generator')
+        text = generateChecklistHTML(form.getValues())
+      } else {
+        const res = await pb.send('/backend/v1/assemble-contract', {
+          method: 'POST',
+          body: JSON.stringify(getPayload()),
+        })
+        text = (res?.minuta_texto || '').replace(/Assessoria Jurídica Imobiliária/gi, '')
+
+        if (tipoDocumento !== 'autorizacao_intermediacao' && tipoDocumento !== 'ficha_cadastral') {
+          text += generateChecklistPlainText(form.getValues())
+        }
+      }
+
       setCurrentMinuta(text)
 
       const record = await saveContractDraft(
@@ -384,7 +470,7 @@ export function ContractForm({
       )
       setDraftId(record.id)
 
-      const url = await getMinutaPDFBlobUrl(text, { ...user, tipo_documento: tipoDocumento })
+      const url = await getMinutaPDFBlobUrl(text, { ...user, tipoDocumento: tipoDocumento })
       if (url) setPreviewPdfUrl(url)
     } catch (err) {
       toast.error(getErrorMessage(err))
@@ -407,11 +493,23 @@ export function ContractForm({
     }
     setIsGenerating(true)
     try {
-      const res = await pb.send('/backend/v1/assemble-contract', {
-        method: 'POST',
-        body: JSON.stringify(getPayload()),
-      })
-      const text = (res?.minuta_texto || '').replace(/Assessoria Jurídica Imobiliária/gi, '')
+      let text = ''
+
+      if (tipoDocumento === 'checklist_documental') {
+        const { generateChecklistHTML } = await import('@/lib/checklist-generator')
+        text = generateChecklistHTML(form.getValues())
+      } else {
+        const res = await pb.send('/backend/v1/assemble-contract', {
+          method: 'POST',
+          body: JSON.stringify(getPayload()),
+        })
+        text = (res?.minuta_texto || '').replace(/Assessoria Jurídica Imobiliária/gi, '')
+
+        if (tipoDocumento !== 'autorizacao_intermediacao' && tipoDocumento !== 'ficha_cadastral') {
+          text += generateChecklistPlainText(form.getValues())
+        }
+      }
+
       await saveContractDraft({ ...form.getValues(), status: 'finalizado' }, draftId, text)
       setIsSuccess(true)
     } catch (err) {

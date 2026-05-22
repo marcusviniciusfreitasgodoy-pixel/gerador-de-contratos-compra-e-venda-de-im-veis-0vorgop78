@@ -60,12 +60,7 @@ const CATEGORIES = [
 ]
 
 export function ChecklistDocumental() {
-  const { control, watch } = useFormContext()
-  const tipoDocumento = watch('tipo_documento')
-
-  if (tipoDocumento !== 'checklist_documental') {
-    return null
-  }
+  const { control } = useFormContext()
 
   return (
     <div className="space-y-8 animate-in fade-in">
