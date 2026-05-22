@@ -433,7 +433,16 @@ export function ContractForm({
       if (tipoDocumento === 'autorizacao_intermediacao') {
         fieldsToValidate = ['valor_total', 'valor_avaliacao']
       } else {
-        fieldsToValidate = ['valor_total', 'valor_sinal', 'valor_financiamento', 'valor_financiado']
+        fieldsToValidate = ['valor_total', 'valor_sinal']
+
+        const isFinanciado =
+          form.getValues('financiamento_comprador') ||
+          form.getValues('possui_financiamento') ||
+          form.getValues('tipo_negociacao') === 'financiamento'
+
+        if (isFinanciado) {
+          fieldsToValidate.push('valor_financiamento', 'valor_financiado')
+        }
 
         const tipoNeg = form.getValues('tipo_negociacao')
         if (tipoNeg === 'permuta' || tipoNeg === 'dacao') {

@@ -6,10 +6,10 @@ import { FormInput, FormCurrencyInput, FormSelect } from '@/components/FormInput
 import { parseCurrency, formatCurrency } from '@/lib/formatters'
 
 export function FinanceiroTab({ tipoDocumento }: { tipoDocumento: string }) {
-  const { watch, control, setValue } = useFormContext()
+  const { watch, control, setValue, clearErrors } = useFormContext()
   const total = watch('valor_total')
   const parcelas = watch('havera_parcelas')
-  const temFinanciamento = watch('financiamento_comprador')
+  const temFinanciamento = watch('financiamento_comprador') || watch('possui_financiamento')
   const tipoNegociacao = watch('tipo_negociacao')
 
   const isPermutaDacao = tipoNegociacao === 'permuta' || tipoNegociacao === 'dacao'
@@ -98,7 +98,25 @@ export function FinanceiroTab({ tipoDocumento }: { tipoDocumento: string }) {
               render={({ field }) => (
                 <FormItem className="flex items-center space-x-2">
                   <FormControl>
-                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={(val) => {
+                        field.onChange(val)
+                        setValue('possui_financiamento', val, { shouldValidate: true })
+                        if (!val) {
+                          setValue('valor_financiamento', 0, { shouldValidate: true })
+                          setValue('valor_financiado', 0, { shouldValidate: true })
+                          setValue('instituicao_financeira', '', { shouldValidate: true })
+                          setValue('prazo_financiamento', 0, { shouldValidate: true })
+                          clearErrors([
+                            'valor_financiamento',
+                            'valor_financiado',
+                            'instituicao_financeira',
+                            'prazo_financiamento',
+                          ])
+                        }
+                      }}
+                    />
                   </FormControl>
                   <FormLabel className="!mt-0 cursor-pointer">Utilizará Financiamento</FormLabel>
                 </FormItem>
@@ -110,7 +128,17 @@ export function FinanceiroTab({ tipoDocumento }: { tipoDocumento: string }) {
               render={({ field }) => (
                 <FormItem className="flex items-center space-x-2">
                   <FormControl>
-                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={(val) => {
+                        field.onChange(val)
+                        if (!val) {
+                          setValue('quantidade_parcelas', 0, { shouldValidate: true })
+                          setValue('valor_parcela', 0, { shouldValidate: true })
+                          clearErrors(['quantidade_parcelas', 'valor_parcela'])
+                        }
+                      }}
+                    />
                   </FormControl>
                   <FormLabel className="!mt-0 cursor-pointer">
                     Haverá pagamento parcelado direto?
