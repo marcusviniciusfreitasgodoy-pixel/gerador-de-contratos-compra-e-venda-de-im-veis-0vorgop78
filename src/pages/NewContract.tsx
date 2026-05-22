@@ -27,96 +27,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { GodoyLogo } from '@/components/GodoyLogo'
 import { logSystemError } from '@/services/system_error_logs'
-
-const LOCAL_DOCUMENT_PHASES = [
-  {
-    id: 'fase_inicial',
-    title: 'Fase Inicial e Pré-Contratual',
-    description: 'Documentos para o início da negociação e coleta de informações.',
-    docs: [
-      {
-        id: '1',
-        typeId: 'ficha_cadastral',
-        title: 'Ficha Cadastral',
-        description: 'Coleta de dados das partes envolvidas.',
-      },
-      {
-        id: '2',
-        typeId: 'checklist_documental',
-        title: 'Checklist Documental',
-        description: 'Lista de documentos necessários para a transação.',
-      },
-      {
-        id: '3',
-        typeId: 'autorizacao_intermediacao',
-        title: 'Autorização de Intermediação',
-        description: 'Autorização para corretagem e venda.',
-      },
-      {
-        id: '4',
-        typeId: 'recibo_sinal',
-        title: 'Recibo de Sinal',
-        description: 'Comprovante de pagamento do sinal/arras.',
-      },
-    ],
-  },
-  {
-    id: 'fase_contratual',
-    title: 'Fase Contratual',
-    description: 'Instrumentos principais de compra e venda.',
-    docs: [
-      {
-        id: '5',
-        typeId: 'contrato_preliminar',
-        title: 'Contrato Particular Preliminar',
-        description: 'Instrumento particular preliminar.',
-      },
-      {
-        id: '6',
-        typeId: 'promessa_compra_venda',
-        title: 'Promessa de Compra e Venda',
-        description: 'Compromisso de compra e venda padrão.',
-      },
-      {
-        id: '7',
-        typeId: 'contrato_particular',
-        title: 'Contrato Particular de Compra e Venda',
-        description: 'Contrato particular de compra e venda.',
-      },
-      {
-        id: '8',
-        typeId: 'contrato_definitivo',
-        title: 'Contrato Definitivo de Compra e Venda',
-        description: 'Contrato definitivo pronto para registro.',
-      },
-    ],
-  },
-  {
-    id: 'fase_finalizacao',
-    title: 'Finalização e Termos',
-    description: 'Termos de entrega, posse e encerramento.',
-    docs: [
-      {
-        id: '10',
-        typeId: 'termo_entrega_chaves',
-        title: 'Termo de Entrega de Chaves',
-        description: 'Recibo de entrega das chaves do imóvel.',
-      },
-      {
-        id: '11',
-        typeId: 'termo_posse',
-        title: 'Termo de Posse',
-        description: 'Termo de imissão na posse do imóvel.',
-      },
-      {
-        id: '12',
-        typeId: 'distrato',
-        title: 'Distrato',
-        description: 'Rescisão amigável do contrato.',
-      },
-    ],
-  },
-]
+import { documentPhases } from '@/components/dashboard/dashboard-data'
 
 const ICON_MAP: Record<string, any> = {
   ficha_cadastral: { icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
@@ -142,7 +53,7 @@ export default function NewContract() {
   const [invalidTypeError, setInvalidTypeError] = useState(false)
 
   const isValidDoc = (tipo: string) =>
-    LOCAL_DOCUMENT_PHASES.some((p) => p.docs.some((d) => d.typeId === tipo))
+    documentPhases.some((p) => p.docs.some((d) => d.typeId === tipo))
 
   useEffect(() => {
     const params = new URLSearchParams(location.search)
@@ -242,7 +153,7 @@ export default function NewContract() {
         </div>
 
         <div className="space-y-12">
-          {LOCAL_DOCUMENT_PHASES.map((phase) => (
+          {documentPhases.map((phase) => (
             <section key={phase.id} className="animate-in fade-in slide-in-from-bottom-4">
               <div className="mb-6 border-b border-slate-200 pb-3">
                 <h2 className="text-2xl font-bold text-[#0C2340] tracking-tight">{phase.title}</h2>
@@ -259,23 +170,23 @@ export default function NewContract() {
                   return (
                     <Card
                       key={doc.id}
-                      className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-slate-200/60 overflow-hidden relative"
+                      className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-slate-200/60 overflow-hidden relative flex flex-col h-full"
                       onClick={() => {
                         setInvalidTypeError(false)
                         setTipoDocumento(doc.typeId)
                       }}
                     >
-                      <CardContent className="p-6">
+                      <CardContent className="p-6 flex flex-col h-full">
                         <div
-                          className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-5 ${ui.bg} group-hover:scale-110 transition-transform duration-500 shadow-sm border border-black/5`}
+                          className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-5 ${ui.bg} group-hover:scale-110 transition-transform duration-500 shadow-sm border border-black/5 shrink-0`}
                         >
                           <ui.icon className={`w-7 h-7 ${ui.color}`} />
                         </div>
                         <h3 className="font-bold text-lg text-[#0C2340] mb-2 group-hover:text-[#D4AF37] transition-colors leading-tight">
                           {doc.title}
                         </h3>
-                        <p className="text-sm text-slate-500 leading-relaxed line-clamp-2">
-                          {doc.subtitle || doc.description}
+                        <p className="text-sm text-slate-500 leading-relaxed mt-auto">
+                          {doc.subtitle ? `${doc.subtitle} ${doc.description}` : doc.description}
                         </p>
                       </CardContent>
                     </Card>

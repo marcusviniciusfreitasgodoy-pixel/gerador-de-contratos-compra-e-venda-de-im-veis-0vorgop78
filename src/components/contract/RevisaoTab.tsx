@@ -10,6 +10,7 @@ export function RevisaoTab({ tipoDocumento }: { tipoDocumento: string }) {
   const isTermos = ['termo_entrega_chaves', 'termo_posse', 'declaracoes_complementares'].includes(
     tipoDocumento,
   )
+  const isFichaCadastral = tipoDocumento === 'ficha_cadastral'
 
   return (
     <div className="space-y-6 animate-in fade-in">
@@ -75,7 +76,7 @@ export function RevisaoTab({ tipoDocumento }: { tipoDocumento: string }) {
                     <strong>Tipo:</strong> {values.tipo_imovel || '-'}
                   </p>
                 </div>
-                {!isTermos && (
+                {!isTermos && !isFichaCadastral && (
                   <div className="space-y-2">
                     <p>
                       <strong>Valor Estimado:</strong> {values.valor_total || 'R$ 0,00'}
