@@ -92,6 +92,10 @@ export const contractSchema = z
     preferencia_locatario: z.boolean().default(false),
     matricula_file: z.any().optional(),
     iptu_file: z.any().optional(),
+    estado_conservacao: z.string().optional(),
+    leitura_agua: z.string().optional(),
+    leitura_luz: z.string().optional(),
+    leitura_gas: z.string().optional(),
 
     // Property
     endereco_imovel: z.string().optional(),
@@ -201,6 +205,34 @@ export const contractSchema = z
     const isReciboSinal = data.tipo_documento === 'recibo_sinal'
     const isTermos = ['termo_entrega_chaves', 'termo_posse'].includes(data.tipo_documento || '')
     const isDistrato = data.tipo_documento === 'distrato'
+
+    if (isTermos) {
+      if (data.tipo_documento === 'termo_posse') {
+        if (!data.data_posse) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['data_posse'],
+            message: 'Data da imissão na posse é obrigatória',
+          })
+        }
+        if (!data.estado_conservacao) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['estado_conservacao'],
+            message: 'Estado de conservação é obrigatório para Termo de Posse',
+          })
+        }
+      }
+      if (data.tipo_documento === 'termo_entrega_chaves') {
+        if (!data.entrega_chaves) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['entrega_chaves'],
+            message: 'Data de entrega das chaves é obrigatória',
+          })
+        }
+      }
+    }
 
     if (isReciboSinal) {
       if (!data.valor_sinal || data.valor_sinal <= 0) {

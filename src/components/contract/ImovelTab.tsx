@@ -7,6 +7,7 @@ export function ImovelTab({ tipoDocumento }: { tipoDocumento?: string }) {
   const { control, watch } = useFormContext()
   const inventario = watch('imovel_inventario')
   const locado = watch('imovel_locado')
+  const isTermos = ['termo_entrega_chaves', 'termo_posse'].includes(tipoDocumento || '')
 
   return (
     <div className="space-y-6 animate-in fade-in">
@@ -98,6 +99,33 @@ export function ImovelTab({ tipoDocumento }: { tipoDocumento?: string }) {
           </div>
         )}
       </div>
+
+      {isTermos && (
+        <div className="pt-4 border-t space-y-4 animate-in slide-in-from-bottom-2">
+          <h3 className="font-semibold text-lg text-[#0C2340]">Detalhes da Vistoria e Entrega</h3>
+          <div className="grid grid-cols-1 gap-4">
+            <FormInput
+              name="estado_conservacao"
+              label="Estado de Conservação"
+              placeholder="Ex: Imóvel entregue com pintura nova, piso em bom estado..."
+              required={tipoDocumento === 'termo_posse'}
+            />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <FormInput
+              name="leitura_agua"
+              label="Leitura do Hidrômetro (Água)"
+              placeholder="Ex: 1234 m³"
+            />
+            <FormInput
+              name="leitura_luz"
+              label="Leitura do Relógio (Luz)"
+              placeholder="Ex: 5678 kWh"
+            />
+            <FormInput name="leitura_gas" label="Leitura do Gás" placeholder="Ex: 910 m³" />
+          </div>
+        </div>
+      )}
 
       <div className="pt-4 border-t space-y-4">
         <h3 className="font-semibold text-lg text-[#0C2340]">Documentação (Uploads Opcionais)</h3>

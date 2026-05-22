@@ -111,6 +111,10 @@ routerAdd(
             vagas: Number(body.vagas_garagem) || 0,
             suite: Number(body.suites) || 0,
             quartos: Number(body.quartos) || 0,
+            estado_conservacao: body.estado_conservacao || '',
+            leitura_agua: body.leitura_agua || 'Não informado',
+            leitura_luz: body.leitura_luz || 'Não informado',
+            leitura_gas: body.leitura_gas || 'Não informado',
           },
           situacao_juridica: {
             ocupado: !!body.imovel_ocupado,
@@ -328,7 +332,7 @@ CRECI: ${creci}`
 
       const clauses = $app.findRecordsByFilter(
         'legal_knowledge',
-        "category = 'clausula_fixa' || category = 'clausula_condicional' || category = 'protecao_comercial' || category = 'distrato' || category = 'permuta' || category = 'checklist_documental'",
+        "category = 'clausula_fixa' || category = 'clausula_condicional' || category = 'protecao_comercial' || category = 'distrato' || category = 'permuta' || category = 'checklist_documental' || category = 'boas_praticas'",
         'priority',
         1000,
         0,
@@ -436,20 +440,20 @@ CRECI: ${creci}`
       if (tipoDocumento === 'ficha_cadastral') {
         systemPrompt += `
 Sua função é gerar uma FICHA CADASTRAL estruturada contendo os dados do comprador, vendedor e do imóvel.
-Geração em TEXTO PURO (Plain Text). É ESTRITAMENTE PROIBIDO o uso de Markdown.
-Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 2 linhas:
-${imobiliaria_nome.toUpperCase()}
-FICHA CADASTRAL
+Utilize a formatação em Markdown (negritos, listas e tabelas) para organizar o documento.
+Cabeçalho Obrigatório: O documento DEVE iniciar com:
+# ${imobiliaria_nome.toUpperCase()}
+## FICHA CADASTRAL
 
 Use os dados do Master JSON para preencher a ficha, organizando de forma clara (dados pessoais, contatos, dados do imóvel). Não inclua cláusulas contratuais.
 `
       } else if (tipoDocumento === 'checklist_documental') {
         systemPrompt += `
 Sua função é gerar um CHECKLIST DOCUMENTAL relacionando todos os documentos necessários para a transação imobiliária com base no perfil das partes e do imóvel.
-Geração em TEXTO PURO (Plain Text). É ESTRITAMENTE PROIBIDO o uso de Markdown.
-Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 2 linhas:
-${imobiliaria_nome.toUpperCase()}
-CHECKLIST DOCUMENTAL
+Utilize a formatação em Markdown (negritos, listas e tabelas) para organizar o documento.
+Cabeçalho Obrigatório: O documento DEVE iniciar com:
+# ${imobiliaria_nome.toUpperCase()}
+## CHECKLIST DOCUMENTAL
 
 Regras Específicas:
 1. Utilize AS INFORMAÇÕES FORNECIDAS na "Available Clauses Library" (ex: Lei 7.433/85) para complementar a lista.
@@ -459,30 +463,32 @@ Regras Específicas:
       } else if (tipoDocumento === 'termo_entrega_chaves' || tipoDocumento === 'termo_posse') {
         systemPrompt += `
 Sua função é gerar um ${documentTitle.toUpperCase()} formalizando a entrega das chaves e a imissão na posse do imóvel.
-Geração em TEXTO PURO (Plain Text). É ESTRITAMENTE PROIBIDO o uso de Markdown.
-Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 2 linhas:
-${imobiliaria_nome.toUpperCase()}
-${documentTitle.toUpperCase()}
+Utilize as cláusulas fornecidas na "Available Clauses Library" (especialmente as de Gold Standard) para enriquecer o termo.
+Utilize a formatação em Markdown (negritos, listas e tabelas) para organizar o documento.
+Cabeçalho Obrigatório: O documento DEVE iniciar com:
+# ${imobiliaria_nome.toUpperCase()}
+## ${documentTitle.toUpperCase()}
 
 Inclua a qualificação das partes, a descrição do imóvel, a data da posse e a declaração de que o comprador vistoriou o imóvel. Inclua espaço para assinaturas ao final.
 `
       } else if (tipoDocumento === 'recibo_sinal') {
         systemPrompt += `
 Sua função é gerar um RECIBO DE SINAL formalizando o pagamento do princípio de pagamento (arras).
-Geração em TEXTO PURO (Plain Text). É ESTRITAMENTE PROIBIDO o uso de Markdown.
-Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 2 linhas:
-${imobiliaria_nome.toUpperCase()}
-RECIBO DE SINAL E PRINCÍPIO DE PAGAMENTO
+Utilize as cláusulas fornecidas na "Available Clauses Library" para aplicar o rigor legal correto sobre arras.
+Utilize a formatação em Markdown (negritos, listas e tabelas) para organizar o documento.
+Cabeçalho Obrigatório: O documento DEVE iniciar com:
+# ${imobiliaria_nome.toUpperCase()}
+## RECIBO DE SINAL E PRINCÍPIO DE PAGAMENTO
 
 Inclua a qualificação das partes, o valor do sinal explicitado, a referência ao imóvel e as condições básicas das arras. Inclua espaço para assinatura de quem recebe.
 `
       } else if (tipoDocumento === 'autorizacao_intermediacao') {
         systemPrompt += `
 Sua função é gerar uma AUTORIZAÇÃO DE INTERMEDIAÇÃO IMOBILIÁRIA.
-Geração em TEXTO PURO (Plain Text). É ESTRITAMENTE PROIBIDO o uso de Markdown.
-Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 2 linhas:
-${imobiliaria_nome.toUpperCase()}
-AUTORIZAÇÃO DE INTERMEDIAÇÃO IMOBILIÁRIA
+Utilize a formatação em Markdown (negritos, listas e tabelas) para organizar o documento.
+Cabeçalho Obrigatório: O documento DEVE iniciar com:
+# ${imobiliaria_nome.toUpperCase()}
+## AUTORIZAÇÃO DE INTERMEDIAÇÃO IMOBILIÁRIA
 
 Regras Específicas:
 1. Foque exclusivamente nos termos da corretagem, regras de comissionamento (valor/percentual e responsabilidade), exclusividade (se for o caso) e as obrigações da imobiliária e do Vendedor (proprietário).
@@ -493,10 +499,10 @@ Regras Específicas:
       } else if (tipoDocumento === 'distrato') {
         systemPrompt += `
 Sua função é gerar um DISTRATO DE COMPRA E VENDA.
-Geração em TEXTO PURO (Plain Text). É ESTRITAMENTE PROIBIDO o uso de Markdown.
-Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 2 linhas:
-${imobiliaria_nome.toUpperCase()}
-DISTRATO DE COMPRA E VENDA
+Utilize a formatação em Markdown (negritos, listas e tabelas) para organizar o documento.
+Cabeçalho Obrigatório: O documento DEVE iniciar com:
+# ${imobiliaria_nome.toUpperCase()}
+## DISTRATO DE COMPRA E VENDA
 
 Regras Específicas:
 1. Utilize AS CLÁUSULAS FORNECIDAS na "Available Clauses Library" (especialmente as relativas à Lei do Distrato) para compor o documento.
@@ -508,10 +514,10 @@ Regras Específicas:
       } else if (tipoDocumento === 'declaracoes_complementares') {
         systemPrompt += `
 Sua função é gerar DECLARAÇÕES COMPLEMENTARES para a transação imobiliária.
-Geração em TEXTO PURO (Plain Text). É ESTRITAMENTE PROIBIDO o uso de Markdown.
-Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 2 linhas:
-${imobiliaria_nome.toUpperCase()}
-DECLARAÇÕES COMPLEMENTARES
+Utilize a formatação em Markdown (negritos, listas e tabelas) para organizar o documento.
+Cabeçalho Obrigatório: O documento DEVE iniciar com:
+# ${imobiliaria_nome.toUpperCase()}
+## DECLARAÇÕES COMPLEMENTARES
 
 Regras Específicas:
 1. O documento deve seguir o formato formal de uma declaração/atestado.
@@ -526,10 +532,10 @@ Regras Obrigatórias (Hard Rules):
 1. NEVER invent clauses. Only use the ones provided in the library. As variáveis interpoladas já foram preenchidas nos textos das cláusulas.
 2. NEVER alter the legal meaning of the provided clauses. You may adjust grammar to connect them smoothly.
 3. Replace any remaining placeholders like {{variable_name}} with the corresponding values from the Master JSON data. Inclua de forma explícita os dados da permuta ou dação caso aplicável no contrato.
-4. Geração em TEXTO PURO (Plain Text). É ESTRITAMENTE PROIBIDO o uso de Markdown (como #, ##, **, _, etc). Não use formatação em markdown em NENHUMA parte do texto.
-5. Cabeçalho Obrigatório: O documento DEVE iniciar exatamente com as seguintes 2 linhas:
-${imobiliaria_nome.toUpperCase()}
-${documentTitle.toUpperCase()}
+4. Utilize a formatação em Markdown para estruturar o documento (negritos em termos importantes, listas, seções).
+5. Cabeçalho Obrigatório: O documento DEVE iniciar com:
+# ${imobiliaria_nome.toUpperCase()}
+## ${documentTitle.toUpperCase()}
 
 6. Numeração Formal de Cláusulas: Estruture as cláusulas sequencialmente utilizando numeração ordinal em caixa alta (ex: CLÁUSULA PRIMEIRA - [TÍTULO], CLÁUSULA SEGUNDA - [TÍTULO]). As seções "Objeto do Contrato" e "Descrição do Imóvel" devem seguir esta mesma sequência numérica formal.
 7. Qualificação das Partes: Os rótulos VENDEDOR e COMPRADOR devem estar em caixa alta como texto puro, seguidos dos respectivos dados, sem símbolos de negrito.

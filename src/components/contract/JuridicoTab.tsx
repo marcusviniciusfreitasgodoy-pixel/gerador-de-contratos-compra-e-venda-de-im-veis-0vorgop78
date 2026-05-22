@@ -30,7 +30,29 @@ export function JuridicoTab({ tipoDocumento }: { tipoDocumento: string }) {
               name="data_posse"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Data da Posse / Ocupação</FormLabel>
+                  <div className="flex items-center space-x-2">
+                    <FormLabel
+                      className={tipoDocumento === 'termo_posse' ? 'text-red-600 font-bold' : ''}
+                    >
+                      Data da Imissão na Posse
+                    </FormLabel>
+                    <Tooltip delayDuration={300}>
+                      <TooltipTrigger
+                        type="button"
+                        onClick={(e) => e.preventDefault()}
+                        className="cursor-help"
+                      >
+                        <HelpCircle className="h-4 w-4 text-slate-400 hover:text-slate-600 transition-colors" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-[300px] text-sm p-3">
+                        <p>
+                          A partir desta data os impostos (IPTU) e taxas serão divididos{' '}
+                          <i>pro rata</i>, transferindo a responsabilidade tributária ao adquirente
+                          conforme Art. 130 do CTN.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
                   <FormControl>
                     <input
                       type="date"
@@ -46,7 +68,13 @@ export function JuridicoTab({ tipoDocumento }: { tipoDocumento: string }) {
               name="entrega_chaves"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Data da Entrega de Chaves</FormLabel>
+                  <FormLabel
+                    className={
+                      tipoDocumento === 'termo_entrega_chaves' ? 'text-red-600 font-bold' : ''
+                    }
+                  >
+                    Data da Entrega de Chaves
+                  </FormLabel>
                   <FormControl>
                     <input
                       type="date"
@@ -222,13 +250,32 @@ export function JuridicoTab({ tipoDocumento }: { tipoDocumento: string }) {
                       <FormControl>
                         <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                       </FormControl>
-                      <FormLabel className="!mt-0 cursor-pointer font-medium">
-                        Posse Imediata na Assinatura
-                      </FormLabel>
+                      <div className="flex items-center space-x-2 !mt-0">
+                        <FormLabel className="cursor-pointer font-medium">
+                          Posse Imediata na Assinatura
+                        </FormLabel>
+                        <Tooltip delayDuration={300}>
+                          <TooltipTrigger
+                            type="button"
+                            onClick={(e) => e.preventDefault()}
+                            className="cursor-help"
+                          >
+                            <HelpCircle className="h-4 w-4 text-slate-400 hover:text-slate-600 transition-colors" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-[300px] text-sm p-3">
+                            <p>
+                              Impacta diretamente a responsabilidade civil e tributária (divisão pro
+                              rata). O comprador assume os riscos e despesas do imóvel (IPTU,
+                              condomínio) a partir da imissão na posse, mesmo antes do registro da
+                              escritura no RGI.
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
                     </div>
                     <p className="text-sm text-slate-500 mt-2 ml-6">
                       O comprador recebe as chaves e o direito de usar o imóvel imediatamente após a
-                      assinatura, mesmo antes do pagamento total ou da transferência da escritura.
+                      assinatura.
                     </p>
                   </FormItem>
                 )}
@@ -284,8 +331,9 @@ export function JuridicoTab({ tipoDocumento }: { tipoDocumento: string }) {
                           <TooltipContent className="max-w-[300px] text-sm p-3">
                             <p>
                               Método privado de resolução de conflitos onde um terceiro imparcial
-                              (árbitro) toma uma decisão final, geralmente mais rápida que o
-                              Judiciário, mas envolvendo custos específicos.
+                              (árbitro) toma uma decisão final. Diferencia-se do Judiciário
+                              tradicional pela maior celeridade, confidencialidade e especialidade
+                              técnica, embora possa envolver custos iniciais maiores.
                             </p>
                           </TooltipContent>
                         </Tooltip>
@@ -315,9 +363,10 @@ export function JuridicoTab({ tipoDocumento }: { tipoDocumento: string }) {
                           </TooltipTrigger>
                           <TooltipContent className="max-w-[300px] text-sm p-3">
                             <p>
-                              Processo colaborativo onde um mediador facilita a comunicação entre as
-                              partes para ajudá-las a chegar a um acordo voluntário, focando em
-                              preservar relacionamentos e soluções mutuamente benéficas.
+                              Processo colaborativo focado em acordo voluntário. É mais rápido e
+                              menos custoso que o Judiciário tradicional, preservando
+                              relacionamentos e focando em soluções mutuamente benéficas sem
+                              imposição de decisão.
                             </p>
                           </TooltipContent>
                         </Tooltip>

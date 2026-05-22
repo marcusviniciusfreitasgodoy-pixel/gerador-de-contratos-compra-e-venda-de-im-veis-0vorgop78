@@ -327,6 +327,10 @@ export function ContractForm({
       'inventariante',
       'prazo_locacao',
       'preferencia_locatario',
+      'estado_conservacao',
+      'leitura_agua',
+      'leitura_luz',
+      'leitura_gas',
     ]
     const financeiro = [
       'valor_avaliacao',
@@ -454,16 +458,11 @@ export function ContractForm({
     try {
       let text = ''
 
-      if (tipoDocumento === 'checklist_documental') {
-        const { generateChecklistHTML } = await import('@/lib/checklist-generator')
-        text = generateChecklistHTML(form.getValues())
-      } else {
-        const res = await pb.send('/backend/v1/assemble-contract', {
-          method: 'POST',
-          body: JSON.stringify(getPayload()),
-        })
-        text = (res?.minuta_texto || '').replace(/Assessoria Jurídica Imobiliária/gi, '')
-      }
+      const res = await pb.send('/backend/v1/assemble-contract', {
+        method: 'POST',
+        body: JSON.stringify(getPayload()),
+      })
+      text = (res?.minuta_texto || '').replace(/Assessoria Jurídica Imobiliária/gi, '')
 
       setCurrentMinuta(text)
 
@@ -494,16 +493,11 @@ export function ContractForm({
     try {
       let text = ''
 
-      if (tipoDocumento === 'checklist_documental') {
-        const { generateChecklistHTML } = await import('@/lib/checklist-generator')
-        text = generateChecklistHTML(form.getValues())
-      } else {
-        const res = await pb.send('/backend/v1/assemble-contract', {
-          method: 'POST',
-          body: JSON.stringify(getPayload()),
-        })
-        text = (res?.minuta_texto || '').replace(/Assessoria Jurídica Imobiliária/gi, '')
-      }
+      const res = await pb.send('/backend/v1/assemble-contract', {
+        method: 'POST',
+        body: JSON.stringify(getPayload()),
+      })
+      text = (res?.minuta_texto || '').replace(/Assessoria Jurídica Imobiliária/gi, '')
 
       const submitFn = async () => {
         await saveContractDraft({ ...form.getValues(), status: 'finalizado' }, draftId, text)
