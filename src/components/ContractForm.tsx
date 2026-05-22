@@ -265,7 +265,9 @@ export function ContractForm({
     let isValid = true
     const stepId = currentStepData.id
 
-    if (stepId === 'envolvidos') {
+    if (tipoDocumento === 'checklist_documental') {
+      isValid = true
+    } else if (stepId === 'envolvidos') {
       const baseEnvolvidos = [
         'vendedor_pj',
         'nome_vendedor',
@@ -436,10 +438,12 @@ export function ContractForm({
   }
 
   const handlePreview = async () => {
-    const isValid = await form.trigger()
-    if (!isValid) {
-      toast.error('Existem campos obrigatórios inválidos ou vazios antes de visualizar.')
-      return
+    if (tipoDocumento !== 'checklist_documental') {
+      const isValid = await form.trigger()
+      if (!isValid) {
+        toast.error('Existem campos obrigatórios inválidos ou vazios antes de visualizar.')
+        return
+      }
     }
     setIsPreviewing(true)
     setPreviewModalOpen(true)
@@ -480,10 +484,12 @@ export function ContractForm({
   }
 
   const initiateGeneration = async () => {
-    const isValid = await form.trigger()
-    if (!isValid) {
-      toast.error('Existem campos obrigatórios inválidos ou vazios antes de gerar.')
-      return
+    if (tipoDocumento !== 'checklist_documental') {
+      const isValid = await form.trigger()
+      if (!isValid) {
+        toast.error('Existem campos obrigatórios inválidos ou vazios antes de gerar.')
+        return
+      }
     }
     if (
       !['ficha_cadastral', 'checklist_documental'].includes(tipoDocumento) &&
