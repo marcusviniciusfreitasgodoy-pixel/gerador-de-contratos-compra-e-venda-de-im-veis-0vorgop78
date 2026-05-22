@@ -3,7 +3,7 @@ import { FormField, FormItem, FormLabel, FormControl } from '@/components/ui/for
 import { Checkbox } from '@/components/ui/checkbox'
 import { FormInput, FormSelect, FormFileInput } from '@/components/FormInput'
 
-export function ImovelTab() {
+export function ImovelTab({ tipoDocumento }: { tipoDocumento?: string }) {
   const { control, watch } = useFormContext()
   const inventario = watch('imovel_inventario')
   const locado = watch('imovel_locado')

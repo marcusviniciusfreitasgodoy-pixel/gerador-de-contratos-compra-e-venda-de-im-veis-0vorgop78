@@ -190,11 +190,36 @@ export const contractSchema = z
     multa_distrato: currencyToNumber.optional(),
   })
   .superRefine((data, ctx) => {
-    if (data.tipo_documento === 'checklist_documental' || data.tipo_documento === 'recibo_sinal') {
-      return // Skip strict validations for checklist to allow generation at any stage
+    if (
+      data.tipo_documento === 'checklist_documental' ||
+      data.tipo_documento === 'ficha_cadastral'
+    ) {
+      return // Skip strict validations to allow generation at any stage
     }
 
     const isAutorizacao = data.tipo_documento === 'autorizacao_intermediacao'
+    const isReciboSinal = data.tipo_documento === 'recibo_sinal'
+    const isTermos = ['termo_entrega_chaves', 'termo_posse', 'declaracoes_complementares'].includes(
+      data.tipo_documento || '',
+    )
+    const isDistrato = data.tipo_documento === 'distrato'
+
+    if (isReciboSinal) {
+      if (!data.valor_sinal || data.valor_sinal <= 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['valor_sinal'],
+          message: 'Obrigatório para Recibo de Sinal',
+        })
+      }
+      if (!data.data_pagamento_sinal) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['data_pagamento_sinal'],
+          message: 'Obrigatório',
+        })
+      }
+    }
 
     if (!data.nome_comprador && !isAutorizacao) {
       ctx.addIssue({
@@ -216,9 +241,7 @@ export const contractSchema = z
 
     if (
       !data.clausula_lgpd &&
-      !['ficha_cadastral', 'checklist_documental', 'recibo_sinal'].includes(
-        data.tipo_documento || '',
-      )
+      !['ficha_cadastral', 'checklist_documental'].includes(data.tipo_documento || '')
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

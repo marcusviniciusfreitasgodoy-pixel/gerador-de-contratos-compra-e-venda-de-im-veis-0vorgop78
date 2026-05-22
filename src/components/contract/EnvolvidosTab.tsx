@@ -5,78 +5,149 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { FormInput, FormMaskedInput, FormSelect } from '@/components/FormInput'
 import { ESTADO_CIVIL_OPTIONS, REGIME_BENS_OPTIONS } from '@/lib/constants'
 
-export function EnvolvidosTab() {
+export function EnvolvidosTab({ tipoDocumento }: { tipoDocumento: string }) {
   const { watch, control } = useFormContext()
   const tipoComprador = watch('tipo_comprador')
   const estCivilC = watch('estado_civil_comprador')
   const vendPj = watch('vendedor_pj')
   const estCivilV = watch('estado_civil_vendedor')
 
+  const isAutorizacao = tipoDocumento === 'autorizacao_intermediacao'
+  const isDistrato = tipoDocumento === 'distrato'
+
   return (
     <div className="space-y-6 animate-in fade-in">
-      <Card className="border-[#0C2340]/10 shadow-sm">
-        <CardHeader className="bg-[#0C2340]/5 pb-4">
-          <CardTitle className="text-[#0C2340] text-lg">1. Comprador</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-6 space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <FormSelect
-              name="tipo_comprador"
-              label="Tipo"
-              options={[
-                { label: 'Pessoa Física', value: 'pf' },
-                { label: 'Pessoa Jurídica', value: 'pj' },
-              ]}
-            />
-            <FormInput
-              name="nome_comprador"
-              label={tipoComprador === 'pj' ? 'Razão Social' : 'Nome Completo'}
-            />
-          </div>
-          {tipoComprador === 'pj' ? (
+      {isDistrato && (
+        <div className="bg-blue-50 text-blue-800 p-4 rounded-lg text-sm mb-4 border border-blue-200">
+          <strong>Dados Importados:</strong> Como este é um distrato, os dados das partes são
+          carregados do contrato original.
+        </div>
+      )}
+
+      {!isAutorizacao && (
+        <Card className="border-[#0C2340]/10 shadow-sm">
+          <CardHeader className="bg-[#0C2340]/5 pb-4">
+            <CardTitle className="text-[#0C2340] text-lg">1. Comprador</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormMaskedInput name="cnpj_comprador" label="CNPJ" maskType="cnpj" />
-              <FormInput name="representante_comprador" label="Representante Legal" />
-              <FormInput name="email_comprador" label="E-mail" type="email" />
-              <FormMaskedInput name="telefone_comprador" label="Telefone" maskType="phone" />
-              <FormMaskedInput name="cep_comprador" label="CEP" maskType="cep" />
-              <FormInput name="endereco_comprador" label="Endereço" />
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormMaskedInput name="cpf_comprador" label="CPF" maskType="cpf" />
-              <FormInput name="rg_comprador" label="RG" />
-              <FormInput name="email_comprador" label="E-mail" type="email" />
-              <FormMaskedInput name="telefone_comprador" label="Telefone" maskType="phone" />
-              <FormMaskedInput name="cep_comprador" label="CEP" maskType="cep" />
-              <FormInput name="endereco_comprador" label="Endereço" />
               <FormSelect
-                name="estado_civil_comprador"
-                label="Estado Civil"
-                options={ESTADO_CIVIL_OPTIONS}
+                name="tipo_comprador"
+                label="Tipo"
+                disabled={isDistrato}
+                options={[
+                  { label: 'Pessoa Física', value: 'pf' },
+                  { label: 'Pessoa Jurídica', value: 'pj' },
+                ]}
               />
-              {(estCivilC === 'Casado' || estCivilC === 'Casada') && (
-                <FormSelect
-                  name="regime_bens_comprador"
-                  label="Regime Bens"
-                  options={REGIME_BENS_OPTIONS}
+              <FormInput
+                name="nome_comprador"
+                label={tipoComprador === 'pj' ? 'Razão Social' : 'Nome Completo'}
+                disabled={isDistrato}
+              />
+            </div>
+            {tipoComprador === 'pj' ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormMaskedInput
+                  name="cnpj_comprador"
+                  label="CNPJ"
+                  maskType="cnpj"
+                  disabled={isDistrato}
                 />
-              )}
-            </div>
-          )}
-          {(estCivilC === 'Casado' || estCivilC === 'Casada') && (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border p-4 rounded bg-slate-50">
-              <FormInput name="nome_conjuge_comprador" label="Nome do Cônjuge" />
-              <FormMaskedInput name="cpf_conjuge_comprador" label="CPF Cônjuge" maskType="cpf" />
-              <FormInput name="rg_conjuge_comprador" label="RG Cônjuge" />
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                <FormInput
+                  name="representante_comprador"
+                  label="Representante Legal"
+                  disabled={isDistrato}
+                />
+                <FormInput
+                  name="email_comprador"
+                  label="E-mail"
+                  type="email"
+                  disabled={isDistrato}
+                />
+                <FormMaskedInput
+                  name="telefone_comprador"
+                  label="Telefone"
+                  maskType="phone"
+                  disabled={isDistrato}
+                />
+                <FormMaskedInput
+                  name="cep_comprador"
+                  label="CEP"
+                  maskType="cep"
+                  disabled={isDistrato}
+                />
+                <FormInput name="endereco_comprador" label="Endereço" disabled={isDistrato} />
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormMaskedInput
+                  name="cpf_comprador"
+                  label="CPF"
+                  maskType="cpf"
+                  disabled={isDistrato}
+                />
+                <FormInput name="rg_comprador" label="RG" disabled={isDistrato} />
+                <FormInput
+                  name="email_comprador"
+                  label="E-mail"
+                  type="email"
+                  disabled={isDistrato}
+                />
+                <FormMaskedInput
+                  name="telefone_comprador"
+                  label="Telefone"
+                  maskType="phone"
+                  disabled={isDistrato}
+                />
+                <FormMaskedInput
+                  name="cep_comprador"
+                  label="CEP"
+                  maskType="cep"
+                  disabled={isDistrato}
+                />
+                <FormInput name="endereco_comprador" label="Endereço" disabled={isDistrato} />
+                <FormSelect
+                  name="estado_civil_comprador"
+                  label="Estado Civil"
+                  options={ESTADO_CIVIL_OPTIONS}
+                  disabled={isDistrato}
+                />
+                {(estCivilC === 'Casado' || estCivilC === 'Casada') && (
+                  <FormSelect
+                    name="regime_bens_comprador"
+                    label="Regime Bens"
+                    options={REGIME_BENS_OPTIONS}
+                    disabled={isDistrato}
+                  />
+                )}
+              </div>
+            )}
+            {(estCivilC === 'Casado' || estCivilC === 'Casada') && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border p-4 rounded bg-slate-50">
+                <FormInput
+                  name="nome_conjuge_comprador"
+                  label="Nome do Cônjuge"
+                  disabled={isDistrato}
+                />
+                <FormMaskedInput
+                  name="cpf_conjuge_comprador"
+                  label="CPF Cônjuge"
+                  maskType="cpf"
+                  disabled={isDistrato}
+                />
+                <FormInput name="rg_conjuge_comprador" label="RG Cônjuge" disabled={isDistrato} />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="border-[#D4AF37]/20 shadow-sm">
         <CardHeader className="bg-[#D4AF37]/10 pb-4">
-          <CardTitle className="text-[#0C2340] text-lg">2. Vendedor</CardTitle>
+          <CardTitle className="text-[#0C2340] text-lg">
+            {isAutorizacao ? '1. Vendedor / Proprietário' : '2. Vendedor'}
+          </CardTitle>
         </CardHeader>
         <CardContent className="pt-6 space-y-4">
           <FormField
@@ -85,7 +156,11 @@ export function EnvolvidosTab() {
             render={({ field }) => (
               <FormItem className="flex items-center space-x-2">
                 <FormControl>
-                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    disabled={isDistrato}
+                  />
                 </FormControl>
                 <FormLabel className="!mt-0 cursor-pointer">
                   Vendedor é Pessoa Jurídica (PJ)
@@ -93,43 +168,88 @@ export function EnvolvidosTab() {
               </FormItem>
             )}
           />
-          <FormInput name="nome_vendedor" label={vendPj ? 'Razão Social' : 'Nome Completo'} />
+          <FormInput
+            name="nome_vendedor"
+            label={vendPj ? 'Razão Social' : 'Nome Completo'}
+            disabled={isDistrato}
+          />
           {vendPj ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormMaskedInput name="cnpj_vendedor" label="CNPJ" maskType="cnpj" />
-              <FormInput name="representante_vendedor" label="Representante Legal" />
-              <FormInput name="email_vendedor" label="E-mail" type="email" />
-              <FormMaskedInput name="telefone_vendedor" label="Telefone" maskType="phone" />
-              <FormMaskedInput name="cep_vendedor" label="CEP" maskType="cep" />
-              <FormInput name="endereco_vendedor" label="Endereço" />
+              <FormMaskedInput
+                name="cnpj_vendedor"
+                label="CNPJ"
+                maskType="cnpj"
+                disabled={isDistrato}
+              />
+              <FormInput
+                name="representante_vendedor"
+                label="Representante Legal"
+                disabled={isDistrato}
+              />
+              <FormInput name="email_vendedor" label="E-mail" type="email" disabled={isDistrato} />
+              <FormMaskedInput
+                name="telefone_vendedor"
+                label="Telefone"
+                maskType="phone"
+                disabled={isDistrato}
+              />
+              <FormMaskedInput
+                name="cep_vendedor"
+                label="CEP"
+                maskType="cep"
+                disabled={isDistrato}
+              />
+              <FormInput name="endereco_vendedor" label="Endereço" disabled={isDistrato} />
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormMaskedInput name="cpf_vendedor" label="CPF" maskType="cpf" />
-              <FormInput name="rg_vendedor" label="RG" />
-              <FormInput name="email_vendedor" label="E-mail" type="email" />
-              <FormMaskedInput name="telefone_vendedor" label="Telefone" maskType="phone" />
-              <FormMaskedInput name="cep_vendedor" label="CEP" maskType="cep" />
-              <FormInput name="endereco_vendedor" label="Endereço" />
+              <FormMaskedInput
+                name="cpf_vendedor"
+                label="CPF"
+                maskType="cpf"
+                disabled={isDistrato}
+              />
+              <FormInput name="rg_vendedor" label="RG" disabled={isDistrato} />
+              <FormInput name="email_vendedor" label="E-mail" type="email" disabled={isDistrato} />
+              <FormMaskedInput
+                name="telefone_vendedor"
+                label="Telefone"
+                maskType="phone"
+                disabled={isDistrato}
+              />
+              <FormMaskedInput
+                name="cep_vendedor"
+                label="CEP"
+                maskType="cep"
+                disabled={isDistrato}
+              />
+              <FormInput name="endereco_vendedor" label="Endereço" disabled={isDistrato} />
               <FormSelect
                 name="estado_civil_vendedor"
                 label="Estado Civil"
                 options={ESTADO_CIVIL_OPTIONS}
+                disabled={isDistrato}
               />
               {(estCivilV === 'Casado' || estCivilV === 'Casada') && (
                 <FormSelect
                   name="regime_bens_vendedor"
                   label="Regime Bens"
                   options={REGIME_BENS_OPTIONS}
+                  disabled={isDistrato}
                 />
               )}
             </div>
           )}
           {(estCivilV === 'Casado' || estCivilV === 'Casada') && (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border p-4 rounded bg-slate-50">
-              <FormInput name="conjuge_vendedor" label="Nome do Cônjuge" />
-              <FormMaskedInput name="cpf_conjuge_vendedor" label="CPF Cônjuge" maskType="cpf" />
-              <FormInput name="rg_conjuge_vendedor" label="RG Cônjuge" />
+              <FormInput name="conjuge_vendedor" label="Nome do Cônjuge" disabled={isDistrato} />
+              <FormMaskedInput
+                name="cpf_conjuge_vendedor"
+                label="CPF Cônjuge"
+                maskType="cpf"
+                disabled={isDistrato}
+              />
+              <FormInput name="rg_conjuge_vendedor" label="RG Cônjuge" disabled={isDistrato} />
             </div>
           )}
         </CardContent>

@@ -17,11 +17,13 @@ export function FormInput({
   label,
   placeholder,
   type = 'text',
+  disabled,
 }: {
   name: string
   label: string
   placeholder?: string
   type?: string
+  disabled?: boolean
 }) {
   const {
     control,
@@ -42,7 +44,11 @@ export function FormInput({
               placeholder={placeholder}
               {...field}
               value={field.value || ''}
-              className={cn(error && 'border-red-500 focus-visible:ring-red-500')}
+              disabled={disabled}
+              className={cn(
+                error && 'border-red-500 focus-visible:ring-red-500',
+                disabled && 'opacity-70 bg-slate-100',
+              )}
             />
           </FormControl>
           <FormMessage />
@@ -56,10 +62,12 @@ export function FormCurrencyInput({
   name,
   label,
   placeholder = 'R$ 0,00',
+  disabled,
 }: {
   name: string
   label: string
   placeholder?: string
+  disabled?: boolean
 }) {
   const {
     control,
@@ -86,7 +94,11 @@ export function FormCurrencyInput({
                 value={field.value || ''}
                 onChange={handleChange}
                 placeholder={placeholder}
-                className={cn(error && 'border-red-500 focus-visible:ring-red-500')}
+                disabled={disabled}
+                className={cn(
+                  error && 'border-red-500 focus-visible:ring-red-500',
+                  disabled && 'opacity-70 bg-slate-100',
+                )}
               />
             </FormControl>
             <FormMessage />
@@ -102,11 +114,13 @@ export function FormMaskedInput({
   label,
   placeholder,
   maskType,
+  disabled,
 }: {
   name: string
   label: string
   placeholder?: string
   maskType: 'cpf' | 'cnpj' | 'phone' | 'cep'
+  disabled?: boolean
 }) {
   const {
     control,
@@ -150,7 +164,11 @@ export function FormMaskedInput({
                 maxLength={
                   maskType === 'cpf' ? 14 : maskType === 'cnpj' ? 18 : maskType === 'cep' ? 9 : 15
                 }
-                className={cn(error && 'border-red-500 focus-visible:ring-red-500')}
+                disabled={disabled}
+                className={cn(
+                  error && 'border-red-500 focus-visible:ring-red-500',
+                  disabled && 'opacity-70 bg-slate-100',
+                )}
               />
             </FormControl>
             <FormMessage />
@@ -208,11 +226,13 @@ export function FormSelect({
   label,
   options,
   placeholder = 'Selecione...',
+  disabled,
 }: {
   name: string
   label: string
   options: { label: string; value: string }[]
   placeholder?: string
+  disabled?: boolean
 }) {
   const {
     control,
@@ -227,9 +247,14 @@ export function FormSelect({
       render={({ field }) => (
         <FormItem>
           <FormLabel className={cn(error && 'text-red-500')}>{label}</FormLabel>
-          <Select onValueChange={field.onChange} value={field.value}>
+          <Select onValueChange={field.onChange} value={field.value} disabled={disabled}>
             <FormControl>
-              <SelectTrigger className={cn(error && 'border-red-500 focus-visible:ring-red-500')}>
+              <SelectTrigger
+                className={cn(
+                  error && 'border-red-500 focus-visible:ring-red-500',
+                  disabled && 'opacity-70 bg-slate-100',
+                )}
+              >
                 <SelectValue placeholder={placeholder} />
               </SelectTrigger>
             </FormControl>

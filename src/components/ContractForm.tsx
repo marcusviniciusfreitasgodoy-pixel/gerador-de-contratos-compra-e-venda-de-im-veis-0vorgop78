@@ -80,11 +80,19 @@ export function ContractForm({
   documentGender?: string
 }) {
   const activeSteps = WIZARD_STEPS_ALL.filter((s) => {
-    if (tipoDocumento === 'checklist_documental') {
+    if (['checklist_documental', 'ficha_cadastral'].includes(tipoDocumento)) {
       return ['envolvidos', 'imovel', 'revisao'].includes(s.id)
     }
-    if (tipoDocumento === 'ficha_cadastral') {
-      return ['envolvidos', 'imovel', 'revisao'].includes(s.id)
+    if (tipoDocumento === 'autorizacao_intermediacao') {
+      return ['envolvidos', 'imovel', 'financeiro', 'juridico', 'revisao'].includes(s.id)
+    }
+    if (tipoDocumento === 'recibo_sinal') {
+      return ['envolvidos', 'imovel', 'financeiro', 'revisao'].includes(s.id)
+    }
+    if (
+      ['termo_entrega_chaves', 'termo_posse', 'declaracoes_complementares'].includes(tipoDocumento)
+    ) {
+      return ['envolvidos', 'imovel', 'juridico', 'revisao'].includes(s.id)
     }
     if (tipoDocumento === 'distrato') {
       return ['envolvidos', 'financeiro', 'juridico', 'revisao'].includes(s.id)
@@ -451,6 +459,8 @@ export function ContractForm({
         fieldsToValidate = ['valor_total', 'valor_avaliacao']
       } else if (tipoDocumento === 'distrato') {
         fieldsToValidate = ['valor_reembolso', 'multa_distrato']
+      } else if (tipoDocumento === 'recibo_sinal') {
+        fieldsToValidate = ['valor_sinal', 'data_pagamento_sinal']
       } else {
         fieldsToValidate = ['valor_total', 'valor_sinal']
 
@@ -485,6 +495,12 @@ export function ContractForm({
     } else if (stepId === 'juridico') {
       if (tipoDocumento === 'autorizacao_intermediacao') {
         fieldsToValidate = ['clausula_lgpd', 'gestao_exclusiva']
+      } else if (
+        ['termo_entrega_chaves', 'termo_posse', 'declaracoes_complementares'].includes(
+          tipoDocumento,
+        )
+      ) {
+        fieldsToValidate = ['clausula_lgpd']
       } else {
         fieldsToValidate = ['clausula_lgpd']
       }
@@ -732,15 +748,15 @@ export function ContractForm({
               {currentStepData.id === 'envolvidos' && (
                 <>
                   {tipoDocumento === 'distrato' && <DistratoSelector />}
-                  <EnvolvidosTab />
+                  <EnvolvidosTab tipoDocumento={tipoDocumento} />
                 </>
               )}
-              {currentStepData.id === 'imovel' && <ImovelTab />}
+              {currentStepData.id === 'imovel' && <ImovelTab tipoDocumento={tipoDocumento} />}
               {currentStepData.id === 'financeiro' && (
                 <FinanceiroTab tipoDocumento={tipoDocumento} />
               )}
               {currentStepData.id === 'juridico' && <JuridicoTab tipoDocumento={tipoDocumento} />}
-              {currentStepData.id === 'revisao' && <RevisaoTab />}
+              {currentStepData.id === 'revisao' && <RevisaoTab tipoDocumento={tipoDocumento} />}
             </form>
           </Form>
         </CardContent>

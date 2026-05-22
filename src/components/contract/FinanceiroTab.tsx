@@ -15,15 +15,12 @@ export function FinanceiroTab({ tipoDocumento }: { tipoDocumento: string }) {
   const isPermutaDacao = tipoNegociacao === 'permuta' || tipoNegociacao === 'dacao'
   const isAutorizacao = tipoDocumento === 'autorizacao_intermediacao'
   const isDistrato = tipoDocumento === 'distrato'
-  const showValues = ![
-    'termo_entrega_chaves',
-    'termo_posse',
-    'autorizacao_intermediacao',
-    'distrato',
-  ].includes(tipoDocumento)
+  const isReciboSinal = tipoDocumento === 'recibo_sinal'
+
+  const showFullFinanceiro = !isAutorizacao && !isDistrato && !isReciboSinal
 
   useEffect(() => {
-    if (!showValues) return
+    if (!showFullFinanceiro) return
     const s = parseCurrency(String(watch('valor_sinal') || '0'))
     const fin = parseCurrency(String(watch('valor_financiamento') || '0'))
     const fgts = parseCurrency(String(watch('valor_fgts') || '0'))
@@ -35,19 +32,56 @@ export function FinanceiroTab({ tipoDocumento }: { tipoDocumento: string }) {
     watch('valor_fgts'),
     watch('valor_recursos_proprios'),
     setValue,
-    showValues,
+    showFullFinanceiro,
   ])
 
   return (
     <div className="space-y-6 animate-in fade-in">
       {isAutorizacao && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormCurrencyInput name="valor_avaliacao" label="Valor de Avaliação (R$)" />
-          <FormCurrencyInput name="valor_total" label="Valor de Venda (R$)" />
-        </div>
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormCurrencyInput name="valor_avaliacao" label="Valor de Avaliação Estimado (R$)" />
+            <FormCurrencyInput name="valor_total" label="Valor de Venda Pretendido (R$)" />
+          </div>
+          <h3 className="font-semibold text-lg border-b pb-2 mt-6 text-[#0C2340]">
+            Comissão de Intermediação
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormInput
+              name="percentual_comissao"
+              label="Percentual da Comissão (%)"
+              type="number"
+            />
+            <FormCurrencyInput name="valor_comissao" label="Valor Fixo da Comissão (Opcional)" />
+          </div>
+        </>
       )}
 
-      {showValues && (
+      {isReciboSinal && (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormCurrencyInput name="valor_sinal" label="Valor do Sinal (R$)" />
+            <FormField
+              control={control}
+              name="data_pagamento_sinal"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Data de Pagamento do Sinal</FormLabel>
+                  <FormControl>
+                    <input
+                      type="date"
+                      {...field}
+                      className="flex h-9 w-full rounded-md border border-slate-200 bg-white px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950"
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+        </>
+      )}
+
+      {showFullFinanceiro && (
         <>
           <div className="p-4 bg-[#0C2340]/5 border border-[#0C2340]/10 rounded-lg flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-6">
             <span className="font-semibold text-[#0C2340]">Valor Total Estimado:</span>
@@ -191,7 +225,7 @@ export function FinanceiroTab({ tipoDocumento }: { tipoDocumento: string }) {
         </>
       )}
 
-      {tipoDocumento === 'distrato' && (
+      {isDistrato && (
         <>
           <h3 className="font-semibold text-lg border-b pb-2 mt-6 text-[#0C2340]">
             Valores do Distrato
@@ -206,7 +240,7 @@ export function FinanceiroTab({ tipoDocumento }: { tipoDocumento: string }) {
       {!isAutorizacao && !isDistrato && (
         <>
           <h3 className="font-semibold text-lg border-b pb-2 mt-6 text-[#0C2340]">
-            Dados Bancários do Vendedor
+            Dados Bancários do Vendedor / Recebedor
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <FormInput name="vendedor_banco" label="Banco" />

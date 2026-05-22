@@ -11,28 +11,89 @@ export function JuridicoTab({ tipoDocumento }: { tipoDocumento: string }) {
   } = useFormContext()
   const isAutorizacao = tipoDocumento === 'autorizacao_intermediacao'
   const isDistrato = tipoDocumento === 'distrato'
+  const isTermos = ['termo_entrega_chaves', 'termo_posse', 'declaracoes_complementares'].includes(
+    tipoDocumento,
+  )
 
   return (
     <div className="space-y-6 animate-in fade-in">
-      {!isDistrato && (
+      {isTermos && (
+        <div className="space-y-4">
+          <h3 className="font-semibold text-lg border-b pb-2 text-[#0C2340]">Datas e Entrega</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormField
+              control={control}
+              name="data_posse"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Data da Posse / Ocupação</FormLabel>
+                  <FormControl>
+                    <input
+                      type="date"
+                      {...field}
+                      className="flex h-9 w-full rounded-md border border-slate-200 bg-white px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950"
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={control}
+              name="entrega_chaves"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Data da Entrega de Chaves</FormLabel>
+                  <FormControl>
+                    <input
+                      type="date"
+                      {...field}
+                      className="flex h-9 w-full rounded-md border border-slate-200 bg-white px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950"
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={control}
+              name="data_assinatura"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Data da Assinatura do Termo</FormLabel>
+                  <FormControl>
+                    <input
+                      type="date"
+                      {...field}
+                      className="flex h-9 w-full rounded-md border border-slate-200 bg-white px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950"
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+      )}
+
+      {!isDistrato && !isTermos && (
         <>
           <h3 className="font-semibold text-lg border-b pb-2 text-[#0C2340]">
             Termos Legais e Específicos
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormSelect
-              name="tipo_negociacao"
-              label="Tipo de Negociação"
-              options={[
-                { label: 'À Vista', value: 'a_vista' },
-                { label: 'Financiamento', value: 'financiamento' },
-                { label: 'Investidor', value: 'investidor' },
-                { label: 'Alto Padrão', value: 'alto_padrao' },
-                { label: 'Permuta', value: 'permuta' },
-                { label: 'Dação em Pagamento', value: 'dacao' },
-              ]}
-            />
+            {!isAutorizacao && (
+              <FormSelect
+                name="tipo_negociacao"
+                label="Tipo de Negociação"
+                options={[
+                  { label: 'À Vista', value: 'a_vista' },
+                  { label: 'Financiamento', value: 'financiamento' },
+                  { label: 'Investidor', value: 'investidor' },
+                  { label: 'Alto Padrão', value: 'alto_padrao' },
+                  { label: 'Permuta', value: 'permuta' },
+                  { label: 'Dação em Pagamento', value: 'dacao' },
+                ]}
+              />
+            )}
 
             {isAutorizacao && (
               <FormSelect
