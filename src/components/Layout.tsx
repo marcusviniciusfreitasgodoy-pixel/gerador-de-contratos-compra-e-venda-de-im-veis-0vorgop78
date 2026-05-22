@@ -32,7 +32,7 @@ export default function Layout() {
                     className="h-8 md:h-10 w-auto object-contain max-w-[150px] md:max-w-[200px]"
                   />
                 ) : (
-                  <GodoyLogo className="h-8 md:h-10 w-auto text-primary-foreground" />
+                  <GodoyLogo className="h-8 md:h-10 w-auto object-contain max-w-[150px] md:max-w-[200px]" />
                 )}
               </Link>
             </div>

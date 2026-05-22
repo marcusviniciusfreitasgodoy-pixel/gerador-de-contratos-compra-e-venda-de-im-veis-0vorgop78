@@ -48,7 +48,7 @@ export function AppSidebar() {
             />
           ) : (
             <>
-              <GRSymbol className="h-7 w-7 shrink-0 text-white" />
+              <GRSymbol className="h-7 w-7 shrink-0 object-contain" />
               <span className="font-extrabold truncate tracking-wide text-sm">{brandName}</span>
             </>
           )}

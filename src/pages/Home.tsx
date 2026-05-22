@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ShieldCheck, FileText, Clock, ArrowRight, AlertCircle } from 'lucide-react'
+import { ShieldCheck, FileText, Clock, ArrowRight, AlertCircle, RefreshCw } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import pb from '@/lib/pocketbase/client'
 
@@ -13,40 +13,37 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const fetchDashboardData = useCallback(async () => {
+    if (!user?.id) return
+
+    try {
+      setLoading(true)
+      setError(null)
+      const contracts = await pb.collection('contracts').getList(1, 5, {
+        sort: '-created',
+        filter: `user = "${user.id}"`,
+      })
+
+      setRecentContracts(contracts?.items || [])
+    } catch (err: any) {
+      console.error('Error fetching dashboard data:', err)
+      setError(
+        'Não foi possível carregar os dados recentes. Verifique sua conexão ou tente novamente.',
+      )
+    } finally {
+      setLoading(false)
+    }
+  }, [user?.id])
+
   useEffect(() => {
     let isMounted = true
-
-    async function fetchDashboardData() {
-      if (!user?.id) return
-
-      try {
-        setLoading(true)
-        const contracts = await pb.collection('contracts').getList(1, 5, {
-          sort: '-created',
-          filter: `user = "${user.id}"`,
-        })
-
-        if (isMounted) {
-          setRecentContracts(contracts.items)
-          setError(null)
-        }
-      } catch (err: any) {
-        if (isMounted) {
-          console.error('Error fetching dashboard data:', err)
-          setError('Não foi possível carregar os dados recentes.')
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false)
-        }
-      }
+    if (isMounted) {
+      fetchDashboardData()
     }
-
-    fetchDashboardData()
     return () => {
       isMounted = false
     }
-  }, [user?.id])
+  }, [fetchDashboardData])
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-5xl animate-fade-in-up">
@@ -96,9 +93,18 @@ export default function Home() {
                 ))}
               </div>
             ) : error ? (
-              <div className="flex items-center gap-2 text-destructive p-4 bg-destructive/10 rounded-md">
-                <AlertCircle className="h-5 w-5" />
-                <p>{error}</p>
+              <div className="flex flex-col items-center justify-center gap-3 text-destructive p-6 bg-destructive/10 rounded-md text-center">
+                <AlertCircle className="h-8 w-8 mb-1" />
+                <p className="text-sm font-medium">{error}</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={fetchDashboardData}
+                  className="mt-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Tentar novamente
+                </Button>
               </div>
             ) : recentContracts.length === 0 ? (
               <div className="text-center p-6 text-muted-foreground bg-muted/20 rounded-md border border-dashed">
