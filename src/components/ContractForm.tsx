@@ -429,7 +429,7 @@ export function ContractForm({
       if (tipoDocumento === 'autorizacao_intermediacao') {
         fieldsToValidate = ['valor_total', 'valor_avaliacao']
       } else {
-        fieldsToValidate = ['valor_total', 'valor_sinal', 'valor_financiamento']
+        fieldsToValidate = ['valor_total', 'valor_sinal', 'valor_financiamento', 'valor_financiado']
       }
     } else if (stepId === 'juridico') {
       if (tipoDocumento === 'autorizacao_intermediacao') {
