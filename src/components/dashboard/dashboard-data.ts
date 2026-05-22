@@ -27,7 +27,7 @@ export interface ScenarioInfo {
 
 export const documentPhases: PhaseInfo[] = [
   {
-    id: 'captacao',
+    id: 'fase-1',
     title: 'Fase 1: Captação e Cadastro',
     description: 'A base sólida da transação começa aqui.',
     docs: [
@@ -67,9 +67,9 @@ export const documentPhases: PhaseInfo[] = [
     ],
   },
   {
-    id: 'contratual',
-    title: 'Fase 2: Contratual',
-    description: 'A essência jurídica e financeira do negócio.',
+    id: 'fase-2',
+    title: 'Fase 2: Negociação e Preliminares',
+    description: 'Instrumentos iniciais e amarração do negócio.',
     docs: [
       {
         id: 'recibo_sinal',
@@ -88,10 +88,10 @@ export const documentPhases: PhaseInfo[] = [
         subtitle: 'Quando as partes precisam se comprometer antes de fechar todas as condições.',
         description:
           'Utilizado principalmente para fixar condições suspensivas, como a aprovação de um financiamento ou a regularização de uma averbação na matrícula.',
-        tip: 'Use quando o negócio tem uma pendência concreta que impede a assinatura da promessa definitiva. Não use como substituto da promessa por preguiça.',
+        tip: 'Use quando o negócio tem uma pendência concreta que impede a assinatura da promessa definitiva.',
         status: 'Opcional',
         statusType: 'optional',
-        typeId: 'contrato_particular',
+        typeId: 'contrato_preliminar',
       },
       {
         id: 'promessa_cv',
@@ -105,9 +105,16 @@ export const documentPhases: PhaseInfo[] = [
         typeId: 'promessa_compra_venda',
         goldenRule: true,
       },
+    ],
+  },
+  {
+    id: 'fase-3',
+    title: 'Fase 3: Contratual Definitiva',
+    description: 'A essência jurídica e financeira consolidada.',
+    docs: [
       {
         id: 'contrato_particular',
-        title: 'Contrato Particular de Compra e Venda',
+        title: 'Contrato Particular',
         subtitle:
           'O instrumento definitivo entre as partes, quando a escritura pública ainda não é possível.',
         description:
@@ -126,15 +133,8 @@ export const documentPhases: PhaseInfo[] = [
         tip: 'Não assine o definitivo sem que todas as pendências do checklist documental estejam resolvidas.',
         status: 'Obrigatório',
         statusType: 'mandatory',
-        typeId: 'contrato_particular',
+        typeId: 'contrato_definitivo',
       },
-    ],
-  },
-  {
-    id: 'aditivos',
-    title: 'Fase 3: Aditivos e Complementares',
-    description: 'Ajustes finais e formalização da entrega.',
-    docs: [
       {
         id: 'declaracoes_comp',
         title: 'Declarações Complementares',
@@ -147,6 +147,13 @@ export const documentPhases: PhaseInfo[] = [
         statusType: 'mandatory',
         typeId: 'declaracoes_complementares',
       },
+    ],
+  },
+  {
+    id: 'fase-4',
+    title: 'Fase 4: Finalização e Entrega',
+    description: 'Encerramento formal, posse e garantias.',
+    docs: [
       {
         id: 'termo_chaves',
         title: 'Termo de Entrega de Chaves',
@@ -169,13 +176,6 @@ export const documentPhases: PhaseInfo[] = [
         statusType: 'optional',
         typeId: 'termo_posse',
       },
-    ],
-  },
-  {
-    id: 'finalizacao',
-    title: 'Fase 4: Finalização',
-    description: 'Encerramento e garantias.',
-    docs: [
       {
         id: 'distrato',
         title: 'Distrato',

@@ -6,6 +6,7 @@ import { useRealtime } from '@/hooks/use-realtime'
 import { useAuth } from '@/hooks/use-auth'
 import { DocumentContext } from '@/contexts/DocumentContext'
 import { Card, CardContent } from '@/components/ui/card'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import {
   FileText,
   CheckSquare,
@@ -18,91 +19,28 @@ import {
   Ban,
   Handshake,
   ChevronLeft,
+  FileClock,
+  ShieldCheck,
+  AlertCircle,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { documentPhases } from '@/components/dashboard/dashboard-data'
+import { GodoyLogo } from '@/components/GodoyLogo'
 
-const DOCUMENT_TYPES = [
-  {
-    id: 'ficha_cadastral',
-    title: 'Ficha Cadastral',
-    desc: 'Levantamento de dados e qualificação das partes',
-    icon: Users,
-    color: 'text-blue-600',
-    bg: 'bg-blue-50',
-  },
-  {
-    id: 'checklist_documental',
-    title: 'Checklist Documental',
-    desc: 'Relação de certidões e documentos exigidos',
-    icon: CheckSquare,
-    color: 'text-amber-600',
-    bg: 'bg-amber-50',
-  },
-  {
-    id: 'autorizacao_intermediacao',
-    title: 'Autorização de Intermediação',
-    desc: 'Contrato de prestação de serviços do corretor',
-    icon: FileText,
-    color: 'text-rose-600',
-    bg: 'bg-rose-50',
-  },
-  {
-    id: 'recibo_sinal',
-    title: 'Recibo de Sinal',
-    desc: 'Comprovante de recebimento das arras ou sinal',
-    icon: Receipt,
-    color: 'text-emerald-600',
-    bg: 'bg-emerald-50',
-  },
-  {
-    id: 'promessa_compra_venda',
-    title: 'Promessa de Compra e Venda',
-    desc: 'Principal instrumento preliminar do negócio',
-    icon: Handshake,
-    color: 'text-indigo-600',
-    bg: 'bg-indigo-50',
-  },
-  {
-    id: 'contrato_particular',
-    title: 'Contrato Particular',
-    desc: 'Contrato definitivo com força de escritura',
-    icon: FileSignature,
-    color: 'text-purple-600',
-    bg: 'bg-purple-50',
-  },
-  {
-    id: 'termo_entrega_chaves',
-    title: 'Termo de Entrega de Chaves',
-    desc: 'Documento que formaliza a entrega do imóvel',
-    icon: Key,
-    color: 'text-orange-600',
-    bg: 'bg-orange-50',
-  },
-  {
-    id: 'termo_posse',
-    title: 'Termo de Posse',
-    desc: 'Transferência da posse precária ou definitiva',
-    icon: FileKey,
-    color: 'text-teal-600',
-    bg: 'bg-teal-50',
-  },
-  {
-    id: 'declaracoes_complementares',
-    title: 'Declarações Complementares',
-    desc: 'Declarações acessórias de estado ou ciência',
-    icon: FileCheck,
-    color: 'text-cyan-600',
-    bg: 'bg-cyan-50',
-  },
-  {
-    id: 'distrato',
-    title: 'Distrato',
-    desc: 'Instrumento para desfazimento do negócio',
-    icon: Ban,
-    color: 'text-red-600',
-    bg: 'bg-red-50',
-  },
-]
+const ICON_MAP: Record<string, any> = {
+  ficha_cadastral: { icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
+  checklist_documental: { icon: CheckSquare, color: 'text-amber-600', bg: 'bg-amber-50' },
+  autorizacao_intermediacao: { icon: FileText, color: 'text-rose-600', bg: 'bg-rose-50' },
+  recibo_sinal: { icon: Receipt, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+  contrato_preliminar: { icon: FileClock, color: 'text-sky-600', bg: 'bg-sky-50' },
+  promessa_compra_venda: { icon: Handshake, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+  contrato_particular: { icon: FileSignature, color: 'text-purple-600', bg: 'bg-purple-50' },
+  contrato_definitivo: { icon: ShieldCheck, color: 'text-blue-700', bg: 'bg-blue-100' },
+  declaracoes_complementares: { icon: FileCheck, color: 'text-cyan-600', bg: 'bg-cyan-50' },
+  termo_entrega_chaves: { icon: Key, color: 'text-orange-600', bg: 'bg-orange-50' },
+  termo_posse: { icon: FileKey, color: 'text-teal-600', bg: 'bg-teal-50' },
+  distrato: { icon: Ban, color: 'text-red-600', bg: 'bg-red-50' },
+}
 
 export default function NewContract() {
   const navigate = useNavigate()
@@ -111,16 +49,28 @@ export default function NewContract() {
   const { user } = useAuth()
 
   const [tipoDocumento, setTipoDocumento] = useState<string | null>(null)
+  const [invalidTypeError, setInvalidTypeError] = useState(false)
+
+  const isValidDoc = (tipo: string) =>
+    documentPhases.some((p) => p.docs.some((d) => d.typeId === tipo))
 
   useEffect(() => {
-    if (location.state?.tipo_documento) {
-      let tipo = location.state.tipo_documento
+    let tipo = location.state?.tipo_documento || new URLSearchParams(location.search).get('tipo')
+
+    if (tipo) {
       if (tipo === 'promessa_cv') tipo = 'promessa_compra_venda'
       if (tipo === 'checklist') tipo = 'checklist_documental'
       if (tipo === 'termo_chaves') tipo = 'termo_entrega_chaves'
       if (tipo === 'declaracoes') tipo = 'declaracoes_complementares'
       if (tipo === 'autorizacao') tipo = 'autorizacao_intermediacao'
-      setTipoDocumento(tipo)
+
+      if (isValidDoc(tipo)) {
+        setTipoDocumento(tipo)
+        setInvalidTypeError(false)
+      } else {
+        setInvalidTypeError(true)
+        setTipoDocumento(null)
+      }
     }
   }, [location])
 
@@ -128,8 +78,10 @@ export default function NewContract() {
     ficha_cadastral: { title: 'Ficha Cadastral', gender: 'a' },
     checklist_documental: { title: 'Checklist Documental', gender: 'o' },
     recibo_sinal: { title: 'Recibo de Sinal', gender: 'o' },
+    contrato_preliminar: { title: 'Contrato Particular Preliminar', gender: 'o' },
     promessa_compra_venda: { title: 'Promessa de Compra e Venda', gender: 'a' },
     contrato_particular: { title: 'Contrato Particular', gender: 'o' },
+    contrato_definitivo: { title: 'Contrato Definitivo de Compra e Venda', gender: 'o' },
     termo_entrega_chaves: { title: 'Termo de Entrega de Chaves', gender: 'o' },
     termo_posse: { title: 'Termo de Posse', gender: 'o' },
     declaracoes_complementares: { title: 'Declarações Complementares', gender: 'as' },
@@ -156,38 +108,72 @@ export default function NewContract() {
   if (!tipoDocumento) {
     return (
       <div className="container mx-auto py-10 px-4 max-w-6xl animate-fade-in-up">
-        <div className="mb-10 max-w-3xl">
-          <h1 className="text-3xl md:text-4xl font-bold text-[#0C2340] tracking-tight mb-3">
-            Novo Documento
-          </h1>
-          <p className="text-slate-600 text-lg">
-            Selecione o tipo de instrumento jurídico ou formulário que deseja gerar para dar
-            andamento à sua transação.
-          </p>
+        {invalidTypeError && (
+          <Alert variant="destructive" className="mb-6 animate-in fade-in slide-in-from-top-2">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Erro de Validação</AlertTitle>
+            <AlertDescription>
+              O tipo de documento solicitado é inválido ou não foi reconhecido. Por favor, selecione
+              uma opção válida abaixo.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        <div className="bg-[#0C2340] rounded-2xl p-8 md:p-10 mb-12 text-white shadow-xl relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6 border-b-4 border-[#D4AF37]">
+          <div className="z-10 relative max-w-2xl">
+            <GodoyLogo className="h-10 md:h-12 object-contain mb-6" />
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-4 text-white">
+              Novo Documento
+            </h1>
+            <p className="text-slate-300 text-lg leading-relaxed">
+              Selecione o tipo de instrumento jurídico ou formulário que deseja gerar para dar
+              andamento à sua transação.
+            </p>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {DOCUMENT_TYPES.map((doc, index) => (
-            <Card
-              key={doc.id}
-              className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-slate-200/60 overflow-hidden relative"
-              onClick={() => setTipoDocumento(doc.id)}
-            >
-              <div className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-sm group-hover:bg-[#0C2340] group-hover:text-[#D4AF37] transition-colors">
-                {index + 1}
+        <div className="space-y-12">
+          {documentPhases.map((phase) => (
+            <section key={phase.id} className="animate-in fade-in slide-in-from-bottom-4">
+              <div className="mb-6 border-b border-slate-200 pb-3">
+                <h2 className="text-2xl font-bold text-[#0C2340] tracking-tight">{phase.title}</h2>
+                <p className="text-slate-500 mt-1">{phase.description}</p>
               </div>
-              <CardContent className="p-6">
-                <div
-                  className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-5 ${doc.bg} group-hover:scale-110 transition-transform duration-500 shadow-sm border border-black/5`}
-                >
-                  <doc.icon className={`w-7 h-7 ${doc.color}`} />
-                </div>
-                <h3 className="font-bold text-lg text-[#0C2340] mb-2 pr-8 group-hover:text-[#D4AF37] transition-colors leading-tight">
-                  {doc.title}
-                </h3>
-                <p className="text-sm text-slate-500 leading-relaxed">{doc.desc}</p>
-              </CardContent>
-            </Card>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {phase.docs.map((doc) => {
+                  const ui = ICON_MAP[doc.typeId] || {
+                    icon: FileText,
+                    color: 'text-slate-600',
+                    bg: 'bg-slate-50',
+                  }
+                  return (
+                    <Card
+                      key={doc.id}
+                      className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-slate-200/60 overflow-hidden relative"
+                      onClick={() => {
+                        setInvalidTypeError(false)
+                        setTipoDocumento(doc.typeId)
+                      }}
+                    >
+                      <CardContent className="p-6">
+                        <div
+                          className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-5 ${ui.bg} group-hover:scale-110 transition-transform duration-500 shadow-sm border border-black/5`}
+                        >
+                          <ui.icon className={`w-7 h-7 ${ui.color}`} />
+                        </div>
+                        <h3 className="font-bold text-lg text-[#0C2340] mb-2 group-hover:text-[#D4AF37] transition-colors leading-tight">
+                          {doc.title}
+                        </h3>
+                        <p className="text-sm text-slate-500 leading-relaxed line-clamp-2">
+                          {doc.subtitle || doc.description}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )
+                })}
+              </div>
+            </section>
           ))}
         </div>
       </div>
