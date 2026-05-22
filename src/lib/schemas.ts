@@ -224,10 +224,7 @@ export const contractSchema = z
         message: 'O tipo de gestão é obrigatório para Autorização',
       })
     }
-    const isFinanciado =
-      data.financiamento_comprador ||
-      data.possui_financiamento ||
-      data.tipo_negociacao === 'financiamento'
+    const isFinanciado = data.financiamento_comprador || data.possui_financiamento
 
     const valorFin = data.valor_financiamento || data.valor_financiado || 0
 

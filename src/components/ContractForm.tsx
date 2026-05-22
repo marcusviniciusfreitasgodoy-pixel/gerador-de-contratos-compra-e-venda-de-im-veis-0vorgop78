@@ -436,9 +436,7 @@ export function ContractForm({
         fieldsToValidate = ['valor_total', 'valor_sinal']
 
         const isFinanciado =
-          form.getValues('financiamento_comprador') ||
-          form.getValues('possui_financiamento') ||
-          form.getValues('tipo_negociacao') === 'financiamento'
+          form.getValues('financiamento_comprador') || form.getValues('possui_financiamento')
 
         if (isFinanciado) {
           fieldsToValidate.push('valor_financiamento', 'valor_financiado')
