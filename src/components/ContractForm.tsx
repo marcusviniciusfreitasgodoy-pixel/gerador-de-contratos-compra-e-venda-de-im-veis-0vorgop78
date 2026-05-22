@@ -265,7 +265,7 @@ export function ContractForm({
     let isValid = true
     const stepId = currentStepData.id
 
-    if (tipoDocumento === 'checklist_documental') {
+    if (tipoDocumento === 'checklist_documental' || tipoDocumento === 'recibo_sinal') {
       isValid = true
     } else if (stepId === 'envolvidos') {
       const baseEnvolvidos = [
@@ -438,7 +438,7 @@ export function ContractForm({
   }
 
   const handlePreview = async () => {
-    if (tipoDocumento !== 'checklist_documental') {
+    if (tipoDocumento !== 'checklist_documental' && tipoDocumento !== 'recibo_sinal') {
       const isValid = await form.trigger()
       if (!isValid) {
         toast.error('Existem campos obrigatórios inválidos ou vazios antes de visualizar.')
@@ -484,7 +484,7 @@ export function ContractForm({
   }
 
   const initiateGeneration = async () => {
-    if (tipoDocumento !== 'checklist_documental') {
+    if (tipoDocumento !== 'checklist_documental' && tipoDocumento !== 'recibo_sinal') {
       const isValid = await form.trigger()
       if (!isValid) {
         toast.error('Existem campos obrigatórios inválidos ou vazios antes de gerar.')
@@ -492,7 +492,7 @@ export function ContractForm({
       }
     }
     if (
-      !['ficha_cadastral', 'checklist_documental'].includes(tipoDocumento) &&
+      !['ficha_cadastral', 'checklist_documental', 'recibo_sinal'].includes(tipoDocumento) &&
       !form.getValues('clausula_lgpd')
     ) {
       return toast.error('Aceite a LGPD.')

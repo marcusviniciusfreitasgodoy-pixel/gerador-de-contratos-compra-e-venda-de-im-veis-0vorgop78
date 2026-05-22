@@ -167,7 +167,7 @@ export const contractSchema = z
     compliance_checklist: z.record(z.boolean()).optional(),
   })
   .superRefine((data, ctx) => {
-    if (data.tipo_documento === 'checklist_documental') {
+    if (data.tipo_documento === 'checklist_documental' || data.tipo_documento === 'recibo_sinal') {
       return // Skip strict validations for checklist to allow generation at any stage
     }
 
