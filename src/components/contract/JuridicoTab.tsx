@@ -1,14 +1,17 @@
 import { useFormContext } from 'react-hook-form'
 import { FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form'
 import { Checkbox } from '@/components/ui/checkbox'
-import { FormSelect } from '@/components/FormInput'
+import { FormSelect, FormInput, FormCurrencyInput } from '@/components/FormInput'
 import { PLATAFORMA_OPTIONS } from '@/lib/constants'
 
 export function JuridicoTab({ tipoDocumento }: { tipoDocumento: string }) {
   const {
+    watch,
     control,
     formState: { errors },
   } = useFormContext()
+  const tipoNegociacao = watch('tipo_negociacao')
+  const isPermutaDacao = tipoNegociacao === 'permuta' || tipoNegociacao === 'dacao'
   const isAutorizacao = tipoDocumento === 'autorizacao_intermediacao'
   const isDistrato = tipoDocumento === 'distrato'
   const isTermos = ['termo_entrega_chaves', 'termo_posse'].includes(tipoDocumento)
@@ -106,6 +109,45 @@ export function JuridicoTab({ tipoDocumento }: { tipoDocumento: string }) {
               />
             )}
           </div>
+
+          {isPermutaDacao && (
+            <div className="space-y-4 pt-4 border-t animate-in fade-in slide-in-from-top-2 duration-300">
+              <h3 className="font-semibold text-lg pb-2 text-[#0C2340]">
+                Dados do Imóvel de Permuta/Dação
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormInput
+                  name="permuta_imovel_endereco"
+                  label="Endereço Completo do Imóvel"
+                  required
+                />
+                <FormInput name="permuta_imovel_matricula" label="Matrícula / RGI" required />
+                <FormCurrencyInput
+                  name="permuta_imovel_valor"
+                  label="Valor de Avaliação do Imóvel (R$)"
+                  required
+                />
+                <FormCurrencyInput name="possui_torna" label="Valor da Torna / Diferença (R$)" />
+                <div className="sm:col-span-2">
+                  <FormField
+                    control={control}
+                    name="permuta_imovel_detalhes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Observações Adicionais</FormLabel>
+                        <FormControl>
+                          <textarea
+                            {...field}
+                            className="flex min-h-[80px] w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           {!isAutorizacao && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

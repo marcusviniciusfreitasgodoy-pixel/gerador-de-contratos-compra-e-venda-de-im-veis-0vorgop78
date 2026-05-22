@@ -10,9 +10,7 @@ export function FinanceiroTab({ tipoDocumento }: { tipoDocumento: string }) {
   const total = watch('valor_total')
   const parcelas = watch('havera_parcelas')
   const temFinanciamento = watch('financiamento_comprador') || watch('possui_financiamento')
-  const tipoNegociacao = watch('tipo_negociacao')
 
-  const isPermutaDacao = tipoNegociacao === 'permuta' || tipoNegociacao === 'dacao'
   const isAutorizacao = tipoDocumento === 'autorizacao_intermediacao'
   const isDistrato = tipoDocumento === 'distrato'
   const isReciboSinal = tipoDocumento === 'recibo_sinal'
@@ -98,39 +96,6 @@ export function FinanceiroTab({ tipoDocumento }: { tipoDocumento: string }) {
             <FormCurrencyInput name="valor_fgts" label="Valor FGTS" />
             <FormCurrencyInput name="valor_recursos_proprios" label="Recursos Próprios / Saldo" />
           </div>
-
-          {isPermutaDacao && (
-            <>
-              <h3 className="font-semibold text-lg border-b pb-2 mt-6 text-[#0C2340]">
-                Dados do Imóvel de Permuta/Dação
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FormInput name="permuta_imovel_endereco" label="Endereço Completo do Imóvel" />
-                <FormInput name="permuta_imovel_matricula" label="Matrícula / RGI" />
-                <FormCurrencyInput
-                  name="permuta_imovel_valor"
-                  label="Valor de Avaliação do Imóvel (R$)"
-                />
-                <div className="sm:col-span-2">
-                  <FormField
-                    control={control}
-                    name="permuta_imovel_detalhes"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Observações Adicionais</FormLabel>
-                        <FormControl>
-                          <textarea
-                            {...field}
-                            className="flex min-h-[80px] w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-            </>
-          )}
 
           <div className="flex flex-col sm:flex-row gap-4 mt-4">
             <FormField

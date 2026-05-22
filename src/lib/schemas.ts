@@ -175,6 +175,7 @@ export const contractSchema = z
     permuta_imovel_matricula: z.string().optional(),
     permuta_imovel_valor: currencyToNumber.optional(),
     permuta_imovel_detalhes: z.string().optional(),
+    possui_torna: currencyToNumber.optional(),
 
     clausula_arrependimento: z.boolean().default(false),
     vendedor_banco: z.string().optional(),
