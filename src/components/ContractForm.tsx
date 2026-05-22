@@ -180,9 +180,12 @@ export function ContractForm({
       valor_total: '550.000,00',
       valor_sinal: '50.000,00',
       valor_financiamento: '500.000,00',
+      instituicao_financeira: 'Caixa',
+      prazo_financiamento: '360',
       comissao: '33.000,00',
       percentual_comissao: '6',
       financiamento_comprador: true,
+      possui_financiamento: true,
 
       data_assinatura: today,
       data_posse: nextMonth,
@@ -317,8 +320,10 @@ export function ContractForm({
       'valor_sinal',
       'valor_fgts',
       'valor_financiamento',
+      'valor_financiado',
       'valor_recursos_proprios',
       'financiamento_comprador',
+      'possui_financiamento',
       'havera_parcelas',
       'instituicao_financeira',
       'prazo_financiamento',
@@ -439,7 +444,12 @@ export function ContractForm({
           form.getValues('financiamento_comprador') || form.getValues('possui_financiamento')
 
         if (isFinanciado) {
-          fieldsToValidate.push('valor_financiamento', 'valor_financiado')
+          fieldsToValidate.push(
+            'valor_financiamento',
+            'valor_financiado',
+            'instituicao_financeira',
+            'prazo_financiamento',
+          )
         }
 
         const tipoNeg = form.getValues('tipo_negociacao')

@@ -226,14 +226,29 @@ export const contractSchema = z
     }
     const isFinanciado = data.financiamento_comprador || data.possui_financiamento
 
-    const valorFin = data.valor_financiamento || data.valor_financiado || 0
-
-    if (isFinanciado && valorFin <= 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['valor_financiamento'],
-        message: 'Valor do financiamento não está preenchido',
-      })
+    if (isFinanciado) {
+      const valorFin = data.valor_financiamento || data.valor_financiado || 0
+      if (valorFin <= 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['valor_financiamento'],
+          message: 'Valor do financiamento é obrigatório',
+        })
+      }
+      if (!data.instituicao_financeira) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['instituicao_financeira'],
+          message: 'Instituição financeira é obrigatória',
+        })
+      }
+      if (!data.prazo_financiamento || data.prazo_financiamento <= 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['prazo_financiamento'],
+          message: 'Prazo de financiamento é obrigatório',
+        })
+      }
     }
 
     const cpfRegex = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/
