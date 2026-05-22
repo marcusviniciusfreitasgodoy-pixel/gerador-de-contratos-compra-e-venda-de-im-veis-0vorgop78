@@ -80,7 +80,7 @@ export default function NewContract() {
     recibo_sinal: { title: 'Recibo de Sinal', gender: 'o' },
     contrato_preliminar: { title: 'Contrato Particular Preliminar', gender: 'o' },
     promessa_compra_venda: { title: 'Promessa de Compra e Venda', gender: 'a' },
-    contrato_particular: { title: 'Contrato Particular', gender: 'o' },
+    contrato_particular: { title: 'Contrato Particular de Compra e Venda', gender: 'o' },
     contrato_definitivo: { title: 'Contrato Definitivo de Compra e Venda', gender: 'o' },
     termo_entrega_chaves: { title: 'Termo de Entrega de Chaves', gender: 'o' },
     termo_posse: { title: 'Termo de Posse', gender: 'o' },

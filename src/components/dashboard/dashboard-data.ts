@@ -73,7 +73,7 @@ export const documentPhases: PhaseInfo[] = [
     docs: [
       {
         id: 'recibo_sinal',
-        title: 'Recibo de Sinal (Arras)',
+        title: 'Recibo de Sinal',
         subtitle: 'A formalização do sinal e do compromisso inicial entre as partes.',
         description:
           'Documento simples que formaliza o recebimento de um valor inicial e fixa o princípio de pagamento.',
@@ -114,7 +114,7 @@ export const documentPhases: PhaseInfo[] = [
     docs: [
       {
         id: 'contrato_particular',
-        title: 'Contrato Particular',
+        title: 'Contrato Particular de Compra e Venda',
         subtitle:
           'O instrumento definitivo entre as partes, quando a escritura pública ainda não é possível.',
         description:
