@@ -124,15 +124,19 @@ export function FinanceiroTab({ tipoDocumento }: { tipoDocumento: string }) {
         </>
       )}
 
-      <h3 className="font-semibold text-lg border-b pb-2 mt-6 text-[#0C2340]">
-        Dados Bancários do Vendedor
-      </h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <FormInput name="vendedor_banco" label="Banco" />
-        <FormInput name="vendedor_agencia" label="Agência" />
-        <FormInput name="vendedor_conta" label="Conta" />
-        <FormInput name="vendedor_pix" label="Chave PIX" />
-      </div>
+      {!isAutorizacao && (
+        <>
+          <h3 className="font-semibold text-lg border-b pb-2 mt-6 text-[#0C2340]">
+            Dados Bancários do Vendedor
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <FormInput name="vendedor_banco" label="Banco" />
+            <FormInput name="vendedor_agencia" label="Agência" />
+            <FormInput name="vendedor_conta" label="Conta" />
+            <FormInput name="vendedor_pix" label="Chave PIX" />
+          </div>
+        </>
+      )}
     </div>
   )
 }

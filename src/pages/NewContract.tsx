@@ -24,6 +24,7 @@ import {
   AlertCircle,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { documentPhases } from '@/components/dashboard/dashboard-data'
 import { GodoyLogo } from '@/components/GodoyLogo'
 
@@ -46,7 +47,7 @@ export default function NewContract() {
   const navigate = useNavigate()
   const location = useLocation()
   const { toast } = useToast()
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
 
   const [tipoDocumento, setTipoDocumento] = useState<string | null>(null)
   const [invalidTypeError, setInvalidTypeError] = useState(false)
@@ -104,6 +105,22 @@ export default function NewContract() {
       })
     }
   })
+
+  if (loading) {
+    return (
+      <div className="container mx-auto py-10 px-4 max-w-6xl animate-pulse space-y-8">
+        <Skeleton className="h-32 w-full rounded-2xl" />
+        <div className="space-y-4">
+          <Skeleton className="h-8 w-64" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Skeleton className="h-40 w-full" />
+            <Skeleton className="h-40 w-full" />
+            <Skeleton className="h-40 w-full" />
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (!tipoDocumento) {
     return (
