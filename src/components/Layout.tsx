@@ -6,12 +6,16 @@ import { IntegrationPanel } from '@/components/IntegrationPanel'
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/AppSidebar'
 import { GodoyLogo } from '@/components/GodoyLogo'
+import pb from '@/lib/pocketbase/client'
 
 export default function Layout() {
   const { user, signOut, loading } = useAuth()
 
   if (loading) return null
   if (!user) return <Navigate to="/login" replace />
+
+  const customLogoUrl = user?.imobiliaria_logo ? pb.files.getURL(user, user.imobiliaria_logo) : null
+  const brandName = user?.imobiliaria_nome || 'Godoy Prime Realty'
 
   return (
     <SidebarProvider>
@@ -22,8 +26,18 @@ export default function Layout() {
             <div className="flex items-center gap-2">
               <SidebarTrigger className="text-primary-foreground hover:bg-primary-foreground/20 md:hidden" />
               <Link to="/" className="flex items-center gap-2 transition-transform hover:scale-105">
-                <GodoyLogo className="h-10 w-auto text-primary-foreground hidden md:block" />
-                <GodoyLogo className="h-8 w-auto text-primary-foreground md:hidden" />
+                {customLogoUrl ? (
+                  <img
+                    src={customLogoUrl}
+                    alt={brandName}
+                    className="h-8 md:h-10 w-auto object-contain max-w-[150px] md:max-w-[200px]"
+                  />
+                ) : (
+                  <>
+                    <GodoyLogo className="h-10 w-auto text-primary-foreground hidden md:block" />
+                    <GodoyLogo className="h-8 w-auto text-primary-foreground md:hidden" />
+                  </>
+                )}
               </Link>
             </div>
             <div className="flex items-center gap-4">

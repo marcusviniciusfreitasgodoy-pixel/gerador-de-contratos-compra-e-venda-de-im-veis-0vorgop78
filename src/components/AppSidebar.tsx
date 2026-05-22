@@ -21,22 +21,37 @@ import {
   Files,
   Scale,
   ShieldAlert,
+  Building2,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
-import iconUrl from '@/assets/gold-f6482.png'
-import logoUrl from '@/assets/logotipo-negativo-01-8be70.png'
+import pb from '@/lib/pocketbase/client'
 
 export function AppSidebar() {
   const { pathname } = useLocation()
   const { user } = useAuth()
 
+  const customLogoUrl = user?.imobiliaria_logo ? pb.files.getURL(user, user.imobiliaria_logo) : null
+  const brandName = user?.imobiliaria_nome || 'Godoy Prime Realty'
+
   return (
     <Sidebar>
-      <SidebarHeader className="h-16 flex justify-center px-4 border-b border-sidebar-border bg-sidebar text-white">
-        <Link to="/" className="flex items-center gap-2">
-          e de&nbsp;
-          <img src={iconUrl} alt="Prime Realty Icon" className="w-8 h-8 object-contain" />
-          <img src={logoUrl} alt="Prime Realty Logo" className="h-6 object-contain" />
+      <SidebarHeader className="h-16 flex items-center justify-center px-4 border-b border-sidebar-border bg-sidebar text-white">
+        <Link
+          to="/"
+          className="flex items-center justify-center gap-2 overflow-hidden w-full transition-opacity hover:opacity-80"
+        >
+          {customLogoUrl ? (
+            <img
+              src={customLogoUrl}
+              alt={brandName}
+              className="h-8 w-auto object-contain max-w-full"
+            />
+          ) : (
+            <>
+              <Building2 className="h-6 w-6 shrink-0 text-white/90" />
+              <span className="font-bold truncate text-sm">{brandName}</span>
+            </>
+          )}
         </Link>
       </SidebarHeader>
       <SidebarContent>
