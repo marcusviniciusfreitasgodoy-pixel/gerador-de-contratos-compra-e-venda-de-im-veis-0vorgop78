@@ -441,15 +441,22 @@ export function ContractForm({
         fieldsToValidate = ['valor_total', 'valor_sinal']
 
         const isFinanciado =
-          form.getValues('financiamento_comprador') || form.getValues('possui_financiamento')
+          form.getValues('financiamento_comprador') === true ||
+          form.getValues('possui_financiamento') === true
 
         if (isFinanciado) {
           fieldsToValidate.push(
             'valor_financiamento',
-            'valor_financiado',
             'instituicao_financeira',
             'prazo_financiamento',
           )
+        } else {
+          form.clearErrors([
+            'valor_financiamento',
+            'valor_financiado',
+            'instituicao_financeira',
+            'prazo_financiamento',
+          ])
         }
 
         const tipoNeg = form.getValues('tipo_negociacao')

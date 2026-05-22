@@ -54,7 +54,6 @@ export function FinanceiroTab({ tipoDocumento }: { tipoDocumento: string }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormCurrencyInput name="valor_sinal" label="Sinal (Arras)" />
             <FormCurrencyInput name="valor_fgts" label="Valor FGTS" />
-            <FormCurrencyInput name="valor_financiamento" label="Valor a Financiar" />
             <FormCurrencyInput name="valor_recursos_proprios" label="Recursos Próprios / Saldo" />
           </div>
 
@@ -150,6 +149,7 @@ export function FinanceiroTab({ tipoDocumento }: { tipoDocumento: string }) {
 
           {temFinanciamento && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border p-4 rounded bg-slate-50 mt-4">
+              <FormCurrencyInput name="valor_financiamento" label="Valor a Financiar" />
               <FormSelect
                 name="instituicao_financeira"
                 label="Banco Pretendido"
