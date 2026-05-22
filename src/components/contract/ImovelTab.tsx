@@ -14,6 +14,7 @@ export function ImovelTab({ tipoDocumento }: { tipoDocumento?: string }) {
         <FormSelect
           name="tipo_imovel"
           label="Tipo de Imóvel"
+          required
           options={[
             { label: 'Apartamento', value: 'Apartamento' },
             { label: 'Casa', value: 'Casa' },
@@ -23,21 +24,21 @@ export function ImovelTab({ tipoDocumento }: { tipoDocumento?: string }) {
             { label: 'Sala Comercial', value: 'Sala Comercial' },
           ]}
         />
-        <FormInput name="matricula_imovel" label="Nº da Matrícula *" />
+        <FormInput name="matricula_imovel" label="Nº da Matrícula" required />
         <FormInput name="cartorio_imovel" label="Cartório (RGI)" />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FormInput name="endereco_imovel" label="Logradouro" />
+        <FormInput name="endereco_imovel" label="Logradouro" required />
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <FormInput name="numero_imovel" label="Número" />
+          <FormInput name="numero_imovel" label="Número" required />
           <FormInput name="complemento_imovel" label="Complemento" />
-          <FormInput name="cep_imovel" label="CEP" />
+          <FormInput name="cep_imovel" label="CEP" required />
         </div>
-        <FormInput name="bairro_imovel" label="Bairro" />
+        <FormInput name="bairro_imovel" label="Bairro" required />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <FormInput name="cidade_imovel" label="Cidade" />
-          <FormInput name="estado_imovel" label="UF" />
+          <FormInput name="cidade_imovel" label="Cidade" required />
+          <FormInput name="estado_imovel" label="UF" required />
         </div>
       </div>
 

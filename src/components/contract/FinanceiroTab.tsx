@@ -40,8 +40,12 @@ export function FinanceiroTab({ tipoDocumento }: { tipoDocumento: string }) {
       {isAutorizacao && (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <FormCurrencyInput name="valor_avaliacao" label="Valor de Avaliação Estimado (R$)" />
-            <FormCurrencyInput name="valor_total" label="Valor de Venda Pretendido (R$)" />
+            <FormCurrencyInput
+              name="valor_avaliacao"
+              label="Valor de Avaliação Estimado (R$)"
+              required
+            />
+            <FormCurrencyInput name="valor_total" label="Valor de Venda Pretendido (R$)" required />
           </div>
           <h3 className="font-semibold text-lg border-b pb-2 mt-6 text-[#0C2340]">
             Comissão de Intermediação
@@ -90,7 +94,7 @@ export function FinanceiroTab({ tipoDocumento }: { tipoDocumento: string }) {
 
           <h3 className="font-semibold text-lg border-b pb-2 text-[#0C2340]">Valores</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <FormCurrencyInput name="valor_sinal" label="Sinal (Arras)" />
+            <FormCurrencyInput name="valor_sinal" label="Sinal (Arras)" required />
             <FormCurrencyInput name="valor_fgts" label="Valor FGTS" />
             <FormCurrencyInput name="valor_recursos_proprios" label="Recursos Próprios / Saldo" />
           </div>
@@ -231,8 +235,12 @@ export function FinanceiroTab({ tipoDocumento }: { tipoDocumento: string }) {
             Valores do Distrato
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <FormCurrencyInput name="valor_reembolso" label="Valor a ser Reembolsado (R$)" />
-            <FormCurrencyInput name="multa_distrato" label="Multa de Distrato (R$)" />
+            <FormCurrencyInput
+              name="valor_reembolso"
+              label="Valor a ser Reembolsado (R$)"
+              required
+            />
+            <FormCurrencyInput name="multa_distrato" label="Multa de Distrato (R$)" required />
           </div>
         </>
       )}

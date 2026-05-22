@@ -35,6 +35,7 @@ export function EnvolvidosTab({ tipoDocumento }: { tipoDocumento: string }) {
                 name="tipo_comprador"
                 label="Tipo"
                 disabled={isDistrato}
+                required
                 options={[
                   { label: 'Pessoa Física', value: 'pf' },
                   { label: 'Pessoa Jurídica', value: 'pj' },
@@ -44,6 +45,7 @@ export function EnvolvidosTab({ tipoDocumento }: { tipoDocumento: string }) {
                 name="nome_comprador"
                 label={tipoComprador === 'pj' ? 'Razão Social' : 'Nome Completo'}
                 disabled={isDistrato}
+                required
               />
             </div>
             {tipoComprador === 'pj' ? (
@@ -53,6 +55,7 @@ export function EnvolvidosTab({ tipoDocumento }: { tipoDocumento: string }) {
                   label="CNPJ"
                   maskType="cnpj"
                   disabled={isDistrato}
+                  required
                 />
                 <FormInput
                   name="representante_comprador"
@@ -64,6 +67,7 @@ export function EnvolvidosTab({ tipoDocumento }: { tipoDocumento: string }) {
                   label="E-mail"
                   type="email"
                   disabled={isDistrato}
+                  required
                 />
                 <FormMaskedInput
                   name="telefone_comprador"
@@ -86,6 +90,7 @@ export function EnvolvidosTab({ tipoDocumento }: { tipoDocumento: string }) {
                   label="CPF"
                   maskType="cpf"
                   disabled={isDistrato}
+                  required
                 />
                 <FormInput name="rg_comprador" label="RG" disabled={isDistrato} />
                 <FormInput
@@ -93,6 +98,7 @@ export function EnvolvidosTab({ tipoDocumento }: { tipoDocumento: string }) {
                   label="E-mail"
                   type="email"
                   disabled={isDistrato}
+                  required
                 />
                 <FormMaskedInput
                   name="telefone_comprador"
@@ -112,6 +118,7 @@ export function EnvolvidosTab({ tipoDocumento }: { tipoDocumento: string }) {
                   label="Estado Civil"
                   options={ESTADO_CIVIL_OPTIONS}
                   disabled={isDistrato}
+                  required
                 />
                 {(estCivilC === 'Casado' || estCivilC === 'Casada') && (
                   <FormSelect
@@ -172,6 +179,7 @@ export function EnvolvidosTab({ tipoDocumento }: { tipoDocumento: string }) {
             name="nome_vendedor"
             label={vendPj ? 'Razão Social' : 'Nome Completo'}
             disabled={isDistrato}
+            required
           />
           {vendPj ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -180,13 +188,20 @@ export function EnvolvidosTab({ tipoDocumento }: { tipoDocumento: string }) {
                 label="CNPJ"
                 maskType="cnpj"
                 disabled={isDistrato}
+                required
               />
               <FormInput
                 name="representante_vendedor"
                 label="Representante Legal"
                 disabled={isDistrato}
               />
-              <FormInput name="email_vendedor" label="E-mail" type="email" disabled={isDistrato} />
+              <FormInput
+                name="email_vendedor"
+                label="E-mail"
+                type="email"
+                disabled={isDistrato}
+                required
+              />
               <FormMaskedInput
                 name="telefone_vendedor"
                 label="Telefone"
@@ -208,9 +223,16 @@ export function EnvolvidosTab({ tipoDocumento }: { tipoDocumento: string }) {
                 label="CPF"
                 maskType="cpf"
                 disabled={isDistrato}
+                required
               />
               <FormInput name="rg_vendedor" label="RG" disabled={isDistrato} />
-              <FormInput name="email_vendedor" label="E-mail" type="email" disabled={isDistrato} />
+              <FormInput
+                name="email_vendedor"
+                label="E-mail"
+                type="email"
+                disabled={isDistrato}
+                required
+              />
               <FormMaskedInput
                 name="telefone_vendedor"
                 label="Telefone"
@@ -229,6 +251,7 @@ export function EnvolvidosTab({ tipoDocumento }: { tipoDocumento: string }) {
                 label="Estado Civil"
                 options={ESTADO_CIVIL_OPTIONS}
                 disabled={isDistrato}
+                required
               />
               {(estCivilV === 'Casado' || estCivilV === 'Casada') && (
                 <FormSelect

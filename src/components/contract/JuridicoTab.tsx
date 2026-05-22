@@ -82,6 +82,7 @@ export function JuridicoTab({ tipoDocumento }: { tipoDocumento: string }) {
               <FormSelect
                 name="tipo_negociacao"
                 label="Tipo de Negociação"
+                required
                 options={[
                   { label: 'À Vista', value: 'a_vista' },
                   { label: 'Financiamento', value: 'financiamento' },
@@ -96,7 +97,8 @@ export function JuridicoTab({ tipoDocumento }: { tipoDocumento: string }) {
             {isAutorizacao && (
               <FormSelect
                 name="gestao_exclusiva"
-                label="Gestão Exclusiva *"
+                label="Gestão Exclusiva"
+                required
                 options={[
                   { label: 'Com Exclusividade', value: 'com_exclusiva' },
                   { label: 'Sem Exclusividade', value: 'sem_exclusiva' },

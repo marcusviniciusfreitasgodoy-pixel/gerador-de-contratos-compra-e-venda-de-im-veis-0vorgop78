@@ -399,124 +399,24 @@ export function ContractForm({
     }
   }
 
+  const handleStepClick = async (idx: number) => {
+    if (isGenerating || isPreviewing || idx === currentStepIndex) return
+
+    try {
+      const record = await saveContractDraft(form.getValues(), draftId)
+      if (record?.id) setDraftId(record.id)
+    } catch (err) {
+      console.error('Failed to autosave draft:', err)
+    }
+
+    setCurrentStepIndex(idx)
+  }
+
   const handleNext = async () => {
-    let isValid = true
-    const stepId = currentStepData.id
-
-    let fieldsToValidate: any[] = []
-
-    if (stepId === 'envolvidos') {
-      const baseEnvolvidos = [
-        'vendedor_pj',
-        'nome_vendedor',
-        'cpf_vendedor',
-        'cnpj_vendedor',
-        'representante_vendedor',
-        'email_vendedor',
-        'telefone_vendedor',
-        'estado_civil_vendedor',
-        'regime_bens_vendedor',
-        'conjuge_vendedor',
-        'cpf_conjuge_vendedor',
-        'rg_conjuge_vendedor',
-        'cep_vendedor',
-        'endereco_vendedor',
-      ]
-      if (tipoDocumento === 'autorizacao_intermediacao') {
-        fieldsToValidate = baseEnvolvidos
-      } else {
-        fieldsToValidate = [
-          ...baseEnvolvidos,
-          'tipo_comprador',
-          'nome_comprador',
-          'cpf_comprador',
-          'cnpj_comprador',
-          'representante_comprador',
-          'email_comprador',
-          'telefone_comprador',
-          'estado_civil_comprador',
-          'regime_bens_comprador',
-          'nome_conjuge_comprador',
-          'cpf_conjuge_comprador',
-          'rg_conjuge_comprador',
-          'cep_comprador',
-          'endereco_comprador',
-        ]
-        if (tipoDocumento === 'distrato') {
-          fieldsToValidate.push('contrato_origem')
-        }
-      }
-    } else if (stepId === 'imovel') {
-      fieldsToValidate = [
-        'matricula_imovel',
-        'endereco_imovel',
-        'cep_imovel',
-        'numero_imovel',
-        'bairro_imovel',
-        'cidade_imovel',
-        'estado_imovel',
-      ]
-    } else if (stepId === 'financeiro') {
-      if (tipoDocumento === 'autorizacao_intermediacao') {
-        fieldsToValidate = ['valor_total', 'valor_avaliacao']
-      } else if (tipoDocumento === 'distrato') {
-        fieldsToValidate = ['valor_reembolso', 'multa_distrato']
-      } else if (tipoDocumento === 'recibo_sinal') {
-        fieldsToValidate = ['valor_sinal', 'data_pagamento_sinal']
-      } else {
-        fieldsToValidate = ['valor_total', 'valor_sinal']
-
-        const isFinanciado =
-          form.getValues('financiamento_comprador') === true ||
-          form.getValues('possui_financiamento') === true
-
-        if (isFinanciado) {
-          fieldsToValidate.push(
-            'valor_financiamento',
-            'instituicao_financeira',
-            'prazo_financiamento',
-          )
-        } else {
-          form.clearErrors([
-            'valor_financiamento',
-            'valor_financiado',
-            'instituicao_financeira',
-            'prazo_financiamento',
-          ])
-        }
-
-        const tipoNeg = form.getValues('tipo_negociacao')
-        if (tipoNeg === 'permuta' || tipoNeg === 'dacao') {
-          fieldsToValidate.push(
-            'permuta_imovel_endereco',
-            'permuta_imovel_matricula',
-            'permuta_imovel_valor',
-          )
-        }
-      }
-    } else if (stepId === 'juridico') {
-      if (tipoDocumento === 'autorizacao_intermediacao') {
-        fieldsToValidate = ['clausula_lgpd', 'gestao_exclusiva']
-      } else if (['termo_entrega_chaves', 'termo_posse'].includes(tipoDocumento)) {
-        fieldsToValidate = ['clausula_lgpd']
-      } else {
-        fieldsToValidate = ['clausula_lgpd']
-      }
-    }
-
-    if (fieldsToValidate.length > 0) {
-      isValid = await form.trigger(fieldsToValidate as any)
-    }
-
-    if (!isValid) {
-      handleValidationFailure(form.formState.errors)
-      return
-    }
-
     const nextFn = async () => {
       try {
         const record = await saveContractDraft(form.getValues(), draftId)
-        setDraftId(record.id)
+        if (record?.id) setDraftId(record.id)
       } catch (err) {
         console.error('Failed to autosave draft:', err)
         throw err
@@ -726,8 +626,9 @@ export function ContractForm({
         {activeSteps.map((s, idx) => (
           <div
             key={s.id}
+            onClick={() => handleStepClick(idx)}
             className={cn(
-              'flex flex-col items-center z-10',
+              'flex flex-col items-center z-10 cursor-pointer hover:opacity-80 transition-opacity',
               idx <= currentStepIndex ? 'text-[#0C2340]' : 'text-slate-400',
             )}
           >

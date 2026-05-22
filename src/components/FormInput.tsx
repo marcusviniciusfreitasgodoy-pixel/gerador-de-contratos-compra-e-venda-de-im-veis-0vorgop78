@@ -18,12 +18,14 @@ export function FormInput({
   placeholder,
   type = 'text',
   disabled,
+  required,
 }: {
   name: string
   label: string
   placeholder?: string
   type?: string
   disabled?: boolean
+  required?: boolean
 }) {
   const {
     control,
@@ -37,7 +39,10 @@ export function FormInput({
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel className={cn(error && 'text-red-500')}>{label}</FormLabel>
+          <FormLabel className={cn(error && 'text-red-500')}>
+            {label}
+            {required && <span className="text-red-500 ml-1">*</span>}
+          </FormLabel>
           <FormControl>
             <Input
               type={type}
@@ -63,11 +68,13 @@ export function FormCurrencyInput({
   label,
   placeholder = 'R$ 0,00',
   disabled,
+  required,
 }: {
   name: string
   label: string
   placeholder?: string
   disabled?: boolean
+  required?: boolean
 }) {
   const {
     control,
@@ -87,7 +94,10 @@ export function FormCurrencyInput({
 
         return (
           <FormItem>
-            <FormLabel className={cn(error && 'text-red-500')}>{label}</FormLabel>
+            <FormLabel className={cn(error && 'text-red-500')}>
+              {label}
+              {required && <span className="text-red-500 ml-1">*</span>}
+            </FormLabel>
             <FormControl>
               <Input
                 {...field}
@@ -115,12 +125,14 @@ export function FormMaskedInput({
   placeholder,
   maskType,
   disabled,
+  required,
 }: {
   name: string
   label: string
   placeholder?: string
   maskType: 'cpf' | 'cnpj' | 'phone' | 'cep'
   disabled?: boolean
+  required?: boolean
 }) {
   const {
     control,
@@ -154,7 +166,10 @@ export function FormMaskedInput({
         }
         return (
           <FormItem>
-            <FormLabel className={cn(error && 'text-red-500')}>{label}</FormLabel>
+            <FormLabel className={cn(error && 'text-red-500')}>
+              {label}
+              {required && <span className="text-red-500 ml-1">*</span>}
+            </FormLabel>
             <FormControl>
               <Input
                 {...field}
@@ -183,10 +198,12 @@ export function FormFileInput({
   name,
   label,
   accept,
+  required,
 }: {
   name: string
   label: string
   accept?: string
+  required?: boolean
 }) {
   const {
     control,
@@ -200,7 +217,10 @@ export function FormFileInput({
       name={name}
       render={({ field: { value, onChange, ...field } }) => (
         <FormItem>
-          <FormLabel className={cn(error && 'text-red-500')}>{label}</FormLabel>
+          <FormLabel className={cn(error && 'text-red-500')}>
+            {label}
+            {required && <span className="text-red-500 ml-1">*</span>}
+          </FormLabel>
           <FormControl>
             <Input
               type="file"
@@ -227,12 +247,14 @@ export function FormSelect({
   options,
   placeholder = 'Selecione...',
   disabled,
+  required,
 }: {
   name: string
   label: string
   options: { label: string; value: string }[]
   placeholder?: string
   disabled?: boolean
+  required?: boolean
 }) {
   const {
     control,
@@ -246,7 +268,10 @@ export function FormSelect({
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel className={cn(error && 'text-red-500')}>{label}</FormLabel>
+          <FormLabel className={cn(error && 'text-red-500')}>
+            {label}
+            {required && <span className="text-red-500 ml-1">*</span>}
+          </FormLabel>
           <Select onValueChange={field.onChange} value={field.value} disabled={disabled}>
             <FormControl>
               <SelectTrigger
