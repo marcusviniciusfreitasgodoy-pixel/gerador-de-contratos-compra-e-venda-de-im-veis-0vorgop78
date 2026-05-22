@@ -39,6 +39,14 @@ const DOCUMENT_TYPES = [
     bg: 'bg-amber-50',
   },
   {
+    id: 'autorizacao_intermediacao',
+    title: 'Autorização de Intermediação',
+    desc: 'Contrato de prestação de serviços do corretor',
+    icon: FileText,
+    color: 'text-rose-600',
+    bg: 'bg-rose-50',
+  },
+  {
     id: 'recibo_sinal',
     title: 'Recibo de Sinal',
     desc: 'Comprovante de recebimento das arras ou sinal',
@@ -85,14 +93,6 @@ const DOCUMENT_TYPES = [
     icon: FileCheck,
     color: 'text-cyan-600',
     bg: 'bg-cyan-50',
-  },
-  {
-    id: 'autorizacao_intermediacao',
-    title: 'Autorização de Intermediação',
-    desc: 'Contrato de prestação de serviços do corretor',
-    icon: FileText,
-    color: 'text-rose-600',
-    bg: 'bg-rose-50',
   },
   {
     id: 'distrato',
@@ -166,20 +166,23 @@ export default function NewContract() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {DOCUMENT_TYPES.map((doc) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {DOCUMENT_TYPES.map((doc, index) => (
             <Card
               key={doc.id}
-              className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-slate-200/60 overflow-hidden"
+              className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-slate-200/60 overflow-hidden relative"
               onClick={() => setTipoDocumento(doc.id)}
             >
+              <div className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-sm group-hover:bg-[#0C2340] group-hover:text-[#D4AF37] transition-colors">
+                {index + 1}
+              </div>
               <CardContent className="p-6">
                 <div
                   className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-5 ${doc.bg} group-hover:scale-110 transition-transform duration-500 shadow-sm border border-black/5`}
                 >
                   <doc.icon className={`w-7 h-7 ${doc.color}`} />
                 </div>
-                <h3 className="font-bold text-lg text-[#0C2340] mb-2 group-hover:text-[#D4AF37] transition-colors leading-tight">
+                <h3 className="font-bold text-lg text-[#0C2340] mb-2 pr-8 group-hover:text-[#D4AF37] transition-colors leading-tight">
                   {doc.title}
                 </h3>
                 <p className="text-sm text-slate-500 leading-relaxed">{doc.desc}</p>

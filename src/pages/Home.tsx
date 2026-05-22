@@ -1,12 +1,37 @@
+import { useState, useEffect } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ShieldCheck, ArrowRight, AlertCircle } from 'lucide-react'
+import { ShieldCheck, ArrowRight, AlertCircle, Loader2 } from 'lucide-react'
 import { documentPhases, scenarios } from '@/components/dashboard/dashboard-data'
 import { PhaseCard } from '@/components/dashboard/phase-card'
 import { ScenarioList } from '@/components/dashboard/scenario-list'
 
 export default function Home() {
-  const phases = documentPhases || []
-  const scens = scenarios || []
+  const [phases, setPhases] = useState<any[]>([])
+  const [scens, setScens] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    // Simulate async data fetching to prevent blocking the main thread during hydration
+    const timer = setTimeout(() => {
+      setPhases(documentPhases || [])
+      setScens(scenarios || [])
+      setIsLoading(false)
+    }, 150)
+
+    return () => clearTimeout(timer)
+  }, [])
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[50vh] text-center px-4 animate-fade-in">
+        <Loader2 className="w-12 h-12 mx-auto animate-spin text-[#0C2340] mb-4" />
+        <h2 className="text-xl font-semibold mb-2 text-foreground">Carregando painel...</h2>
+        <p className="text-muted-foreground">
+          Preparando as informações da sua jornada de contratos.
+        </p>
+      </div>
+    )
+  }
 
   if (!phases.length || !scens.length) {
     return (

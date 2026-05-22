@@ -10,22 +10,33 @@ import { GRSymbol } from '@/components/GRSymbol'
 export default function Layout() {
   const { user, signOut, loading } = useAuth()
   const [isLongLoading, setIsLongLoading] = useState(false)
+  const [forceReady, setForceReady] = useState(false)
 
   useEffect(() => {
     let timer: NodeJS.Timeout
+    let forceTimer: NodeJS.Timeout
+
     if (loading) {
       timer = setTimeout(() => setIsLongLoading(true), 800)
+      forceTimer = setTimeout(() => setForceReady(true), 6000)
     } else {
       setIsLongLoading(false)
     }
-    return () => clearTimeout(timer)
+
+    return () => {
+      clearTimeout(timer)
+      clearTimeout(forceTimer)
+    }
   }, [loading])
 
-  if (loading) {
+  const isLoadingState = loading && !forceReady
+
+  if (isLoadingState) {
     if (!isLongLoading) return null
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <Loader2 className="w-8 h-8 animate-spin text-[#0C2340]" />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
+        <Loader2 className="w-10 h-10 animate-spin text-[#0C2340] mb-4" />
+        <p className="text-slate-500 animate-pulse text-sm font-medium">Conectando ao sistema...</p>
       </div>
     )
   }
