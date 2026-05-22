@@ -1,6 +1,7 @@
 import { useFormContext } from 'react-hook-form'
-import { Info } from 'lucide-react'
+import { Info, HelpCircle } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form'
 import { Checkbox } from '@/components/ui/checkbox'
 import { FormSelect, FormInput, FormCurrencyInput } from '@/components/FormInput'
@@ -264,11 +265,31 @@ export function JuridicoTab({ tipoDocumento }: { tipoDocumento: string }) {
                   control={control}
                   name="arbitragem"
                   render={({ field }) => (
-                    <FormItem className="flex items-center space-x-2 border p-3 rounded-md flex-1">
+                    <FormItem className="flex items-center space-x-2 border p-4 rounded-md flex-1 bg-white">
                       <FormControl>
                         <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                       </FormControl>
-                      <FormLabel className="!mt-0 cursor-pointer">Cláusula de Arbitragem</FormLabel>
+                      <div className="flex items-center space-x-2 !mt-0">
+                        <FormLabel className="cursor-pointer font-medium">
+                          Cláusula de Arbitragem
+                        </FormLabel>
+                        <Tooltip delayDuration={300}>
+                          <TooltipTrigger
+                            type="button"
+                            onClick={(e) => e.preventDefault()}
+                            className="cursor-help"
+                          >
+                            <HelpCircle className="h-4 w-4 text-slate-400 hover:text-slate-600 transition-colors" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-[300px] text-sm p-3">
+                            <p>
+                              Método privado de resolução de conflitos onde um terceiro imparcial
+                              (árbitro) toma uma decisão final, geralmente mais rápida que o
+                              Judiciário, mas envolvendo custos específicos.
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
                     </FormItem>
                   )}
                 />
@@ -276,11 +297,31 @@ export function JuridicoTab({ tipoDocumento }: { tipoDocumento: string }) {
                   control={control}
                   name="mediacao"
                   render={({ field }) => (
-                    <FormItem className="flex items-center space-x-2 border p-3 rounded-md flex-1">
+                    <FormItem className="flex items-center space-x-2 border p-4 rounded-md flex-1 bg-white">
                       <FormControl>
                         <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                       </FormControl>
-                      <FormLabel className="!mt-0 cursor-pointer">Cláusula de Mediação</FormLabel>
+                      <div className="flex items-center space-x-2 !mt-0">
+                        <FormLabel className="cursor-pointer font-medium">
+                          Cláusula de Mediação
+                        </FormLabel>
+                        <Tooltip delayDuration={300}>
+                          <TooltipTrigger
+                            type="button"
+                            onClick={(e) => e.preventDefault()}
+                            className="cursor-help"
+                          >
+                            <HelpCircle className="h-4 w-4 text-slate-400 hover:text-slate-600 transition-colors" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-[300px] text-sm p-3">
+                            <p>
+                              Processo colaborativo onde um mediador facilita a comunicação entre as
+                              partes para ajudá-las a chegar a um acordo voluntário, focando em
+                              preservar relacionamentos e soluções mutuamente benéficas.
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
                     </FormItem>
                   )}
                 />
