@@ -56,7 +56,8 @@ export default function NewContract() {
     documentPhases.some((p) => p.docs.some((d) => d.typeId === tipo))
 
   useEffect(() => {
-    let tipo = location.state?.tipo_documento || new URLSearchParams(location.search).get('tipo')
+    const params = new URLSearchParams(location.search)
+    let tipo = location.state?.tipo_documento || params.get('tipo')
 
     if (tipo) {
       if (tipo === 'promessa_cv') tipo = 'promessa_compra_venda'
@@ -68,12 +69,16 @@ export default function NewContract() {
       if (isValidDoc(tipo)) {
         setTipoDocumento(tipo)
         setInvalidTypeError(false)
+        // Clean URL to prevent hydration loops or unexpected redirects on back navigation
+        if (params.has('tipo')) {
+          navigate('/contratos/novo', { replace: true, state: {} })
+        }
       } else {
         setInvalidTypeError(true)
         setTipoDocumento(null)
       }
     }
-  }, [location])
+  }, [location, navigate])
 
   const infoMap: Record<string, { title: string; gender: string }> = {
     ficha_cadastral: { title: 'Ficha Cadastral', gender: 'a' },
@@ -203,7 +208,11 @@ export default function NewContract() {
         <div className="mb-8 max-w-3xl">
           <Button
             variant="ghost"
-            onClick={() => setTipoDocumento(null)}
+            onClick={() => {
+              setTipoDocumento(null)
+              setInvalidTypeError(false)
+              navigate('/contratos/novo', { replace: true, state: {} })
+            }}
             className="mb-4 -ml-4 text-slate-500 hover:text-[#0C2340]"
           >
             <ChevronLeft className="w-4 h-4 mr-1" /> Selecionar outro documento
@@ -218,7 +227,11 @@ export default function NewContract() {
         </div>
         <ContractForm
           tipoDocumento={tipoDocumento}
-          onBack={() => setTipoDocumento(null)}
+          onBack={() => {
+            setTipoDocumento(null)
+            setInvalidTypeError(false)
+            navigate('/contratos/novo', { replace: true, state: {} })
+          }}
           documentName={documentName}
           documentGender={documentGender}
         />
