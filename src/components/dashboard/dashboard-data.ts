@@ -135,18 +135,6 @@ export const documentPhases: PhaseInfo[] = [
         statusType: 'mandatory',
         typeId: 'contrato_definitivo',
       },
-      {
-        id: 'declaracoes_comp',
-        title: 'Declarações Complementares',
-        subtitle:
-          'Informações pessoais e patrimoniais que precisam constar formalmente na transação.',
-        description:
-          'Incluem declarações sobre união estável, capacidade financeira ou origem lícita dos recursos.',
-        tip: 'Não trate como formalidade. Um imóvel vendido sem a anuência do cônjuge pode ser anulado.',
-        status: 'Obrigatório',
-        statusType: 'mandatory',
-        typeId: 'declaracoes_complementares',
-      },
     ],
   },
   {
