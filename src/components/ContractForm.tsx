@@ -206,6 +206,7 @@ export function ContractForm({
       entrega_chaves: nextMonth,
 
       clausula_lgpd: true,
+      pep: false,
       tipo_documento: tipoDocumento,
     }
 
@@ -289,6 +290,7 @@ export function ContractForm({
       'nome_conjuge_comprador',
       'cpf_conjuge_comprador',
       'rg_conjuge_comprador',
+      'pep',
       'vendedor_pj',
       'nome_vendedor',
       'cpf_vendedor',
@@ -370,6 +372,7 @@ export function ContractForm({
       'clausula_lgpd',
       'motivo_distrato',
       'data_distrato',
+      'responsabilidade_pro_rata',
     ]
 
     if (fieldName === 'contrato_origem') return 'envolvidos'

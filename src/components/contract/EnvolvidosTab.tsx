@@ -4,6 +4,8 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { FormInput, FormMaskedInput, FormSelect } from '@/components/FormInput'
 import { ESTADO_CIVIL_OPTIONS, REGIME_BENS_OPTIONS } from '@/lib/constants'
+import { HelpCircle } from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 export function EnvolvidosTab({ tipoDocumento }: { tipoDocumento: string }) {
   const { watch, control } = useFormContext()
@@ -277,6 +279,48 @@ export function EnvolvidosTab({ tipoDocumento }: { tipoDocumento: string }) {
           )}
         </CardContent>
       </Card>
+
+      <div className="pt-4 border-t space-y-4">
+        <h3 className="font-semibold text-lg text-[#0C2340]">Compliance e Prevenção</h3>
+        <FormField
+          control={control}
+          name="pep"
+          render={({ field }) => (
+            <FormItem className="flex flex-col border p-4 rounded-md bg-white">
+              <div className="flex items-center space-x-2">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    disabled={isDistrato}
+                  />
+                </FormControl>
+                <div className="flex items-center space-x-2 !mt-0">
+                  <FormLabel className="cursor-pointer font-medium">
+                    Pessoa Politicamente Exposta (PEP)
+                  </FormLabel>
+                  <Tooltip delayDuration={300}>
+                    <TooltipTrigger
+                      type="button"
+                      onClick={(e) => e.preventDefault()}
+                      className="cursor-help"
+                    >
+                      <HelpCircle className="h-4 w-4 text-slate-400 hover:text-slate-600 transition-colors" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-[300px] text-sm p-3">
+                      <p>
+                        Marque se algum dos envolvidos (comprador, vendedor, sócios ou procuradores)
+                        é ou foi nos últimos 5 anos Pessoa Politicamente Exposta. Isso inclui
+                        detentores de cargos públicos relevantes e seus familiares próximos.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+            </FormItem>
+          )}
+        />
+      </div>
     </div>
   )
 }

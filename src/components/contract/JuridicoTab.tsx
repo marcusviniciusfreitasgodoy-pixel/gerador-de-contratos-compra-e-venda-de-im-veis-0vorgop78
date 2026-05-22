@@ -280,6 +280,41 @@ export function JuridicoTab({ tipoDocumento }: { tipoDocumento: string }) {
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={control}
+                name="responsabilidade_pro_rata"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col border p-4 rounded-md bg-white sm:col-span-2">
+                    <div className="flex items-center space-x-2">
+                      <FormControl>
+                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                      </FormControl>
+                      <div className="flex items-center space-x-2 !mt-0">
+                        <FormLabel className="cursor-pointer font-medium">
+                          Responsabilidade Pro Rata (IPTU/Condomínio)
+                        </FormLabel>
+                        <Tooltip delayDuration={300}>
+                          <TooltipTrigger
+                            type="button"
+                            onClick={(e) => e.preventDefault()}
+                            className="cursor-help"
+                          >
+                            <HelpCircle className="h-4 w-4 text-slate-400 hover:text-slate-600 transition-colors" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-[300px] text-sm p-3">
+                            <p>
+                              Cláusula expressa definindo que as despesas e tributos do imóvel serão
+                              rateados proporcionalmente entre as partes até a exata data de entrega
+                              das chaves e imissão na posse (Art. 130, CTN).
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </div>
+                  </FormItem>
+                )}
+              />
             </div>
           )}
 

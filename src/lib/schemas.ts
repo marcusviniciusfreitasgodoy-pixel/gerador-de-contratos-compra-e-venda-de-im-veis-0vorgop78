@@ -144,6 +144,7 @@ export const contractSchema = z
     renda_declarada_comprador: currencyToNumber.optional(),
     multa_inadimplencia: z.coerce.number().optional(),
     posse_imediata: z.boolean().default(false),
+    responsabilidade_pro_rata: z.boolean().default(false),
     data_posse: z.string().optional(),
     prazo_desocupacao: z.coerce.number().optional(),
     multa_desocupacao: currencyToNumber.optional(),
@@ -157,6 +158,7 @@ export const contractSchema = z
     valor_avaliacao: currencyToNumber.optional(),
 
     // Legal & Commission
+    pep: z.boolean().default(false),
     percentual_comissao: z.coerce.number().optional(),
     valor_comissao: currencyToNumber.optional(),
     responsavel_comissao: z.string().optional(),
@@ -261,11 +263,23 @@ export const contractSchema = z
     if (!data.nome_vendedor) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['nome_vendedor'], message: 'Obrigatório' })
     }
-    if (!data.endereco_imovel) {
+    if (!data.endereco_imovel && !isDistrato) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['endereco_imovel'],
         message: 'Obrigatório',
+      })
+    }
+    if (
+      !data.matricula_imovel &&
+      !isAutorizacao &&
+      !isDistrato &&
+      !['checklist_documental', 'ficha_cadastral'].includes(data.tipo_documento || '')
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['matricula_imovel'],
+        message: 'Matrícula do imóvel é obrigatória',
       })
     }
 

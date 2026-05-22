@@ -2,66 +2,93 @@ import { jsPDF } from 'jspdf'
 import { format } from 'date-fns'
 import { getLogoBase64 } from './pdf-utils'
 
-const CATEGORIES = [
-  {
-    title: 'Vendedor',
-    items: [
-      'Documento de Identidade (RG/CNH)',
-      'CPF',
-      'Comprovante de Residência Atualizado',
-      'Certidão de Estado Civil (Nascimento atualizada ou Casamento)',
-      'Documento de Identidade do Cônjuge/Companheiro(a)',
-      'CPF do Cônjuge/Companheiro(a)',
-      'Pacto Antenupcial (se houver)',
-      'Certidões de Protesto de Títulos (domicílio e local do imóvel)',
-      'Certidão de Distribuição Cível e Criminal Estadual',
-      'Certidão Conjunta de Débitos Relativos a Tributos Federais e à Dívida Ativa da União (RFB)',
-      'Certidão do 2º Ofício de Distribuidor',
-      'Certidão de Interdições e Tutelas',
-      'Certidão da Justiça Federal',
-      'Certidão da Justiça do Trabalho',
-    ],
-  },
-  {
-    title: 'Comprador',
-    items: [
-      'Documento de Identidade (RG/CNH)',
-      'CPF',
-      'Comprovante de Residência Atualizado',
-      'Comprovante de Estado Civil (Casado)',
-      'Documento de Identidade do Cônjuge/Companheiro(a)',
-      'CPF do Cônjuge/Companheiro(a)',
-      'Certidão de Casamento/União Estável',
-    ],
-  },
-  {
-    title: 'Imóvel',
-    items: [
-      'Matrícula Atualizada (com ônus e ações)',
-      'Capa do carnê de IPTU',
-      'Certidão de Quitação Fiscal e Enfitêutica',
-      'Declaração de Quitação Condominial (assinada pelo síndico)',
-      'Cópia da Ata de Eleição do Síndico',
-      'Certidão do Funesbom (Corpo de Bombeiros)',
-      'Laudo de Vistoria com fotos',
-      'Comprovantes de quitação de contas de consumo (Luz, Água, Gás)',
-      'Termo de declaração de desocupação pelo vendedor',
-    ],
-  },
-  {
-    title: 'Dados Bancários',
-    items: [
-      'Dados do Banco (Nome/Código)',
-      'Agência e Conta (com dígito)',
-      'Titularidade e CPF/CNPJ vinculado',
-      'Chave PIX vinculada (se aplicável)',
-    ],
-  },
-]
+function getCategories(data: any) {
+  const isVendedorPJ = data?.vendedor_pj
+  const isCompradorPJ = data?.tipo_comprador === 'pj'
+
+  return [
+    {
+      title: 'Vendedor',
+      items: isVendedorPJ
+        ? [
+            'Contrato Social Atualizado ou Estatuto Social',
+            'CNPJ',
+            'Documento de Identidade dos Sócios/Representantes',
+            'CPF dos Sócios/Representantes',
+            'Comprovante de Endereço da Empresa',
+            'Certidão Negativa de Débitos Federais (CND)',
+            'Certidão Negativa de Débitos Estaduais',
+            'Certidão Negativa de Débitos Municipais',
+            'Certidão Negativa de Débitos Trabalhistas (CNDT)',
+            'Certidão do FGTS',
+            'Certidão Simplificada da Junta Comercial',
+          ]
+        : [
+            'Documento de Identidade (RG/CNH)',
+            'CPF',
+            'Comprovante de Residência Atualizado',
+            'Certidão de Estado Civil (Nascimento atualizada ou Casamento)',
+            'Documento de Identidade do Cônjuge/Companheiro(a)',
+            'CPF do Cônjuge/Companheiro(a)',
+            'Pacto Antenupcial (se houver)',
+            'Certidões de Protesto de Títulos (domicílio e local do imóvel)',
+            'Certidão de Distribuição Cível e Criminal Estadual',
+            'Certidão Conjunta de Débitos Relativos a Tributos Federais e à Dívida Ativa da União (RFB)',
+            'Certidão do 2º Ofício de Distribuidor',
+            'Certidão de Interdições e Tutelas',
+            'Certidão da Justiça Federal',
+            'Certidão da Justiça do Trabalho',
+          ],
+    },
+    {
+      title: 'Comprador',
+      items: isCompradorPJ
+        ? [
+            'Contrato Social Atualizado ou Estatuto Social',
+            'CNPJ',
+            'Documento de Identidade dos Sócios/Representantes',
+            'CPF dos Sócios/Representantes',
+            'Comprovante de Endereço da Empresa',
+          ]
+        : [
+            'Documento de Identidade (RG/CNH)',
+            'CPF',
+            'Comprovante de Residência Atualizado',
+            'Comprovante de Estado Civil (Casado)',
+            'Documento de Identidade do Cônjuge/Companheiro(a)',
+            'CPF do Cônjuge/Companheiro(a)',
+            'Certidão de Casamento/União Estável',
+          ],
+    },
+    {
+      title: 'Imóvel',
+      items: [
+        'Matrícula Atualizada (com ônus e ações)',
+        'Capa do carnê de IPTU',
+        'Certidão de Quitação Fiscal e Enfitêutica',
+        'Declaração de Quitação Condominial (assinada pelo síndico)',
+        'Cópia da Ata de Eleição do Síndico',
+        'Certidão do Funesbom (Corpo de Bombeiros)',
+        'Laudo de Vistoria com fotos',
+        'Comprovantes de quitação de contas de consumo (Luz, Água, Gás)',
+        'Termo de declaração de desocupação pelo vendedor',
+      ],
+    },
+    {
+      title: 'Dados Bancários',
+      items: [
+        'Dados do Banco (Nome/Código)',
+        'Agência e Conta (com dígito)',
+        'Titularidade e CPF/CNPJ vinculado',
+        'Chave PIX vinculada (se aplicável)',
+      ],
+    },
+  ]
+}
 
 export function getActiveDocs(data: any): string[] {
   let docs: string[] = []
-  CATEGORIES.forEach((cat) => {
+  getCategories(data).forEach((cat) => {
     cat.items.forEach((item) => {
       docs.push(`${cat.title} - ${item}`)
     })
@@ -74,7 +101,7 @@ export function generateChecklistHTML(data: any): string {
   html += `<div style="font-family: sans-serif; color: #0C2340;">\n`
   html += `<h2 style="color: #D4AF37; text-align: center; margin-bottom: 20px; font-weight: bold;">CHECKLIST DE DUE DILIGENCE</h2>\n`
 
-  CATEGORIES.forEach((category) => {
+  getCategories(data).forEach((category) => {
     html += `<div class="checklist-block" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 20px;">\n`
     html += `<h3 style="color: #0C2340; margin-top: 0; border-bottom: 2px solid #D4AF37; padding-bottom: 8px;">${category.title.toUpperCase()}</h3>\n`
     html += `<ul style="list-style-type: none; padding-left: 0;">\n`

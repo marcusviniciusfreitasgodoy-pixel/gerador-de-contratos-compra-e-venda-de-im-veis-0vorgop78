@@ -104,12 +104,18 @@ export function ImovelTab({ tipoDocumento }: { tipoDocumento?: string }) {
         <div className="pt-4 border-t space-y-4 animate-in slide-in-from-bottom-2">
           <h3 className="font-semibold text-lg text-[#0C2340]">Detalhes da Vistoria e Entrega</h3>
           <div className="grid grid-cols-1 gap-4">
-            <FormInput
-              name="estado_conservacao"
-              label="Estado de Conservação"
-              placeholder="Ex: Imóvel entregue com pintura nova, piso em bom estado..."
-              required={tipoDocumento === 'termo_posse'}
-            />
+            <div className="flex flex-col gap-1.5">
+              <FormInput
+                name="estado_conservacao"
+                label="Estado de Conservação"
+                placeholder="Ex: Imóvel entregue com pintura nova, piso em bom estado..."
+                required={tipoDocumento === 'termo_posse'}
+              />
+              <p className="text-xs text-slate-500">
+                Obrigatório para Termo de Posse. Fundamental para atestar as condições físicas no
+                momento da entrega das chaves.
+              </p>
+            </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <FormInput
