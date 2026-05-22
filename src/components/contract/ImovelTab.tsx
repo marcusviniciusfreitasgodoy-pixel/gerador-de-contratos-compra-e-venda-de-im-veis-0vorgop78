@@ -25,21 +25,36 @@ export function ImovelTab({ tipoDocumento }: { tipoDocumento?: string }) {
             { label: 'Sala Comercial', value: 'Sala Comercial' },
           ]}
         />
-        <FormInput name="matricula_imovel" label="Nº da Matrícula" required />
+        <FormInput
+          name="matricula_imovel"
+          label="Nº da Matrícula"
+          required={
+            ![
+              'autorizacao_intermediacao',
+              'distrato',
+              'checklist_documental',
+              'ficha_cadastral',
+            ].includes(tipoDocumento || '')
+          }
+        />
         <FormInput name="cartorio_imovel" label="Cartório (RGI)" />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FormInput name="endereco_imovel" label="Logradouro" required />
+        <FormInput
+          name="endereco_imovel"
+          label="Logradouro"
+          required={tipoDocumento !== 'distrato'}
+        />
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <FormInput name="numero_imovel" label="Número" required />
+          <FormInput name="numero_imovel" label="Número" required={tipoDocumento !== 'distrato'} />
           <FormInput name="complemento_imovel" label="Complemento" />
-          <FormInput name="cep_imovel" label="CEP" required />
+          <FormInput name="cep_imovel" label="CEP" required={tipoDocumento !== 'distrato'} />
         </div>
-        <FormInput name="bairro_imovel" label="Bairro" required />
+        <FormInput name="bairro_imovel" label="Bairro" required={tipoDocumento !== 'distrato'} />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <FormInput name="cidade_imovel" label="Cidade" required />
-          <FormInput name="estado_imovel" label="UF" required />
+          <FormInput name="cidade_imovel" label="Cidade" required={tipoDocumento !== 'distrato'} />
+          <FormInput name="estado_imovel" label="UF" required={tipoDocumento !== 'distrato'} />
         </div>
       </div>
 

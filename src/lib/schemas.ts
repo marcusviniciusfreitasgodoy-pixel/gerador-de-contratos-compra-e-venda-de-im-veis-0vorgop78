@@ -366,7 +366,11 @@ export const contractSchema = z
             message: 'CPF inválido',
           })
         }
-        if (data.estado_civil_comprador === 'Casado' || data.estado_civil_comprador === 'Casada') {
+        if (
+          data.estado_civil_comprador === 'Casado' ||
+          data.estado_civil_comprador === 'Casada' ||
+          data.comprador_uniao_estavel
+        ) {
           if (!data.nome_conjuge_comprador) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
@@ -435,7 +439,11 @@ export const contractSchema = z
           message: 'CPF inválido',
         })
       }
-      if (data.estado_civil_vendedor === 'Casado' || data.estado_civil_vendedor === 'Casada') {
+      if (
+        data.estado_civil_vendedor === 'Casado' ||
+        data.estado_civil_vendedor === 'Casada' ||
+        data.vendedor_uniao_estavel
+      ) {
         if (!data.conjuge_vendedor) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,

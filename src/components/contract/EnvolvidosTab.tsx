@@ -11,8 +11,10 @@ export function EnvolvidosTab({ tipoDocumento }: { tipoDocumento: string }) {
   const { watch, control } = useFormContext()
   const tipoComprador = watch('tipo_comprador')
   const estCivilC = watch('estado_civil_comprador')
+  const uniaoEstavelC = watch('comprador_uniao_estavel')
   const vendPj = watch('vendedor_pj')
   const estCivilV = watch('estado_civil_vendedor')
+  const uniaoEstavelV = watch('vendedor_uniao_estavel')
 
   const isAutorizacao = tipoDocumento === 'autorizacao_intermediacao'
   const isDistrato = tipoDocumento === 'distrato'
@@ -122,7 +124,25 @@ export function EnvolvidosTab({ tipoDocumento }: { tipoDocumento: string }) {
                   disabled={isDistrato}
                   required
                 />
-                {(estCivilC === 'Casado' || estCivilC === 'Casada') && (
+                <FormField
+                  control={control}
+                  name="comprador_uniao_estavel"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center space-x-2 space-y-0 sm:mt-8">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          disabled={isDistrato}
+                        />
+                      </FormControl>
+                      <FormLabel className="font-normal cursor-pointer text-sm !mt-0">
+                        Vive em União Estável?
+                      </FormLabel>
+                    </FormItem>
+                  )}
+                />
+                {(estCivilC === 'Casado' || estCivilC === 'Casada' || uniaoEstavelC) && (
                   <FormSelect
                     name="regime_bens_comprador"
                     label="Regime Bens"
@@ -132,11 +152,11 @@ export function EnvolvidosTab({ tipoDocumento }: { tipoDocumento: string }) {
                 )}
               </div>
             )}
-            {(estCivilC === 'Casado' || estCivilC === 'Casada') && (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border p-4 rounded bg-slate-50">
+            {(estCivilC === 'Casado' || estCivilC === 'Casada' || uniaoEstavelC) && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border p-4 rounded bg-slate-50 animate-in slide-in-from-top-2 duration-300">
                 <FormInput
                   name="nome_conjuge_comprador"
-                  label="Nome do Cônjuge"
+                  label="Nome do Cônjuge/Companheiro(a)"
                   disabled={isDistrato}
                 />
                 <FormMaskedInput
@@ -255,7 +275,25 @@ export function EnvolvidosTab({ tipoDocumento }: { tipoDocumento: string }) {
                 disabled={isDistrato}
                 required
               />
-              {(estCivilV === 'Casado' || estCivilV === 'Casada') && (
+              <FormField
+                control={control}
+                name="vendedor_uniao_estavel"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center space-x-2 space-y-0 sm:mt-8">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        disabled={isDistrato}
+                      />
+                    </FormControl>
+                    <FormLabel className="font-normal cursor-pointer text-sm !mt-0">
+                      Vive em União Estável?
+                    </FormLabel>
+                  </FormItem>
+                )}
+              />
+              {(estCivilV === 'Casado' || estCivilV === 'Casada' || uniaoEstavelV) && (
                 <FormSelect
                   name="regime_bens_vendedor"
                   label="Regime Bens"
@@ -265,9 +303,13 @@ export function EnvolvidosTab({ tipoDocumento }: { tipoDocumento: string }) {
               )}
             </div>
           )}
-          {(estCivilV === 'Casado' || estCivilV === 'Casada') && (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border p-4 rounded bg-slate-50">
-              <FormInput name="conjuge_vendedor" label="Nome do Cônjuge" disabled={isDistrato} />
+          {(estCivilV === 'Casado' || estCivilV === 'Casada' || uniaoEstavelV) && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border p-4 rounded bg-slate-50 animate-in slide-in-from-top-2 duration-300">
+              <FormInput
+                name="conjuge_vendedor"
+                label="Nome do Cônjuge/Companheiro(a)"
+                disabled={isDistrato}
+              />
               <FormMaskedInput
                 name="cpf_conjuge_vendedor"
                 label="CPF Cônjuge"

@@ -35,6 +35,9 @@ export function JuridicoTab({ tipoDocumento }: { tipoDocumento: string }) {
                       className={tipoDocumento === 'termo_posse' ? 'text-red-600 font-bold' : ''}
                     >
                       Data da Imissão na Posse
+                      {tipoDocumento === 'termo_posse' && (
+                        <span className="text-red-500 ml-1">*</span>
+                      )}
                     </FormLabel>
                     <Tooltip delayDuration={300}>
                       <TooltipTrigger
@@ -74,6 +77,9 @@ export function JuridicoTab({ tipoDocumento }: { tipoDocumento: string }) {
                     }
                   >
                     Data da Entrega de Chaves
+                    {tipoDocumento === 'termo_entrega_chaves' && (
+                      <span className="text-red-500 ml-1">*</span>
+                    )}
                   </FormLabel>
                   <FormControl>
                     <input

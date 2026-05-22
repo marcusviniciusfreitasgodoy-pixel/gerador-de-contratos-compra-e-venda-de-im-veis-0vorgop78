@@ -112,9 +112,9 @@ routerAdd(
             suite: Number(body.suites) || 0,
             quartos: Number(body.quartos) || 0,
             estado_conservacao: body.estado_conservacao || '',
-            leitura_agua: body.leitura_agua || 'Não informado',
-            leitura_luz: body.leitura_luz || 'Não informado',
-            leitura_gas: body.leitura_gas || 'Não informado',
+            leitura_agua: body.leitura_agua || '',
+            leitura_luz: body.leitura_luz || '',
+            leitura_gas: body.leitura_gas || '',
           },
           situacao_juridica: {
             ocupado: !!body.imovel_ocupado,
@@ -178,6 +178,7 @@ routerAdd(
           },
         },
         compliance: {
+          pep: !!body.pep,
           lgpd: !!body.clausula_lgpd,
           assinatura_eletronica: !!body.assinatura_eletronica,
           plataforma_assinatura: body.plataforma_assinatura || 'Clicksign',
@@ -365,10 +366,23 @@ CRECI: ${creci}`
           const keys = path.split('.')
           let val = data
           for (let k of keys) {
-            val = val?.[k]
-            if (val === undefined) break
+            if (val === undefined || val === null) break
+            val = val[k]
           }
-          return val !== undefined ? val : match
+
+          if (val === undefined || val === null || val === '') {
+            if (
+              path.includes('leitura') ||
+              path.includes('medicao') ||
+              path.includes('hidrometro') ||
+              path.includes('relogio')
+            )
+              return 'Leitura a realizar'
+            if (path.includes('data') || path.includes('prazo') || path.includes('entrega'))
+              return 'Data não informada'
+            return 'Não informado'
+          }
+          return val
         })
       }
 
@@ -398,6 +412,19 @@ CRECI: ${creci}`
               master_data.metadata.tipo_contrato !== 'checklist_documental'
             )
               include = false
+
+            // PEP integration: Auto-include compliance/PEP clauses if pep is true
+            if (cat === 'boas_praticas' || cat === 'protecao_comercial') {
+              const titleLower = m.getString('title').toLowerCase()
+              if (
+                titleLower.includes('pep') ||
+                titleLower.includes('politicamente exposta') ||
+                titleLower.includes('compliance') ||
+                titleLower.includes('lavagem de dinheiro')
+              ) {
+                include = master_data.compliance.pep
+              }
+            }
           }
 
           if (include) {
