@@ -60,9 +60,33 @@ migrate((app) => {
     try {
       app.findFirstRecordByData('legal_knowledge', 'code', t.code)
     } catch (_) {
-      const record = new Record(col)
-      Object.keys(t).forEach((k) => record.set(k, t[k]))
-      app.save(record)
+      const id = $security.randomString(15)
+      const now = new Date().toISOString().replace('T', ' ').substring(0, 19) + 'Z'
+
+      // Use raw SQL to prevent triggering afterCreate hooks which may fail in migrations
+      // because they might expect an HTTP request context (e.g. e.requestInfo())
+      app
+        .db()
+        .newQuery(`
+        INSERT INTO legal_knowledge (
+          id, title, category, code, trigger_logic, content, version, priority, created, updated
+        ) VALUES (
+          {:id}, {:title}, {:category}, {:code}, {:trigger_logic}, {:content}, {:version}, {:priority}, {:created}, {:updated}
+        )
+      `)
+        .bind({
+          id: id,
+          title: t.title,
+          category: t.category,
+          code: t.code,
+          trigger_logic: t.trigger_logic || '',
+          content: t.content || '',
+          version: t.version || 1,
+          priority: t.priority || 1,
+          created: now,
+          updated: now,
+        })
+        .execute()
     }
   })
 })
