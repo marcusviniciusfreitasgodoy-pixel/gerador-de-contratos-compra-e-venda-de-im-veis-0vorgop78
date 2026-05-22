@@ -683,34 +683,6 @@ export default function ContractView() {
               </AlertTitle>
               <AlertDescription className="mt-1 flex flex-col gap-3">
                 <span className="text-base">{analysisReport.summary}</span>
-                {contract?.compliance_checklist && (
-                  <div className="flex flex-wrap gap-4 mt-1 p-3 bg-white/50 rounded-md border border-black/10">
-                    <div className="flex items-center gap-2">
-                      {contract.compliance_checklist.matricula ? (
-                        <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-                          ✓
-                        </div>
-                      ) : (
-                        <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center text-red-600">
-                          ✗
-                        </div>
-                      )}
-                      <span className="font-medium text-sm">Matrícula Atualizada</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {contract.compliance_checklist.iptu ? (
-                        <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-                          ✓
-                        </div>
-                      ) : (
-                        <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center text-red-600">
-                          ✗
-                        </div>
-                      )}
-                      <span className="font-medium text-sm">Certidão IPTU</span>
-                    </div>
-                  </div>
-                )}
               </AlertDescription>
             </div>
           </div>

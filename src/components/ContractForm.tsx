@@ -53,7 +53,6 @@ import {
   type ContractTemplate,
 } from '@/services/contract_templates'
 
-import { ChecklistDocumental } from './contract/ChecklistDocumental'
 import { EnvolvidosTab } from './contract/EnvolvidosTab'
 import { ImovelTab } from './contract/ImovelTab'
 import { FinanceiroTab } from './contract/FinanceiroTab'
@@ -65,7 +64,6 @@ const WIZARD_STEPS_ALL = [
   { id: 'imovel', title: 'Imóvel' },
   { id: 'financeiro', title: 'Financeiro' },
   { id: 'juridico', title: 'Jurídico' },
-  { id: 'checklist', title: 'Checklist' },
   { id: 'revisao', title: 'Revisão' },
 ]
 
@@ -82,13 +80,10 @@ export function ContractForm({
 }) {
   const activeSteps = WIZARD_STEPS_ALL.filter((s) => {
     if (tipoDocumento === 'checklist_documental') {
-      return ['envolvidos', 'imovel', 'checklist', 'revisao'].includes(s.id)
+      return ['envolvidos', 'imovel', 'revisao'].includes(s.id)
     }
     if (tipoDocumento === 'ficha_cadastral') {
       return ['envolvidos', 'imovel', 'revisao'].includes(s.id)
-    }
-    if (tipoDocumento === 'autorizacao_intermediacao') {
-      return s.id !== 'checklist'
     }
     return true
   })
@@ -473,77 +468,6 @@ export function ContractForm({
     }
   }
 
-  const generateChecklistPlainText = (data: any) => {
-    const CATEGORIES = [
-      {
-        title: 'Vendedor',
-        items: [
-          'Documento de Identidade (RG/CNH)',
-          'CPF',
-          'Comprovante de Residência Atualizado',
-          'Certidão de Estado Civil (Nascimento atualizada ou Casamento)',
-          'Documento de Identidade do Cônjuge/Companheiro(a)',
-          'CPF do Cônjuge/Companheiro(a)',
-          'Pacto Antenupcial (se houver)',
-          'Certidões de Protesto de Títulos (domicílio e local do imóvel)',
-          'Certidão de Distribuição Cível e Criminal Estadual',
-          'Certidão Conjunta de Débitos Relativos a Tributos Federais e à Dívida Ativa da União (RFB)',
-          'Certidão do 2º Ofício de Distribuidor',
-          'Certidão de Interdições e Tutelas',
-          'Certidão da Justiça Federal',
-          'Certidão da Justiça do Trabalho',
-        ],
-      },
-      {
-        title: 'Comprador',
-        items: [
-          'Documento de Identidade (RG/CNH)',
-          'CPF',
-          'Comprovante de Residência Atualizado',
-          'Comprovante de Estado Civil (Casado)',
-          'Documento de Identidade do Cônjuge/Companheiro(a)',
-          'CPF do Cônjuge/Companheiro(a)',
-          'Certidão de Casamento/União Estável',
-        ],
-      },
-      {
-        title: 'Imóvel',
-        items: [
-          'Matrícula Atualizada (com ônus e ações)',
-          'Capa do carnê de IPTU',
-          'Certidão de Quitação Fiscal e Enfitêutica',
-          'Declaração de Quitação Condominial (assinada pelo síndico)',
-          'Cópia da Ata de Eleição do Síndico',
-          'Certidão do Funesbom (Corpo de Bombeiros)',
-          'Laudo de Vistoria com fotos',
-          'Comprovantes de quitação de contas de consumo (Luz, Água, Gás)',
-          'Termo de declaração de desocupação pelo vendedor',
-        ],
-      },
-      {
-        title: 'Dados Bancários',
-        items: [
-          'Dados do Banco (Nome/Código)',
-          'Agência e Conta (com dígito)',
-          'Titularidade e CPF/CNPJ vinculado',
-          'Chave PIX vinculada (se aplicável)',
-        ],
-      },
-    ]
-    let text = '\n\nCHECKLIST DE DUE DILIGENCE\n\n'
-    CATEGORIES.forEach((cat) => {
-      text += `${cat.title.toUpperCase()}\n`
-      cat.items.forEach((item) => {
-        const key = `${cat.title} - ${item}`
-        const isChecked = data.compliance_checklist && data.compliance_checklist[key] === true
-        const prefix = isChecked ? '✓ COLETADO' : '⚠️ PENDENTE'
-        text += `${prefix} - ${item}\n`
-      })
-      text += '\n'
-    })
-    return text
-  }
-
   const handlePreview = async () => {
     const isValid = await form.trigger()
     if (!isValid) {
@@ -565,10 +489,6 @@ export function ContractForm({
           body: JSON.stringify(getPayload()),
         })
         text = (res?.minuta_texto || '').replace(/Assessoria Jurídica Imobiliária/gi, '')
-
-        if (tipoDocumento !== 'autorizacao_intermediacao' && tipoDocumento !== 'ficha_cadastral') {
-          text += generateChecklistPlainText(form.getValues())
-        }
       }
 
       setCurrentMinuta(text)
@@ -609,10 +529,6 @@ export function ContractForm({
           body: JSON.stringify(getPayload()),
         })
         text = (res?.minuta_texto || '').replace(/Assessoria Jurídica Imobiliária/gi, '')
-
-        if (tipoDocumento !== 'autorizacao_intermediacao' && tipoDocumento !== 'ficha_cadastral') {
-          text += generateChecklistPlainText(form.getValues())
-        }
       }
 
       await saveContractDraft({ ...form.getValues(), status: 'finalizado' }, draftId, text)
@@ -768,7 +684,6 @@ export function ContractForm({
                 <FinanceiroTab tipoDocumento={tipoDocumento} />
               )}
               {currentStepData.id === 'juridico' && <JuridicoTab tipoDocumento={tipoDocumento} />}
-              {currentStepData.id === 'checklist' && <ChecklistDocumental />}
               {currentStepData.id === 'revisao' && <RevisaoTab />}
             </form>
           </Form>
