@@ -1,4 +1,6 @@
 import { useFormContext } from 'react-hook-form'
+import { Info } from 'lucide-react'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form'
 import { Checkbox } from '@/components/ui/checkbox'
 import { FormSelect, FormInput, FormCurrencyInput } from '@/components/FormInput'
@@ -82,19 +84,44 @@ export function JuridicoTab({ tipoDocumento }: { tipoDocumento: string }) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {!isAutorizacao && (
-              <FormSelect
-                name="tipo_negociacao"
-                label="Tipo de Negociação"
-                required
-                options={[
-                  { label: 'À Vista', value: 'a_vista' },
-                  { label: 'Financiamento', value: 'financiamento' },
-                  { label: 'Investidor', value: 'investidor' },
-                  { label: 'Alto Padrão', value: 'alto_padrao' },
-                  { label: 'Permuta', value: 'permuta' },
-                  { label: 'Dação em Pagamento', value: 'dacao' },
-                ]}
-              />
+              <div className="flex flex-col gap-3 md:col-span-2">
+                <div className="md:w-1/2 pr-2">
+                  <FormSelect
+                    name="tipo_negociacao"
+                    label="Tipo de Negociação"
+                    required
+                    options={[
+                      { label: 'À Vista', value: 'a_vista' },
+                      { label: 'Financiamento', value: 'financiamento' },
+                      { label: 'Investidor', value: 'investidor' },
+                      { label: 'Alto Padrão', value: 'alto_padrao' },
+                      { label: 'Permuta', value: 'permuta' },
+                      { label: 'Dação em Pagamento', value: 'dacao' },
+                    ]}
+                  />
+                </div>
+                {tipoNegociacao === 'investidor' && (
+                  <Alert className="bg-blue-50 text-blue-900 border-blue-200 mt-1">
+                    <Info className="h-4 w-4 text-blue-600" />
+                    <AlertTitle>Foco em Investidor</AlertTitle>
+                    <AlertDescription>
+                      O contrato priorizará a segurança do investimento, cessão de direitos e
+                      conformidade com normas PLD-FT (Prevenção à Lavagem de Dinheiro e
+                      Financiamento ao Terrorismo).
+                    </AlertDescription>
+                  </Alert>
+                )}
+                {tipoNegociacao === 'alto_padrao' && (
+                  <Alert className="bg-amber-50 text-amber-900 border-amber-200 mt-1">
+                    <Info className="h-4 w-4 text-amber-600" />
+                    <AlertTitle>Foco em Alto Padrão</AlertTitle>
+                    <AlertDescription>
+                      O contrato terá foco em descrições técnicas detalhadas, especificações de
+                      acabamento e cronogramas rigorosos de entrega.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
             )}
 
             {isAutorizacao && (
@@ -113,18 +140,32 @@ export function JuridicoTab({ tipoDocumento }: { tipoDocumento: string }) {
           {isPermutaDacao && (
             <div className="space-y-4 pt-4 border-t animate-in fade-in slide-in-from-top-2 duration-300">
               <h3 className="font-semibold text-lg pb-2 text-[#0C2340]">
-                Dados do Imóvel de Permuta/Dação
+                {tipoNegociacao === 'dacao'
+                  ? 'Dados do Bem / Imóvel em Dação'
+                  : 'Dados do Imóvel de Permuta'}
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormInput
                   name="permuta_imovel_endereco"
-                  label="Endereço Completo do Imóvel"
+                  label={
+                    tipoNegociacao === 'dacao'
+                      ? 'Descrição / Endereço Completo do Bem'
+                      : 'Endereço Completo do Imóvel'
+                  }
                   required
                 />
-                <FormInput name="permuta_imovel_matricula" label="Matrícula / RGI" required />
+                <FormInput
+                  name="permuta_imovel_matricula"
+                  label={
+                    tipoNegociacao === 'dacao'
+                      ? 'Matrícula / Registro / Documento'
+                      : 'Matrícula / RGI'
+                  }
+                  required
+                />
                 <FormCurrencyInput
                   name="permuta_imovel_valor"
-                  label="Valor de Avaliação do Imóvel (R$)"
+                  label="Valor de Avaliação (R$)"
                   required
                 />
                 <FormCurrencyInput name="possui_torna" label="Valor da Torna / Diferença (R$)" />
@@ -155,13 +196,19 @@ export function JuridicoTab({ tipoDocumento }: { tipoDocumento: string }) {
                 control={control}
                 name="clausula_arrependimento"
                 render={({ field }) => (
-                  <FormItem className="flex items-center space-x-2 border p-3 rounded-md">
-                    <FormControl>
-                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                    </FormControl>
-                    <FormLabel className="!mt-0 cursor-pointer">
-                      Incluir Cláusula de Arrependimento
-                    </FormLabel>
+                  <FormItem className="flex flex-col border p-4 rounded-md bg-white">
+                    <div className="flex items-center space-x-2">
+                      <FormControl>
+                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                      </FormControl>
+                      <FormLabel className="!mt-0 cursor-pointer font-medium">
+                        Incluir Cláusula de Arrependimento
+                      </FormLabel>
+                    </div>
+                    <p className="text-sm text-slate-500 mt-2 ml-6">
+                      Permite que as partes desistam do negócio sob condições legais específicas,
+                      normalmente envolvendo a perda ou devolução do sinal (arras).
+                    </p>
                   </FormItem>
                 )}
               />
@@ -169,13 +216,19 @@ export function JuridicoTab({ tipoDocumento }: { tipoDocumento: string }) {
                 control={control}
                 name="posse_imediata"
                 render={({ field }) => (
-                  <FormItem className="flex items-center space-x-2 border p-3 rounded-md">
-                    <FormControl>
-                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                    </FormControl>
-                    <FormLabel className="!mt-0 cursor-pointer">
-                      Posse Imediata na Assinatura
-                    </FormLabel>
+                  <FormItem className="flex flex-col border p-4 rounded-md bg-white">
+                    <div className="flex items-center space-x-2">
+                      <FormControl>
+                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                      </FormControl>
+                      <FormLabel className="!mt-0 cursor-pointer font-medium">
+                        Posse Imediata na Assinatura
+                      </FormLabel>
+                    </div>
+                    <p className="text-sm text-slate-500 mt-2 ml-6">
+                      O comprador recebe as chaves e o direito de usar o imóvel imediatamente após a
+                      assinatura, mesmo antes do pagamento total ou da transferência da escritura.
+                    </p>
                   </FormItem>
                 )}
               />
