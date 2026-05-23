@@ -22,6 +22,8 @@ import {
   Scale,
   ShieldAlert,
   Bug,
+  UserCheck,
+  Briefcase,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { GodoyLogo } from '@/components/GodoyLogo'
@@ -74,6 +76,14 @@ export function AppSidebar() {
                   <Link to="/analysis">
                     <Bot />
                     <span>Análise IA</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/expert-support')}>
+                  <Link to="/expert-support">
+                    <UserCheck />
+                    <span>Especialista</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -147,6 +157,19 @@ export function AppSidebar() {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              {user?.is_admin && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith('/admin/expert-dashboard')}
+                  >
+                    <Link to="/admin/expert-dashboard">
+                      <Briefcase />
+                      <span>Painel do Especialista</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

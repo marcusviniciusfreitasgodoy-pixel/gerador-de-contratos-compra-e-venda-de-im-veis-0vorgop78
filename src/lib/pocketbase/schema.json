@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-22T20:54:00.637Z",
+  "generatedAt": "2026-05-23T14:42:54.793Z",
   "collections": [
     {
       "name": "users",
@@ -1601,6 +1601,223 @@
         {
           "name": "context_data",
           "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "name": "expert_support_requests",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != '' && (user = @request.auth.id || @request.auth.is_admin = true)",
+        "view": "@request.auth.id != '' && (user = @request.auth.id || @request.auth.is_admin = true)",
+        "create": "@request.auth.id != ''",
+        "update": "@request.auth.id != '' && (user = @request.auth.id || @request.auth.is_admin = true)",
+        "delete": "@request.auth.id != '' && @request.auth.is_admin = true"
+      },
+      "fields": [
+        {
+          "name": "user",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "contract",
+          "type": "relation",
+          "required": false,
+          "system": false,
+          "collectionRef": "contracts"
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": [
+            "received",
+            "awaiting_info",
+            "screening",
+            "analyzing",
+            "proposal_issued",
+            "awaiting_decision",
+            "accepted",
+            "refused",
+            "reformulating",
+            "executing",
+            "completed",
+            "closed"
+          ]
+        },
+        {
+          "name": "objective",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": [
+            "technical_doubt",
+            "consultative_guidance",
+            "doc_analysis",
+            "partial_review",
+            "full_review",
+            "risk_analysis",
+            "talk_specialist"
+          ]
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "negotiation_stage",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "urgency",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["low", "medium", "high"]
+        },
+        {
+          "name": "operation_value",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "property_type",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "location_city_state",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "critical_deadline",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "notary_pending_issues",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "additional_notes",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "attachments",
+          "type": "file",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "sla_deadline",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "name": "expert_proposals",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != ''",
+        "view": "@request.auth.id != ''",
+        "create": "@request.auth.id != '' && @request.auth.is_admin = true",
+        "update": "@request.auth.id != ''",
+        "delete": "@request.auth.id != '' && @request.auth.is_admin = true"
+      },
+      "fields": [
+        {
+          "name": "request",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "expert_support_requests"
+        },
+        {
+          "name": "scope",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "deadline_days",
+          "type": "number",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "value",
+          "type": "number",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "complexity_type",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["standard", "adjusted", "personalized"]
+        },
+        {
+          "name": "user_response",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["none", "accepted", "refused", "reformulate"]
+        },
+        {
+          "name": "reformulation_notes",
+          "type": "text",
           "required": false,
           "system": false
         },

@@ -195,35 +195,48 @@ export function AnalysisReportView({
         generalStatus === 'ALTO') && (
         <Alert className="mb-6 border-orange-500 bg-orange-50">
           <ShieldAlert className="h-5 w-5 text-orange-600" />
-          <AlertTitle className="text-orange-800 font-bold">
-            Red Flags de Compliance Detectadas
-          </AlertTitle>
-          <AlertDescription className="text-orange-800">
-            Atenção aos seguintes riscos de severidade alta:
-            <ul className="list-disc ml-5 mt-2 space-y-1">
-              {report.riscos
-                ?.filter(
-                  (r) =>
-                    r.severidade?.toUpperCase() === 'ALTO' ||
-                    r.severidade?.toUpperCase() === 'CRÍTICO' ||
-                    r.severidade?.toUpperCase() === 'CRITICO',
-                )
-                .map((r, i) => (
-                  <li key={i}>
-                    <span className="font-semibold">{r.titulo}</span>: {r.descricao}
-                  </li>
-                ))}
-              {(!report.riscos ||
-                report.riscos.filter(
-                  (r) =>
-                    r.severidade?.toUpperCase() === 'ALTO' ||
-                    r.severidade?.toUpperCase() === 'CRÍTICO' ||
-                    r.severidade?.toUpperCase() === 'CRITICO',
-                ).length === 0) && (
-                <li>Verifique a seção de Omissões ou Cláusulas Abusivas para mais detalhes.</li>
-              )}
-            </ul>
-          </AlertDescription>
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 w-full">
+            <div>
+              <AlertTitle className="text-orange-800 font-bold">
+                Red Flags de Compliance Detectadas
+              </AlertTitle>
+              <AlertDescription className="text-orange-800">
+                Atenção aos seguintes riscos de severidade alta:
+                <ul className="list-disc ml-5 mt-2 space-y-1">
+                  {report.riscos
+                    ?.filter(
+                      (r) =>
+                        r.severidade?.toUpperCase() === 'ALTO' ||
+                        r.severidade?.toUpperCase() === 'CRÍTICO' ||
+                        r.severidade?.toUpperCase() === 'CRITICO',
+                    )
+                    .map((r, i) => (
+                      <li key={i}>
+                        <span className="font-semibold">{r.titulo}</span>: {r.descricao}
+                      </li>
+                    ))}
+                  {(!report.riscos ||
+                    report.riscos.filter(
+                      (r) =>
+                        r.severidade?.toUpperCase() === 'ALTO' ||
+                        r.severidade?.toUpperCase() === 'CRÍTICO' ||
+                        r.severidade?.toUpperCase() === 'CRITICO',
+                    ).length === 0) && (
+                    <li>Verifique a seção de Omissões ou Cláusulas Abusivas para mais detalhes.</li>
+                  )}
+                </ul>
+              </AlertDescription>
+            </div>
+            <Button
+              onClick={() =>
+                (window.location.href = `/expert-support/new${contract?.id ? `?contractId=${contract.id}` : ''}`)
+              }
+              variant="outline"
+              className="shrink-0 bg-white text-orange-800 border-orange-300 hover:bg-orange-100"
+            >
+              Falar com Especialista
+            </Button>
+          </div>
         </Alert>
       )}
 

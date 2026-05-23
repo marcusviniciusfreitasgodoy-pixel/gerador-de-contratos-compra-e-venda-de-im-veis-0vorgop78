@@ -20,6 +20,10 @@ import LegalKnowledgeList from '@/pages/admin/LegalKnowledgeList'
 import LegalKnowledgeForm from '@/pages/admin/LegalKnowledgeForm'
 import AuditLogsList from '@/pages/admin/AuditLogsList'
 import SystemErrorLogsList from '@/pages/admin/SystemErrorLogsList'
+import ExpertSupportList from '@/pages/ExpertSupportList'
+import ExpertSupportForm from '@/pages/ExpertSupportForm'
+import ExpertSupportView from '@/pages/ExpertSupportView'
+import ExpertDashboard from '@/pages/admin/ExpertDashboard'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 
 export default function App() {
@@ -47,7 +51,11 @@ export default function App() {
               <Route path="/profile" element={<Profile />} />
               <Route path="/analysis" element={<AIAnalysis />} />
               <Route path="/history" element={<AnalysisHistory />} />
+              <Route path="/expert-support" element={<ExpertSupportList />} />
+              <Route path="/expert-support/new" element={<ExpertSupportForm />} />
+              <Route path="/expert-support/:id" element={<ExpertSupportView />} />
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/expert-dashboard" element={<ExpertDashboard />} />
               <Route path="/admin/knowledge" element={<LegalKnowledgeList />} />
               <Route path="/admin/knowledge/new" element={<LegalKnowledgeForm />} />
               <Route path="/admin/knowledge/:id" element={<LegalKnowledgeForm />} />
