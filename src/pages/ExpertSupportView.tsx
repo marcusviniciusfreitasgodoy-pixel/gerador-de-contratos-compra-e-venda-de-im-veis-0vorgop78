@@ -32,6 +32,7 @@ export default function ExpertSupportView() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [request, setRequest] = useState<any>(null)
+  const [proposals, setProposals] = useState<any[]>([])
   const [proposal, setProposal] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
@@ -43,6 +44,7 @@ export default function ExpertSupportView() {
       const req = await getExpertRequest(id!)
       setRequest(req)
       const props = await getExpertProposals(id!)
+      setProposals(props)
       if (props.length > 0) setProposal(props[0])
     } catch (err) {
       console.error(err)
@@ -92,6 +94,20 @@ export default function ExpertSupportView() {
   const handleUploadNewFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+
+    const resetsAnalysis = ['analyzing', 'proposal_issued', 'awaiting_decision'].includes(
+      request.status,
+    )
+    if (resetsAnalysis) {
+      if (
+        !window.confirm(
+          'Adicionar novos documentos reiniciará a análise e poderá invalidar a proposta atual. Deseja continuar?',
+        )
+      ) {
+        return
+      }
+    }
+
     setActionLoading(true)
     try {
       const formData = new FormData()
@@ -100,10 +116,10 @@ export default function ExpertSupportView() {
       }
       formData.append('attachments', file)
 
-      // If proposal already issued, send back to screening
-      if (request.status === 'proposal_issued' || request.status === 'awaiting_decision') {
-        formData.append('status', 'screening')
-        toast.info('Novo anexo recebido. A solicitação retornou para triagem.')
+      // Reset to received if analysis had started or proposal issued
+      if (resetsAnalysis) {
+        formData.append('status', 'received')
+        toast.info('Novo anexo recebido. A análise foi reiniciada.')
       }
 
       await updateExpertRequest(id!, formData)
@@ -230,13 +246,19 @@ export default function ExpertSupportView() {
                 >
                   <CheckCircle className="w-4 h-4 mr-2" /> Aceitar Proposta
                 </Button>
-                <Button
-                  variant="outline"
-                  disabled={actionLoading}
-                  onClick={() => setShowReformulate(true)}
-                >
-                  <RefreshCw className="w-4 h-4 mr-2" /> Solicitar Reformulação
-                </Button>
+                {proposals.filter((p) => p.user_response === 'reformulate').length < 2 ? (
+                  <Button
+                    variant="outline"
+                    disabled={actionLoading}
+                    onClick={() => setShowReformulate(true)}
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" /> Solicitar Reformulação
+                  </Button>
+                ) : (
+                  <div className="text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-md flex items-center gap-1 border border-amber-200">
+                    <AlertCircle className="w-4 h-4" /> Limite de reformulações atingido.
+                  </div>
+                )}
                 <Button
                   variant="ghost"
                   className="text-red-600 hover:text-red-700 hover:bg-red-50"

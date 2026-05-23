@@ -38,6 +38,7 @@ export default function ExpertSupportForm() {
     description: '',
     negotiation_stage: '',
     urgency: 'medium',
+    critical_deadline: '',
     operation_value: '',
     property_type: '',
     location_city_state: '',
@@ -45,20 +46,20 @@ export default function ExpertSupportForm() {
     additional_notes: '',
   })
 
-  const calculateSLA = () => {
-    const date = new Date()
-    let added = 0
-    while (added < 2) {
-      date.setDate(date.getDate() + 1)
-      if (date.getDay() !== 0 && date.getDay() !== 6) added++
-    }
-    return date
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.objective || !form.description || !form.negotiation_stage) {
       toast.error('Preencha os campos obrigatórios.')
+      return
+    }
+    if (form.description.length < 50) {
+      toast.error(
+        'A descrição deve ter pelo menos 50 caracteres para garantir que possamos entender o contexto.',
+      )
+      return
+    }
+    if (form.urgency === 'high' && !form.critical_deadline) {
+      toast.error('O prazo crítico é obrigatório para urgência alta.')
       return
     }
 
@@ -73,6 +74,8 @@ export default function ExpertSupportForm() {
       formData.append('description', form.description)
       formData.append('negotiation_stage', form.negotiation_stage)
       formData.append('urgency', form.urgency)
+      if (form.critical_deadline)
+        formData.append('critical_deadline', new Date(form.critical_deadline).toISOString())
       if (form.operation_value)
         formData.append('operation_value', form.operation_value.replace(/\D/g, ''))
       if (form.property_type) formData.append('property_type', form.property_type)
@@ -80,9 +83,6 @@ export default function ExpertSupportForm() {
       if (form.notary_pending_issues)
         formData.append('notary_pending_issues', form.notary_pending_issues)
       if (form.additional_notes) formData.append('additional_notes', form.additional_notes)
-
-      const sla = calculateSLA()
-      formData.append('sla_deadline', sla.toISOString())
 
       files.forEach((f) => formData.append('attachments', f))
 
@@ -97,7 +97,27 @@ export default function ExpertSupportForm() {
     }
   }
 
-  const slaDateStr = calculateSLA().toLocaleDateString('pt-BR')
+  const OBJECTIVE_OPTIONS = [
+    { value: 'technical_doubt', label: 'Dúvida Técnica', price: 'A partir de R$ 150,00' },
+    {
+      value: 'consultative_guidance',
+      label: 'Orientação Consultiva',
+      price: 'A partir de R$ 200,00',
+    },
+    { value: 'doc_analysis', label: 'Análise de Documentação', price: 'A partir de R$ 250,00' },
+    {
+      value: 'partial_review',
+      label: 'Revisão Parcial de Cláusula',
+      price: 'A partir de R$ 250,00',
+    },
+    { value: 'full_review', label: 'Revisão Completa do Contrato', price: 'A partir de R$ 600,00' },
+    {
+      value: 'risk_analysis',
+      label: 'Análise de Risco (Compliance)',
+      price: 'A partir de R$ 400,00',
+    },
+    { value: 'talk_specialist', label: 'Falar com Especialista', price: 'A partir de R$ 300,00' },
+  ]
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-4xl animate-in fade-in">
@@ -132,12 +152,12 @@ export default function ExpertSupportForm() {
                         <SelectValue placeholder="Selecione..." />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="technical_doubt">Dúvida Técnica</SelectItem>
-                        <SelectItem value="consultative_guidance">Orientação Consultiva</SelectItem>
-                        <SelectItem value="doc_analysis">Análise de Documentação</SelectItem>
-                        <SelectItem value="risk_analysis">Análise de Risco (Compliance)</SelectItem>
-                        <SelectItem value="partial_review">Revisão Parcial de Cláusula</SelectItem>
-                        <SelectItem value="full_review">Revisão Completa do Contrato</SelectItem>
+                        {OBJECTIVE_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}{' '}
+                            <span className="text-slate-400 text-xs ml-2">({opt.price})</span>
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -165,10 +185,13 @@ export default function ExpertSupportForm() {
                   <Label>Descrição do Caso *</Label>
                   <Textarea
                     rows={4}
-                    placeholder="Descreva detalhadamente qual é a sua dúvida ou necessidade de suporte..."
+                    placeholder="Descreva detalhadamente qual é a sua dúvida ou necessidade de suporte (mínimo 50 caracteres)..."
                     value={form.description}
                     onChange={(e) => setForm({ ...form, description: e.target.value })}
                   />
+                  <p className="text-xs text-slate-500 text-right">
+                    {form.description.length} / 50 min
+                  </p>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
@@ -188,6 +211,16 @@ export default function ExpertSupportForm() {
                       </SelectContent>
                     </Select>
                   </div>
+                  {form.urgency === 'high' && (
+                    <div className="space-y-2">
+                      <Label>Prazo Crítico *</Label>
+                      <Input
+                        type="date"
+                        value={form.critical_deadline}
+                        onChange={(e) => setForm({ ...form, critical_deadline: e.target.value })}
+                      />
+                    </div>
+                  )}
                   <div className="space-y-2">
                     <Label>Valor da Operação (R$)</Label>
                     <Input
@@ -277,7 +310,7 @@ export default function ExpertSupportForm() {
               <CardFooter className="bg-slate-50 border-t p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-2 text-sm text-slate-600">
                   <Clock className="w-4 h-4 text-amber-500" />
-                  SLA de Resposta: <strong className="text-slate-800">Até {slaDateStr}</strong>
+                  SLA de Resposta: <strong className="text-slate-800">Até 2 dias úteis</strong>
                 </div>
                 <Button
                   type="submit"

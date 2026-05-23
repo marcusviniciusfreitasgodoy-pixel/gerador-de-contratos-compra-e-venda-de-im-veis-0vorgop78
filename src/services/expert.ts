@@ -6,13 +6,11 @@ export const getExpertRequests = () =>
     .getFullList({ sort: '-created', expand: 'contract,user' })
 
 export const getMyExpertRequests = () =>
-  pb
-    .collection('expert_support_requests')
-    .getFullList({
-      sort: '-created',
-      expand: 'contract',
-      filter: `user = "${pb.authStore.record?.id}"`,
-    })
+  pb.collection('expert_support_requests').getFullList({
+    sort: '-created',
+    expand: 'contract',
+    filter: `user = "${pb.authStore.record?.id}"`,
+  })
 
 export const getExpertRequest = (id: string) =>
   pb.collection('expert_support_requests').getOne(id, { expand: 'contract,user' })
